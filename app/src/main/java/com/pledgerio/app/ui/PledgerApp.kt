@@ -12,11 +12,14 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -115,6 +118,7 @@ private fun PledgerAppContent(
                             it.route == item.route
                         } == true
 
+                        val label = stringResource(item.labelResId)
                         NavigationBarItem(
                             selected = selected,
                             onClick = {
@@ -126,14 +130,22 @@ private fun PledgerAppContent(
                                     restoreState = true
                                 }
                             },
+                            alwaysShowLabel = false,
                             icon = {
                                 Icon(
                                     imageVector = item.icon,
-                                    contentDescription = null,
+                                    contentDescription = label,
                                 )
                             },
                             label = {
-                                Text(text = stringResource(item.labelResId))
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    softWrap = false,
+                                    textAlign = TextAlign.Center,
+                                )
                             },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = EmeraldGreen,
