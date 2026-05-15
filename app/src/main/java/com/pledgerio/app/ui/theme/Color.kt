@@ -30,3 +30,11 @@ val LightTextSecondary = Color(0xFF475569)
 val Divider = Color(0xFF2A3F57)
 val Shimmer = Color(0xFF253650)
 val GlassSurface = Color(0x331C2D42)
+
+// App header gradient
+val HeaderGradientTopDark = Color(0xFF071220)
+val HeaderGradientBottomDark = Color(0xFF1A3348)
+val HeaderGradientTopLight = Color(0xFF00695C)
+val HeaderGradientBottomLight = Color(0xFF4DB6AC)
+val HeaderOnGradient = Color(0xFFF8FAFC)
+val HeaderOnGradientMuted = Color(0xB3F1F5F9)

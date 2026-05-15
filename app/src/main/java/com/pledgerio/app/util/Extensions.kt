@@ -3,13 +3,14 @@ package com.pledgerio.app.util
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-fun Double.formatCurrency(currencyCode: String = "EUR"): String {
+fun Double.formatCurrency(currencyCode: String? = null): String {
+    val code = currencyCode ?: UserPreferences.defaultDisplayCurrency
     val provider = CurrencyProvider.getInstance()
     if (provider != null) {
-        return provider.formatAmount(this, currencyCode)
+        return provider.formatAmount(this, code)
     }
     val formatted = String.format("%,.2f", this)
-    return "$currencyCode $formatted"
+    return "$code $formatted"
 }
 
 fun LocalDate.formatDisplay(): String {

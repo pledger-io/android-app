@@ -18,8 +18,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -29,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.ui.components.EmptyScreen
 import com.pledgerio.app.ui.components.PledgerCard
+import com.pledgerio.app.ui.components.PledgerTopBar
 
 enum class ReportType(val title: String) {
     INCOME_EXPENSE("Income vs Expenses"),
@@ -47,11 +46,9 @@ fun ReportsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Reports", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                ),
+            PledgerTopBar(
+                title = "Reports",
+                subtitle = "Insights into your money",
             )
         }
     ) { paddingValues ->

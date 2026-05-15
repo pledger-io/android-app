@@ -8,6 +8,7 @@ import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.util.Resource
+import com.pledgerio.app.util.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +34,7 @@ class DashboardViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
     private val transactionRepository: TransactionRepository,
     private val currencyRepository: CurrencyRepository,
+    private val userPreferences: UserPreferences,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DashboardUiState())
@@ -40,6 +42,11 @@ class DashboardViewModel @Inject constructor(
 
     init {
         viewModelScope.launch { currencyRepository.sync() }
+        viewModelScope.launch {
+            userPreferences.displayCurrencyCode.collect { code ->
+                _uiState.update { it.copy(currency = code) }
+            }
+        }
         loadDashboard()
     }
 
@@ -64,7 +71,7 @@ class DashboardViewModel @Inject constructor(
                                 isRefreshing = false,
                                 accounts = accounts,
                                 netWorth = netWorth,
-                                currency = accounts.firstOrNull()?.currency ?: "EUR",
+                                currency = userPreferences.displayCurrencyCode.value,
                                 error = null,
                             )
                         }

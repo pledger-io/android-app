@@ -18,8 +18,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -34,6 +32,7 @@ import com.pledgerio.app.ui.components.EmptyScreen
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
+import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.ui.theme.EmeraldGreen
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.IncomeGreen
@@ -50,11 +49,9 @@ fun BudgetsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Budgets", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                ),
+            PledgerTopBar(
+                title = "Budgets",
+                subtitle = "Plan and track your spending",
             )
         }
     ) { paddingValues ->

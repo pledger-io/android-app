@@ -3,6 +3,7 @@ package com.pledgerio.app.ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
@@ -17,10 +18,9 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -30,13 +30,12 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.pledgerio.app.R
+import com.pledgerio.app.domain.model.ThemeMode
 import com.pledgerio.app.ui.navigation.NavGraph
 import com.pledgerio.app.ui.navigation.Screen
 import com.pledgerio.app.ui.theme.EmeraldGreen
+import com.pledgerio.app.ui.theme.PledgerTheme
 import com.pledgerio.app.ui.theme.TextSecondary
-import com.pledgerio.app.util.SessionManager
-import javax.inject.Inject
-
 data class BottomNavItem(
     val route: String,
     val icon: ImageVector,
@@ -61,13 +60,22 @@ private val mainScreens = setOf(
 
 @Composable
 fun PledgerApp(
-    sessionManager: SessionManager = hiltViewModel<AppViewModel>().sessionManager,
+    appViewModel: AppViewModel = hiltViewModel(),
 ) {
+    val sessionManager = appViewModel.sessionManager
+    val themeMode by appViewModel.themeMode.collectAsState()
+    val systemDark = isSystemInDarkTheme()
+    val darkTheme = when (themeMode) {
+        ThemeMode.SYSTEM -> systemDark
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+    }
+
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val startDestination = remember {
+    val startDestination = remember(sessionManager.getBaseUrl(), sessionManager.isLoggedIn()) {
         when {
             sessionManager.getBaseUrl() == null -> Screen.ServerSetup.route
             !sessionManager.isLoggedIn() -> Screen.Login.route
@@ -77,6 +85,23 @@ fun PledgerApp(
 
     val showBottomBar = currentRoute in mainScreens
 
+    PledgerTheme(darkTheme = darkTheme) {
+        PledgerAppContent(
+            navController = navController,
+            startDestination = startDestination,
+            showBottomBar = showBottomBar,
+            navBackStackEntry = navBackStackEntry,
+        )
+    }
+}
+
+@Composable
+private fun PledgerAppContent(
+    navController: androidx.navigation.NavHostController,
+    startDestination: String,
+    showBottomBar: Boolean,
+    navBackStackEntry: androidx.navigation.NavBackStackEntry?,
+) {
     Scaffold(
         bottomBar = {
             AnimatedVisibility(

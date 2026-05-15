@@ -28,8 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -44,6 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.AccountType
 import com.pledgerio.app.ui.components.EmptyScreen
+import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
@@ -63,13 +62,9 @@ fun AccountsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text("Accounts", fontWeight = FontWeight.Bold)
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                ),
+            PledgerTopBar(
+                title = "Accounts",
+                subtitle = "Balances across your wallets",
             )
         },
         floatingActionButton = {

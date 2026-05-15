@@ -69,7 +69,7 @@ interface PledgerApiService {
     suspend fun getTransactions(
         @Query("startDate") startDate: String,
         @Query("endDate") endDate: String,
-        @Query("accounts") accounts: List<Long>? = null,
+        @Query("account") accounts: List<Long>? = null,
         @Query("type") type: String? = null,
         @Query("description") description: String? = null,
         @Query("currency") currency: String? = null,

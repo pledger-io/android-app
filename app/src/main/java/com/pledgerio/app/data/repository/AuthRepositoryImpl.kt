@@ -76,7 +76,14 @@ class AuthRepositoryImpl @Inject constructor(
 
     override fun isLoggedIn(): Boolean = sessionManager.isLoggedIn()
 
-    override fun logout() {
+    override suspend fun logout() {
+        try {
+            if (sessionManager.isLoggedIn()) {
+                apiService.logout()
+            }
+        } catch (_: Exception) {
+            // Clear local session even when the server is unreachable
+        }
         sessionManager.clearSession()
     }
 }

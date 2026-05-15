@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Fingerprint
@@ -24,13 +27,14 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import com.pledgerio.app.domain.model.ThemeMode
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,11 +47,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.ui.theme.ExpenseRed
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    onNavigateBack: () -> Unit,
     onLogout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -63,8 +69,7 @@ fun SettingsScreen(
                 TextButton(
                     onClick = {
                         showLogoutDialog = false
-                        viewModel.logout()
-                        onLogout()
+                        viewModel.logout(onLoggedOut = onLogout)
                     }
                 ) {
                     Text("Sign Out", color = ExpenseRed)
@@ -78,13 +83,96 @@ fun SettingsScreen(
         )
     }
 
+    if (uiState.showCurrencyPicker) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissCurrencyPicker,
+            title = { Text("Display currency") },
+            text = {
+                if (uiState.currencies.isEmpty()) {
+                    Text("Loading currencies…")
+                } else {
+                    LazyColumn(modifier = Modifier.heightIn(max = 360.dp)) {
+                        items(uiState.currencies, key = { it.code }) { currency ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { viewModel.selectCurrency(currency.code) }
+                                    .padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                RadioButton(
+                                    selected = currency.code == uiState.displayCurrencyCode,
+                                    onClick = { viewModel.selectCurrency(currency.code) },
+                                )
+                                Column {
+                                    Text(
+                                        text = currency.code,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Medium,
+                                    )
+                                    Text(
+                                        text = "${currency.name} (${currency.symbol})",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::dismissCurrencyPicker) {
+                    Text("Cancel")
+                }
+            },
+        )
+    }
+
+    if (uiState.showThemePicker) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissThemePicker,
+            title = { Text("Theme") },
+            text = {
+                Column {
+                    ThemeMode.entries.forEach { mode ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { viewModel.selectTheme(mode) }
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(
+                                selected = uiState.themeMode == mode,
+                                onClick = { viewModel.selectTheme(mode) },
+                            )
+                            Text(
+                                text = mode.displayName,
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::dismissThemePicker) {
+                    Text("Cancel")
+                }
+            },
+        )
+    }
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Settings", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                ),
+            PledgerTopBar(
+                title = "Settings",
+                subtitle = "Server, security & preferences",
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
             )
         }
     ) { paddingValues ->
@@ -120,16 +208,16 @@ fun SettingsScreen(
                 SettingsSection("Preferences") {
                     SettingsItem(
                         icon = Icons.Default.Language,
-                        title = "Currency",
-                        subtitle = uiState.currency,
-                        onClick = { /* TODO: Currency picker */ },
+                        title = "Display currency",
+                        subtitle = uiState.displayCurrencyLabel,
+                        onClick = viewModel::openCurrencyPicker,
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SettingsItem(
                         icon = Icons.Default.DarkMode,
                         title = "Theme",
-                        subtitle = "System default",
-                        onClick = { /* TODO: Theme picker */ },
+                        subtitle = uiState.themeMode.displayName,
+                        onClick = viewModel::openThemePicker,
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SettingsItem(
@@ -157,7 +245,7 @@ fun SettingsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showLogoutDialog = true }
+                        .clickable(enabled = !uiState.isLoggingOut) { showLogoutDialog = true }
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {

@@ -6,5 +6,5 @@ interface AuthRepository {
     suspend fun login(username: String, password: String): Resource<String>
     suspend fun validateServer(baseUrl: String): Resource<Boolean>
     fun isLoggedIn(): Boolean
-    fun logout()
+    suspend fun logout()
 }

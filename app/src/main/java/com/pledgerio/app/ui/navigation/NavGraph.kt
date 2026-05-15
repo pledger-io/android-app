@@ -71,6 +71,9 @@ fun NavGraph(
                 onNavigateToAddAccount = {
                     navController.navigate(Screen.AddAccount.route)
                 },
+                onNavigateToSettings = {
+                    navController.navigate(Screen.Settings.route)
+                },
             )
         }
 
@@ -164,11 +167,12 @@ fun NavGraph(
 
         composable(Screen.Settings.route) {
             SettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
                 onLogout = {
                     navController.navigate(Screen.ServerSetup.route) {
                         popUpTo(0) { inclusive = true }
                     }
-                }
+                },
             )
         }
     }
