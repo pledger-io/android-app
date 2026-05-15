@@ -7,6 +7,7 @@ import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.AccountTypeCodes
 import com.pledgerio.app.domain.model.FilterOption
 import com.pledgerio.app.domain.model.Transaction
+import com.pledgerio.app.domain.model.TransactionTemplate
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
@@ -16,6 +17,7 @@ import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.ui.transactions.form.TransactionFormLabels
 import com.pledgerio.app.util.Resource
+import com.pledgerio.app.util.TransactionTemplateStore
 import com.pledgerio.app.util.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -87,6 +89,11 @@ data class TransactionFormUiState(
     val contractSelected: FilterOption? = null,
     val contractSuggestions: List<FilterOption> = emptyList(),
     val isSearchingContract: Boolean = false,
+    val tags: List<String> = emptyList(),
+    val tagInput: String = "",
+    val templates: List<TransactionTemplate> = emptyList(),
+    val showSaveTemplateDialog: Boolean = false,
+    val saveTemplateName: String = "",
 ) {
     val sourceInputKind: AccountInputKind
         get() = inputKindForSource(type)
@@ -163,6 +170,7 @@ class TransactionFormViewModel @Inject constructor(
     private val budgetRepository: BudgetRepository,
     private val contractRepository: ContractRepository,
     private val userPreferences: UserPreferences,
+    private val transactionTemplateStore: TransactionTemplateStore,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -185,8 +193,17 @@ class TransactionFormViewModel @Inject constructor(
     init {
         loadOwnedAccounts()
         loadCurrencies()
+        observeTemplates()
         if (editTransactionId != null) {
             loadTransactionForEdit(editTransactionId)
+        }
+    }
+
+    private fun observeTemplates() {
+        viewModelScope.launch {
+            transactionTemplateStore.templates.collect { templates ->
+                _uiState.update { it.copy(templates = templates) }
+            }
         }
     }
 
@@ -260,6 +277,134 @@ class TransactionFormViewModel @Inject constructor(
 
     fun toggleMoreOptions() {
         _uiState.update { it.copy(moreOptionsExpanded = !it.moreOptionsExpanded) }
+    }
+
+    fun onTagInputChanged(value: String) {
+        if (value.endsWith(",")) {
+            val tag = value.dropLast(1).trim()
+            if (tag.isNotEmpty()) addTag(tag)
+            _uiState.update { it.copy(tagInput = "") }
+        } else {
+            _uiState.update { it.copy(tagInput = value) }
+        }
+    }
+
+    fun addTag(raw: String) {
+        val tag = raw.trim()
+        if (tag.isEmpty()) return
+        _uiState.update { state ->
+            if (state.tags.any { it.equals(tag, ignoreCase = true) }) {
+                state.copy(tagInput = "")
+            } else {
+                state.copy(tags = state.tags + tag, tagInput = "")
+            }
+        }
+    }
+
+    fun removeTag(tag: String) {
+        _uiState.update { it.copy(tags = it.tags.filterNot { existing -> existing == tag }) }
+    }
+
+    fun showSaveTemplateDialog() {
+        val state = _uiState.value
+        val defaultName = state.description.trim().ifBlank { "New template" }
+        _uiState.update {
+            it.copy(
+                showSaveTemplateDialog = true,
+                saveTemplateName = defaultName,
+            )
+        }
+    }
+
+    fun dismissSaveTemplateDialog() {
+        _uiState.update { it.copy(showSaveTemplateDialog = false, saveTemplateName = "") }
+    }
+
+    fun onSaveTemplateNameChanged(name: String) {
+        _uiState.update { it.copy(saveTemplateName = name) }
+    }
+
+    fun confirmSaveTemplate() {
+        val state = _uiState.value
+        val name = state.saveTemplateName.trim()
+        if (name.isEmpty()) return
+
+        viewModelScope.launch {
+            transactionTemplateStore.saveFromForm(
+                name = name,
+                description = state.description,
+                amount = state.amount,
+                type = state.type.name,
+                currency = state.currency,
+                sourceAccountId = state.sourceAccountId,
+                sourceAccountName = resolveAccountName(
+                    state.sourceAccountId,
+                    state.sourceSelected,
+                    state.ownedAccounts,
+                ),
+                targetAccountId = state.targetAccountId,
+                targetAccountName = resolveAccountName(
+                    state.targetAccountId,
+                    state.targetSelected,
+                    state.ownedAccounts,
+                ),
+                tags = state.tags,
+            )
+            _uiState.update { it.copy(showSaveTemplateDialog = false, saveTemplateName = "") }
+        }
+    }
+
+    fun applyTemplate(template: TransactionTemplate) {
+        val type = template.typeEnum ?: return
+        viewModelScope.launch {
+            userPreferences.setLastTransactionType(type)
+            val sourceKind = TransactionFormUiState.inputKindForSource(type)
+            val targetKind = TransactionFormUiState.inputKindForTarget(type)
+            _uiState.update { state ->
+                val sourceId = template.sourceAccountId?.takeIf { id ->
+                    sourceKind == AccountInputKind.OWNED_DROPDOWN &&
+                        state.ownedAccounts.any { it.id == id }
+                }
+                val targetId = template.targetAccountId?.takeIf { id ->
+                    targetKind == AccountInputKind.OWNED_DROPDOWN &&
+                        state.ownedAccounts.any { it.id == id }
+                }
+                state.copy(
+                    type = type,
+                    description = template.description,
+                    amount = template.amount,
+                    currency = if (state.currencies.contains(template.currency)) {
+                        template.currency
+                    } else {
+                        state.currency
+                    },
+                    tags = template.tags,
+                    tagInput = "",
+                    sourceAccountId = sourceId,
+                    sourceSelected = if (
+                        sourceKind != AccountInputKind.OWNED_DROPDOWN &&
+                        template.sourceAccountId != null
+                    ) {
+                        FilterOption(template.sourceAccountId, template.sourceAccountName)
+                    } else {
+                        null
+                    },
+                    sourceQuery = template.sourceAccountName,
+                    targetAccountId = targetId,
+                    targetSelected = if (
+                        targetKind != AccountInputKind.OWNED_DROPDOWN &&
+                        template.targetAccountId != null
+                    ) {
+                        FilterOption(template.targetAccountId, template.targetAccountName)
+                    } else {
+                        null
+                    },
+                    targetQuery = template.targetAccountName,
+                    moreOptionsExpanded = template.tags.isNotEmpty(),
+                    error = null,
+                )
+            }
+        }
     }
 
     fun openOwnedAccountPicker(side: OwnedAccountPickerSide) {
@@ -475,6 +620,7 @@ class TransactionFormViewModel @Inject constructor(
                 categoryId = state.categorySelected?.id,
                 expenseId = state.expenseSelected?.id,
                 contractId = state.contractSelected?.id,
+                tags = state.tags,
             )
 
             val result = if (state.isEditing && state.editingTransactionId != null) {
@@ -743,6 +889,11 @@ class TransactionFormViewModel @Inject constructor(
                             categoryQuery = tx.categoryName.orEmpty(),
                             expenseQuery = tx.budgetName.orEmpty(),
                             contractQuery = tx.contractName.orEmpty(),
+                            tags = tx.tags,
+                            moreOptionsExpanded = tx.tags.isNotEmpty() ||
+                                tx.categoryName != null ||
+                                tx.budgetName != null ||
+                                tx.contractName != null,
                         )
                     }
                 }

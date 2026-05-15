@@ -35,7 +35,9 @@ import com.pledgerio.app.ui.transactions.form.OwnedAccountPickerSheet
 import com.pledgerio.app.ui.transactions.form.TransactionAmountCard
 import com.pledgerio.app.ui.transactions.form.TransactionFlowCard
 import com.pledgerio.app.ui.transactions.form.TransactionFormFooter
+import com.pledgerio.app.ui.transactions.form.SaveTemplateDialog
 import com.pledgerio.app.ui.transactions.form.TransactionFormMoreOptions
+import com.pledgerio.app.ui.transactions.form.TransactionTemplatesSection
 import com.pledgerio.app.ui.transactions.form.TransactionTypeSelector
 import java.time.Instant
 import java.time.LocalDate
@@ -57,6 +59,15 @@ fun TransactionFormScreen(
         if (uiState.saveSuccess) {
             onNavigateBack()
         }
+    }
+
+    if (uiState.showSaveTemplateDialog) {
+        SaveTemplateDialog(
+            name = uiState.saveTemplateName,
+            onNameChange = viewModel::onSaveTemplateNameChanged,
+            onDismiss = viewModel::dismissSaveTemplateDialog,
+            onConfirm = viewModel::confirmSaveTemplate,
+        )
     }
 
     if (uiState.showDatePicker) {
@@ -165,6 +176,15 @@ fun TransactionFormScreen(
                             onSelected = viewModel::onTypeChanged,
                         )
 
+                        if (!uiState.isEditing) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            TransactionTemplatesSection(
+                                templates = uiState.templates,
+                                onApplyTemplate = viewModel::applyTemplate,
+                                onSaveAsTemplate = viewModel::showSaveTemplateDialog,
+                            )
+                        }
+
                         Spacer(modifier = Modifier.height(16.dp))
 
                         TransactionAmountCard(
@@ -266,6 +286,11 @@ fun TransactionFormScreen(
                             onContractQueryChange = viewModel::onContractQueryChanged,
                             onContractSelected = viewModel::selectContract,
                             onContractClear = viewModel::clearContract,
+                            tags = uiState.tags,
+                            tagInput = uiState.tagInput,
+                            onTagInputChange = viewModel::onTagInputChanged,
+                            onAddTag = viewModel::addTag,
+                            onRemoveTag = viewModel::removeTag,
                         )
 
                         Spacer(modifier = Modifier.height(24.dp))

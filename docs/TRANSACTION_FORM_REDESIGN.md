@@ -2,7 +2,7 @@
 
 Design and implementation plan for the **New Transaction** screen (`TransactionFormScreen` / `TransactionFormViewModel`). Goal: a clearer, more attractive flow that matches how people think about money (income, spending, transfers) while keeping Pledger’s account-type rules intact.
 
-**Status:** Phase 1–2 implemented (create + edit, bottom sheet, more options)  
+**Status:** Phase 1–3 implemented (templates, tags; split/receipt deferred — see Phase 3)  
 **Related:** [Architecture — transaction create form](ARCHITECTURE.md#transaction-create-form), [Account types](ACCOUNTS.md)
 
 ---
@@ -290,11 +290,14 @@ Extend unit tests:
 | Collapsible “More options” (category, etc.) | L |
 | Edit transaction (reuse form, prefill) | L |
 
-### Phase 3 — Optional
+### Phase 3 — Optional ✅ (partial)
 
-- Split bill / recurring (out of scope unless API supports)
-- Photo/receipt attachment
-- Template transactions (“Monthly rent”)
+| Task | Status |
+|------|--------|
+| Template transactions (local DataStore, apply + save) | ✅ |
+| Tags on create/edit (`POST` / `PUT` tags field) | ✅ |
+| Split bill / recurring | ⏸ API create payload has no `split` field |
+| Photo/receipt attachment | ⏸ No file upload endpoint in client |
 
 ---
 

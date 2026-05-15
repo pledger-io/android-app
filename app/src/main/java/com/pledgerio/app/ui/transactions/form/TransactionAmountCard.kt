@@ -74,16 +74,16 @@ fun TransactionAmountCard(
             singleLine = true,
             isError = amountError != null,
             supportingText = amountError?.let { { Text(it) } },
-            textStyle = MaterialTheme.typography.headlineLarge.copy(
+            textStyle = MaterialTheme.typography.headlineMedium.copy(
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 36.sp,
-                lineHeight = 44.sp,
+                fontSize = 22.sp,
+                lineHeight = 24.sp,
             ),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 4.dp)
-                .heightIn(min = 64.dp),
+                .padding(top = 2.dp)
+                .heightIn(min = 28.dp),
         )
 
         Text(

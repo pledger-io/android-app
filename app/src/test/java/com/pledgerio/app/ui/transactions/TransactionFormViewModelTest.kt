@@ -12,7 +12,9 @@ import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.ui.transactions.form.TransactionFormLabels
 import com.pledgerio.app.util.MainDispatcherRule
+import com.pledgerio.app.domain.model.TransactionTemplate
 import com.pledgerio.app.util.Resource
+import com.pledgerio.app.util.TransactionTemplateStore
 import com.pledgerio.app.util.UserPreferences
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -43,6 +45,7 @@ class TransactionFormViewModelTest {
     private val budgetRepository = mockk<BudgetRepository>(relaxed = true)
     private val contractRepository = mockk<ContractRepository>(relaxed = true)
     private val userPreferences = mockk<UserPreferences>(relaxed = true)
+    private val transactionTemplateStore = mockk<TransactionTemplateStore>(relaxed = true)
     private val savedStateHandle = SavedStateHandle()
 
     private val checking = Account(id = 1, name = "Checking", typeCode = "default", currency = "EUR")
@@ -51,6 +54,7 @@ class TransactionFormViewModelTest {
     private fun setupRepository() {
         every { currencyRepository.getCurrencies() } returns flowOf(emptyList())
         coEvery { userPreferences.setLastTransactionType(any()) } returns Unit
+        every { transactionTemplateStore.templates } returns flowOf(emptyList())
         coEvery { accountRepository.refreshOwnedAccounts() } returns Resource.Success(
             listOf(checking, savings),
         )
@@ -66,8 +70,37 @@ class TransactionFormViewModelTest {
             budgetRepository,
             contractRepository,
             userPreferences,
+            transactionTemplateStore,
             savedStateHandle,
         )
+    }
+
+    @Test
+    fun `applyTemplate fills form fields`() = runTest {
+        val template = TransactionTemplate(
+            id = "t1",
+            name = "Rent",
+            description = "Monthly rent",
+            amount = "1200",
+            type = TransactionType.CREDIT.name,
+            currency = "EUR",
+            sourceAccountId = checking.id,
+            sourceAccountName = checking.name,
+            targetAccountId = null,
+            targetAccountName = "",
+            tags = listOf("housing"),
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.applyTemplate(template)
+        advanceUntilIdle()
+
+        assertEquals("Monthly rent", viewModel.uiState.value.description)
+        assertEquals("1200", viewModel.uiState.value.amount)
+        assertEquals(TransactionType.CREDIT, viewModel.uiState.value.type)
+        assertEquals(listOf("housing"), viewModel.uiState.value.tags)
+        assertEquals(checking.id, viewModel.uiState.value.sourceAccountId)
     }
 
     @Test
@@ -142,6 +175,7 @@ class TransactionFormViewModelTest {
             budgetRepository,
             contractRepository,
             userPreferences,
+            transactionTemplateStore,
             savedStateHandle,
         )
         advanceUntilIdle()
