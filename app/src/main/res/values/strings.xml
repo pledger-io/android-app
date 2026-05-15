@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pledger.io</string>
+    <string name="tab_dashboard">Dashboard</string>
+    <string name="tab_transactions">Transactions</string>
+    <string name="tab_budgets">Budgets</string>
+    <string name="tab_accounts">Accounts</string>
+    <string name="tab_reports">Reports</string>
+</resources>
