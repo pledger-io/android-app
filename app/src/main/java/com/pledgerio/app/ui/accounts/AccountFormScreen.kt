@@ -2,11 +2,14 @@ package com.pledgerio.app.ui.accounts
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -14,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -36,9 +40,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.domain.model.AccountTypeCatalog
 import com.pledgerio.app.domain.model.AccountTypeOption
 import com.pledgerio.app.ui.components.LoadingScreen
+import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar
+import com.pledgerio.app.ui.theme.EmeraldGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,10 +116,42 @@ fun AccountFormScreen(
 
                     AccountTypeDropdown(
                         selectedCode = uiState.typeCode,
-                        ownedTypes = uiState.ownedAccountTypes,
+                        ownedPickerEntries = uiState.ownedPickerEntries,
                         counterpartyTypes = uiState.counterpartyAccountTypes,
                         onSelected = viewModel::onTypeChanged,
                     )
+
+                    uiState.typeVariantChoice?.let { variant ->
+                        AccountOwnershipSelector(
+                            variant = variant,
+                            onJointChanged = viewModel::onOwnershipVariantChanged,
+                        )
+                    }
+
+                    val typeMeta = AccountTypeCatalog.metadataFor(uiState.typeCode)
+                    PledgerCard {
+                        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = accountTypeIcon(uiState.typeCode),
+                                contentDescription = null,
+                                tint = EmeraldGreen,
+                                modifier = Modifier.size(28.dp),
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = typeMeta.displayName,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                                )
+                                Text(
+                                    text = typeMeta.description,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
 
                     CurrencyDropdown(
                         selected = uiState.currency,
@@ -120,23 +159,25 @@ fun AccountFormScreen(
                         onSelected = viewModel::onCurrencyChanged,
                     )
 
-                    OutlinedTextField(
-                        value = uiState.iban,
-                        onValueChange = viewModel::onIbanChanged,
-                        label = { Text("IBAN") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                    if (typeMeta.showBankDetails) {
+                        OutlinedTextField(
+                            value = uiState.iban,
+                            onValueChange = viewModel::onIbanChanged,
+                            label = { Text("IBAN") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
 
-                    OutlinedTextField(
-                        value = uiState.bic,
-                        onValueChange = viewModel::onBicChanged,
-                        label = { Text("BIC") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                        OutlinedTextField(
+                            value = uiState.bic,
+                            onValueChange = viewModel::onBicChanged,
+                            label = { Text("BIC") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
 
-                    if (!uiState.isEditing) {
+                    if (!uiState.isEditing && typeMeta.showOpeningBalance) {
                         OutlinedTextField(
                             value = uiState.openingBalance,
                             onValueChange = viewModel::onOpeningBalanceChanged,
@@ -164,17 +205,53 @@ fun AccountFormScreen(
     }
 }
 
+@Composable
+private fun AccountOwnershipSelector(
+    variant: AccountTypeVariantChoice,
+    onJointChanged: (Boolean) -> Unit,
+) {
+    val (personalLabel, jointLabel) = when (variant.family) {
+        AccountTypeFamily.CHECKING -> "Personal" to "Joint"
+        AccountTypeFamily.SAVINGS -> "Personal" to "Joint"
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = when (variant.family) {
+                AccountTypeFamily.CHECKING -> "Checking account"
+                AccountTypeFamily.SAVINGS -> "Savings account"
+            },
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(
+                selected = !variant.isJoint,
+                onClick = { onJointChanged(false) },
+                label = { Text(personalLabel) },
+            )
+            FilterChip(
+                selected = variant.isJoint,
+                onClick = { onJointChanged(true) },
+                label = { Text(jointLabel) },
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AccountTypeDropdown(
     selectedCode: String,
-    ownedTypes: List<AccountTypeOption>,
+    ownedPickerEntries: List<AccountTypePickerEntry>,
     counterpartyTypes: List<AccountTypeOption>,
     onSelected: (String) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val allTypes = ownedTypes + counterpartyTypes
-    val selectedLabel = allTypes.firstOrNull { it.code == selectedCode }?.displayName
+    val selectedLabel = ownedPickerEntries.firstOrNull { entry ->
+        entry.soloTypeCode.equals(selectedCode, ignoreCase = true) ||
+            entry.jointTypeCode?.equals(selectedCode, ignoreCase = true) == true
+    }?.label
+        ?: counterpartyTypes.firstOrNull { it.code == selectedCode }?.displayName
         ?: selectedCode.replace("_", " ").replaceFirstChar { it.uppercase() }
 
     ExposedDropdownMenuBox(
@@ -195,7 +272,7 @@ private fun AccountTypeDropdown(
             expanded = expanded,
             onDismissRequest = { expanded = false },
         ) {
-            if (ownedTypes.isNotEmpty()) {
+            if (ownedPickerEntries.isNotEmpty()) {
                 DropdownMenuItem(
                     text = {
                         Text(
@@ -207,11 +284,24 @@ private fun AccountTypeDropdown(
                     onClick = {},
                     enabled = false,
                 )
-                ownedTypes.forEach { option ->
+                ownedPickerEntries.forEach { entry ->
                     DropdownMenuItem(
-                        text = { Text(option.displayName) },
+                        text = {
+                            Column {
+                                Text(entry.label)
+                                Text(
+                                    text = if (entry.jointTypeCode != null) {
+                                        "${entry.description} · personal or joint below"
+                                    } else {
+                                        entry.description
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        },
                         onClick = {
-                            onSelected(option.code)
+                            onSelected(entry.soloTypeCode)
                             expanded = false
                         },
                     )
@@ -234,15 +324,13 @@ private fun AccountTypeDropdown(
                         text = {
                             Column {
                                 Text(option.displayName)
-                                Text(
-                                    text = when (option.code) {
-                                        "creditor" -> "Accounts you pay money to"
-                                        "debtor" -> "Accounts you receive money from"
-                                        else -> ""
-                                    },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
+                                if (option.description.isNotBlank()) {
+                                    Text(
+                                        text = option.description,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                             }
                         },
                         onClick = {

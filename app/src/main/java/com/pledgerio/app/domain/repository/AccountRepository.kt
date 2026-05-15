@@ -2,11 +2,19 @@ package com.pledgerio.app.domain.repository
 
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.AccountTypeOption
+import com.pledgerio.app.domain.model.PagedAccounts
 import com.pledgerio.app.util.Resource
 import kotlinx.coroutines.flow.Flow
 
 interface AccountRepository {
+    /** Owned (asset) accounts only — used for dashboard, sync, and the Owned filter. */
     fun getAccounts(): Flow<Resource<List<Account>>>
+
+    suspend fun getCounterpartyAccountsPage(
+        offset: Int = 0,
+        pageSize: Int = 50,
+        nameQuery: String = "",
+    ): Resource<PagedAccounts>
     suspend fun searchAccounts(
         typeCode: String,
         nameQuery: String,

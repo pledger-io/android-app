@@ -69,7 +69,7 @@ app/src/main/java/com/pledgerio/app/
 - **Onboarding** — Configurable server URL (`DynamicBaseUrlInterceptor`), health check, JWT login
 - **Dashboard** — Accounts overview, income/expense summary, recent transactions; FAB menu to add transaction or account
 - **Transactions** — Paged list with month navigation, infinite scroll, type chips (income/expense), optional filters (category, expense/budget, contract) with inline autocomplete; pull-to-refresh; create transaction form with type-specific account inputs (creditor/debtor search vs owned-account dropdown); transaction detail with classification and account logos
-- **Accounts** — List with balances (`/v2/api/balance` partitioned by account), detail with logo and transaction history, add/edit account (types from `/v2/api/account-types` plus creditor/debtor)
+- **Accounts** — Grouped list with owned/counterparty filters, type-aware add menu, balances from `/v2/api/balance`; detail with logo, type explanation, transaction history, and delete; add/edit with catalog-driven fields (see [Account types](docs/ACCOUNTS.md))
 - **Currencies** — Fetched from API, cached in Room, used for `formatCurrency()` across the app
 - **Budgets** — List and detail screens
 - **Reports** — Report type selector UI (chart data integration in progress)
@@ -94,7 +94,7 @@ app/src/main/java/com/pledgerio/app/
 | `transaction/add` | Create transaction |
 | `transaction/{id}` | Transaction detail |
 | `accounts` | Account list (bottom tab) |
-| `account/add` | Create account |
+| `account/add?type={type}` | Create account (optional type preselect) |
 | `account/{id}` | Account detail |
 | `account/{id}/edit` | Edit account |
 | `budgets` / `budget/{id}` | Budget list & detail |
@@ -104,6 +104,7 @@ app/src/main/java/com/pledgerio/app/
 ## Documentation
 
 - [Architecture Overview](docs/ARCHITECTURE.md) — Layers, data flow, API integration, UI patterns
+- [Account types](docs/ACCOUNTS.md) — Owned vs counterparty accounts, type codes, transaction mapping
 - [Architecture Decision Records](docs/adr/README.md) — Rationale for major technical choices
 
 Backend API reference: [pledger-io/rest-application](https://github.com/pledger-io/rest-application) (`/v2/api/…` contract).

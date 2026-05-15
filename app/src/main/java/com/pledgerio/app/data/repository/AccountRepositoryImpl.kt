@@ -7,9 +7,10 @@ import com.pledgerio.app.data.remote.dto.BalanceRequest
 import com.pledgerio.app.data.remote.dto.CreateAccountRequest
 import com.pledgerio.app.data.remote.dto.DateRangeDto
 import com.pledgerio.app.domain.model.Account
+import com.pledgerio.app.domain.model.AccountTypeCatalog
 import com.pledgerio.app.domain.model.AccountTypeCodes
 import com.pledgerio.app.domain.model.AccountTypeOption
-import com.pledgerio.app.domain.model.toAccountTypeDisplayName
+import com.pledgerio.app.domain.model.PagedAccounts
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.util.Resource
 import kotlinx.coroutines.flow.Flow
@@ -26,21 +27,96 @@ class AccountRepositoryImpl @Inject constructor(
         emit(Resource.Loading)
 
         try {
-            val response = apiService.getAccounts(offset = 0, numberOfResults = 100)
-            if (response.isSuccessful) {
-                val accounts = response.body()?.content?.map { it.toDomain() } ?: emptyList()
-
+            val accounts = fetchOwnedAccountsFromApi()
+            if (accounts != null) {
                 val enriched = enrichWithBalances(accounts)
 
                 accountDao.deleteAll()
                 accountDao.insertAll(enriched.map { AccountEntity.fromDomain(it) })
                 emit(Resource.Success(enriched))
             } else {
-                emitCachedOrError("Failed to fetch accounts: ${response.code()}")
+                emitCachedOrError("Failed to fetch accounts")
             }
         } catch (e: Exception) {
             emitCachedOrError(e.message ?: "Network error")
         }
+    }
+
+    override suspend fun getCounterpartyAccountsPage(
+        offset: Int,
+        pageSize: Int,
+        nameQuery: String,
+    ): Resource<PagedAccounts> {
+        return try {
+            val response = apiService.getAccounts(
+                type = AccountTypeCodes.counterpartyTypeCodes.toList(),
+                accountName = nameQuery.trim().ifBlank { null },
+                offset = offset,
+                numberOfResults = pageSize,
+            )
+            if (response.isSuccessful) {
+                val body = response.body()
+                val items = body?.content
+                    ?.map { it.toDomain() }
+                    ?.distinctBy { it.id }
+                    ?: emptyList()
+                val total = body?.info?.records ?: items.size.toLong()
+                Resource.Success(
+                    PagedAccounts(
+                        items = items,
+                        totalRecords = total,
+                        offset = offset,
+                        pageSize = pageSize,
+                    ),
+                )
+            } else {
+                Resource.Error("Failed to fetch counterparties: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    /**
+     * Owned asset accounts only. Creditor/debtor accounts are loaded on demand via
+     * [getCounterpartyAccountsPage] so large counterparty lists stay paginated.
+     */
+    private suspend fun fetchOwnedAccountsFromApi(): List<Account>? {
+        val ownedTypes = resolveOwnedTypeCodes()
+        val dtos = when {
+            ownedTypes.isNotEmpty() -> fetchAccountDtos(ownedTypes)
+            else -> fetchAccountDtos(types = null)
+        } ?: return null
+
+        return dtos
+            .map { it.toDomain() }
+            .distinctBy { it.id }
+            .filter { !AccountTypeCatalog.isCounterparty(it.typeCode) }
+    }
+
+    private suspend fun resolveOwnedTypeCodes(): List<String> {
+        return try {
+            val response = apiService.getAccountTypes()
+            if (response.isSuccessful) {
+                response.body().orEmpty()
+                    .map { it.lowercase() }
+                    .filter { it !in AccountTypeCodes.counterpartyTypeCodes }
+            } else {
+                emptyList()
+            }
+        } catch (_: Exception) {
+            emptyList()
+        }
+    }
+
+    private suspend fun fetchAccountDtos(types: List<String>?): List<com.pledgerio.app.data.remote.dto.AccountDto>? {
+        val response = apiService.getAccounts(
+            type = types?.takeIf { it.isNotEmpty() },
+            offset = 0,
+            numberOfResults = 200,
+        )
+        if (!response.isSuccessful) return null
+        return response.body()?.content ?: emptyList()
     }
 
     private suspend fun enrichWithBalances(accounts: List<Account>): List<Account> {
@@ -75,7 +151,10 @@ class AccountRepositoryImpl @Inject constructor(
     private suspend fun kotlinx.coroutines.flow.FlowCollector<Resource<List<Account>>>.emitCachedOrError(message: String) {
         accountDao.getAll().collect { cached ->
             if (cached.isNotEmpty()) {
-                emit(Resource.Success(cached.map { it.toDomain() }))
+                val owned = cached.map { it.toDomain() }
+                    .distinctBy { it.id }
+                    .filter { !AccountTypeCatalog.isCounterparty(it.typeCode) }
+                emit(Resource.Success(owned))
             } else {
                 emit(Resource.Error(message))
             }
@@ -95,7 +174,10 @@ class AccountRepositoryImpl @Inject constructor(
                 numberOfResults = limit,
             )
             if (response.isSuccessful) {
-                val accounts = response.body()?.content?.map { it.toDomain() } ?: emptyList()
+                val accounts = response.body()?.content
+                    ?.map { it.toDomain() }
+                    ?.distinctBy { it.id }
+                    ?: emptyList()
                 Resource.Success(accounts)
             } else {
                 Resource.Error("Failed to search accounts: ${response.code()}")
@@ -114,7 +196,10 @@ class AccountRepositoryImpl @Inject constructor(
                 numberOfResults = 200,
             )
             if (response.isSuccessful) {
-                val accounts = response.body()?.content?.map { it.toDomain() } ?: emptyList()
+                val accounts = response.body()?.content
+                    ?.map { it.toDomain() }
+                    ?.distinctBy { it.id }
+                    ?: emptyList()
                 Resource.Success(accounts.sortedBy { it.name })
             } else {
                 Resource.Error("Failed to fetch accounts: ${response.code()}")
@@ -130,7 +215,11 @@ class AccountRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 val dto = response.body() ?: return Resource.Error("Account not found")
                 val account = dto.toDomain()
-                val enriched = enrichWithBalances(listOf(account)).first()
+                val enriched = if (AccountTypeCatalog.isCounterparty(account.typeCode)) {
+                    account
+                } else {
+                    enrichWithBalances(listOf(account)).first()
+                }
                 Resource.Success(enriched)
             } else {
                 val cached = accountDao.getById(id)
@@ -148,18 +237,14 @@ class AccountRepositoryImpl @Inject constructor(
         return try {
             val response = apiService.getAccountTypes()
             if (response.isSuccessful) {
-                val counterpartyCodes = setOf("creditor", "debtor", "debit")
-                val owned = response.body().orEmpty()
-                    .filter { it.lowercase() !in counterpartyCodes }
-                    .map { code ->
-                        AccountTypeOption(code = code, displayName = code.toAccountTypeDisplayName())
-                    }
-                Resource.Success(owned + AccountTypeCodes.counterpartyTypes)
+                val ownedCodes = response.body().orEmpty()
+                    .filter { it.lowercase() !in AccountTypeCodes.counterpartyTypeCodes }
+                Resource.Success(AccountTypeCatalog.toOptions(ownedCodes))
             } else {
-                Resource.Success(AccountTypeCodes.counterpartyTypes)
+                Resource.Success(AccountTypeCatalog.toOptions(emptyList()))
             }
         } catch (_: Exception) {
-            Resource.Success(AccountTypeCodes.counterpartyTypes)
+            Resource.Success(AccountTypeCatalog.toOptions(emptyList()))
         }
     }
 
@@ -176,7 +261,9 @@ class AccountRepositoryImpl @Inject constructor(
             val response = apiService.createAccount(request)
             if (response.isSuccessful) {
                 val created = response.body()?.toDomain() ?: return Resource.Error("Invalid response")
-                accountDao.insert(AccountEntity.fromDomain(created))
+                if (!AccountTypeCatalog.isCounterparty(created.typeCode)) {
+                    accountDao.insert(AccountEntity.fromDomain(created))
+                }
                 Resource.Success(created)
             } else {
                 Resource.Error("Failed to create account: ${response.code()}")
@@ -198,7 +285,9 @@ class AccountRepositoryImpl @Inject constructor(
             )
             val response = apiService.updateAccount(account.id, request)
             if (response.isSuccessful) {
-                accountDao.insert(AccountEntity.fromDomain(account))
+                if (!AccountTypeCatalog.isCounterparty(account.typeCode)) {
+                    accountDao.insert(AccountEntity.fromDomain(account))
+                }
                 Resource.Success(account)
             } else {
                 Resource.Error("Failed to update account: ${response.code()}")

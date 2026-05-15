@@ -69,7 +69,7 @@ fun NavGraph(
                     navController.navigate(Screen.AddTransaction.route)
                 },
                 onNavigateToAddAccount = {
-                    navController.navigate(Screen.AddAccount.route)
+                    navController.navigate(Screen.AddAccount.createRoute())
                 },
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
@@ -108,8 +108,8 @@ fun NavGraph(
                 onNavigateToDetail = { id ->
                     navController.navigate(Screen.AccountDetail.createRoute(id))
                 },
-                onNavigateToAdd = {
-                    navController.navigate(Screen.AddAccount.route)
+                onNavigateToAdd = { typeCode ->
+                    navController.navigate(Screen.AddAccount.createRoute(typeCode))
                 },
             )
         }
@@ -129,7 +129,15 @@ fun NavGraph(
             )
         }
 
-        composable(Screen.AddAccount.route) {
+        composable(
+            route = Screen.AddAccount.route,
+            arguments = listOf(
+                navArgument("type") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+            ),
+        ) {
             AccountFormScreen(
                 onNavigateBack = { navController.popBackStack() },
             )

@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Account
+import com.pledgerio.app.domain.model.AccountTypeCatalog
 import com.pledgerio.app.domain.model.AccountTypeOption
 import com.pledgerio.app.domain.model.Currency
 import com.pledgerio.app.domain.repository.AccountRepository
@@ -40,6 +41,14 @@ data class AccountFormUiState(
 
     val allAccountTypes: List<AccountTypeOption>
         get() = ownedAccountTypes + counterpartyAccountTypes
+
+    val typeMetadata get() = AccountTypeCatalog.metadataFor(typeCode)
+
+    val ownedPickerEntries: List<AccountTypePickerEntry>
+        get() = AccountTypePicker.ownedPickerEntries(ownedAccountTypes)
+
+    val typeVariantChoice: AccountTypeVariantChoice?
+        get() = AccountTypePicker.variantChoice(typeCode, ownedAccountTypes)
 }
 
 @HiltViewModel
@@ -50,8 +59,14 @@ class AccountFormViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val accountId: Long? = savedStateHandle.get<Long>("accountId")
+    private val preselectedType: String = savedStateHandle.get<String>("type").orEmpty()
 
-    private val _uiState = MutableStateFlow(AccountFormUiState(isEditing = accountId != null))
+    private val _uiState = MutableStateFlow(
+        AccountFormUiState(
+            isEditing = accountId != null,
+            typeCode = preselectedType.ifBlank { "default" },
+        ),
+    )
     val uiState: StateFlow<AccountFormUiState> = _uiState.asStateFlow()
 
     init {
@@ -72,6 +87,12 @@ class AccountFormViewModel @Inject constructor(
 
     fun onTypeChanged(typeCode: String) {
         _uiState.update { it.copy(typeCode = typeCode) }
+    }
+
+    fun onOwnershipVariantChanged(joint: Boolean) {
+        val variant = _uiState.value.typeVariantChoice ?: return
+        val code = if (joint) variant.jointTypeCode else variant.soloTypeCode
+        onTypeChanged(code)
     }
 
     fun onCurrencyChanged(currency: String) {
@@ -143,10 +164,16 @@ class AccountFormViewModel @Inject constructor(
                     val owned = result.data.filter { !it.isCounterparty }
                     val counterparty = result.data.filter { it.isCounterparty }
                     _uiState.update {
+                        val typeCode = when {
+                            it.isEditing -> it.typeCode
+                            preselectedType.isNotBlank() -> preselectedType
+                            it.typeCode.isNotBlank() -> it.typeCode
+                            else -> owned.firstOrNull()?.code ?: "default"
+                        }
                         it.copy(
                             ownedAccountTypes = owned,
                             counterpartyAccountTypes = counterparty,
-                            typeCode = it.typeCode.ifBlank { owned.firstOrNull()?.code ?: "default" },
+                            typeCode = typeCode,
                         )
                     }
                 }

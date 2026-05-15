@@ -13,7 +13,10 @@ sealed class Screen(val route: String) {
     data object AccountDetail : Screen("account/{accountId}") {
         fun createRoute(accountId: Long) = "account/$accountId"
     }
-    data object AddAccount : Screen("account/add")
+    data object AddAccount : Screen("account/add?type={type}") {
+        fun createRoute(typeCode: String? = null): String =
+            if (typeCode.isNullOrBlank()) "account/add" else "account/add?type=$typeCode"
+    }
     data object EditAccount : Screen("account/{accountId}/edit") {
         fun createRoute(accountId: Long) = "account/$accountId/edit"
     }

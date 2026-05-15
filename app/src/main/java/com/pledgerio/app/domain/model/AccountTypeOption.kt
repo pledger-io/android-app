@@ -3,12 +3,20 @@ package com.pledgerio.app.domain.model
 data class AccountTypeOption(
     val code: String,
     val displayName: String,
+    val description: String = "",
     val isCounterparty: Boolean = false,
+    val group: AccountTypeGroup = if (isCounterparty) {
+        AccountTypeGroup.COUNTERPARTY
+    } else {
+        AccountTypeGroup.OTHER
+    },
 )
 
 object AccountTypeCodes {
     const val CREDITOR = "creditor"
     const val DEBTOR = "debtor"
+
+    val counterpartyTypeCodes: Set<String> = setOf(CREDITOR, DEBTOR, "debit")
 
     val counterpartyTypes = listOf(
         AccountTypeOption(CREDITOR, "Creditor", isCounterparty = true),

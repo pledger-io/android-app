@@ -21,6 +21,8 @@ import javax.inject.Inject
 data class AccountDetailUiState(
     val isLoading: Boolean = true,
     val isLoadingMore: Boolean = false,
+    val isDeleting: Boolean = false,
+    val deleteSuccess: Boolean = false,
     val error: String? = null,
     val account: Account? = null,
     val transactions: List<Transaction> = emptyList(),
@@ -56,6 +58,21 @@ class AccountDetailViewModel @Inject constructor(
         val state = _uiState.value
         if (state.isLoadingMore || !state.hasMore) return
         loadTransactionsPage(state.currentPage + 1)
+    }
+
+    fun deleteAccount() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isDeleting = true, error = null) }
+            when (val result = accountRepository.deleteAccount(accountId)) {
+                is Resource.Success -> {
+                    _uiState.update { it.copy(isDeleting = false, deleteSuccess = true) }
+                }
+                is Resource.Error -> {
+                    _uiState.update { it.copy(isDeleting = false, error = result.message) }
+                }
+                is Resource.Loading -> {}
+            }
+        }
     }
 
     private fun loadAccount() {

@@ -14,38 +14,45 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.Savings
-import androidx.compose.material.icons.filled.Wallet
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.domain.model.Account
-import com.pledgerio.app.domain.model.AccountType
+import com.pledgerio.app.domain.model.AccountListFilter
+import com.pledgerio.app.domain.model.AccountSection
+import com.pledgerio.app.domain.model.AccountTypeCatalog
+import com.pledgerio.app.ui.components.AccountIcon
 import com.pledgerio.app.ui.components.EmptyScreen
-import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
+import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.ui.theme.EmeraldGreen
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.IncomeGreen
@@ -55,81 +62,426 @@ import com.pledgerio.app.util.formatCurrency
 @Composable
 fun AccountsScreen(
     onNavigateToDetail: (Long) -> Unit,
-    onNavigateToAdd: () -> Unit,
+    onNavigateToAdd: (String?) -> Unit,
     viewModel: AccountsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showAddMenu by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+
+    val shouldLoadMoreCounterparties by remember {
+        derivedStateOf {
+            if (uiState.filter != AccountListFilter.COUNTERPARTY) return@derivedStateOf false
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val total = listState.layoutInfo.totalItemsCount
+            lastVisible >= total - 5 &&
+                !uiState.isLoadingCounterparties &&
+                !uiState.isLoadingMoreCounterparties &&
+                uiState.hasMoreCounterparties
+        }
+    }
+
+    LaunchedEffect(shouldLoadMoreCounterparties) {
+        if (shouldLoadMoreCounterparties) {
+            viewModel.loadMoreCounterparties()
+        }
+    }
+
+    val hasOwned = uiState.ownedAccounts.isNotEmpty()
+    val hasPartiesData = uiState.counterpartyTotal > 0 || uiState.counterpartyAccounts.isNotEmpty()
+    val showEmpty = !uiState.isLoading &&
+        when (uiState.filter) {
+            AccountListFilter.COUNTERPARTY -> !uiState.isLoadingCounterparties &&
+                uiState.counterpartyAccounts.isEmpty() &&
+                uiState.counterpartyError == null
+            AccountListFilter.OWNED -> !hasOwned
+            AccountListFilter.ALL -> !hasOwned && !hasPartiesData
+        }
 
     Scaffold(
         topBar = {
             PledgerTopBar(
                 title = "Accounts",
-                subtitle = "Balances across your wallets",
+                subtitle = when (uiState.filter) {
+                    AccountListFilter.ALL -> buildString {
+                        append("${uiState.ownedCount} owned")
+                        if (uiState.counterpartyTotal > 0) {
+                            append(" · ${uiState.counterpartyTotal} parties")
+                        }
+                    }
+                    AccountListFilter.OWNED -> "${uiState.ownedCount} wallets you hold"
+                    AccountListFilter.COUNTERPARTY -> when {
+                        uiState.counterpartySearchQuery.isNotBlank() -> "Search results"
+                        uiState.counterpartyTotal > 0 -> {
+                            val loaded = uiState.counterpartyLoadedCount
+                            val total = uiState.counterpartyTotal
+                            if (loaded < total) "Showing $loaded of $total" else "$total parties"
+                        }
+                        else -> "Creditors & debtors"
+                    }
+                },
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateToAdd,
-                containerColor = EmeraldGreen,
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add account")
-            }
-        }
     ) { paddingValues ->
-        PullToRefreshBox(
-            isRefreshing = uiState.isRefreshing,
-            onRefresh = viewModel::refresh,
-            modifier = Modifier.padding(paddingValues),
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
         ) {
-            when {
-                uiState.isLoading && !uiState.isRefreshing -> LoadingScreen()
-                uiState.error != null && uiState.accounts.isEmpty() -> {
-                    ErrorScreen(
-                        message = uiState.error ?: "",
-                        onRetry = viewModel::refresh,
-                    )
-                }
-                uiState.accounts.isEmpty() -> {
-                    EmptyScreen(
-                        icon = Icons.Default.AccountBalance,
-                        title = "No accounts yet",
-                        message = "Add your first account to start tracking",
-                        actionLabel = "Add Account",
-                        onAction = onNavigateToAdd,
-                    )
-                }
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        item { Spacer(modifier = Modifier.height(8.dp)) }
+            PullToRefreshBox(
+                isRefreshing = uiState.isRefreshing,
+                onRefresh = viewModel::refresh,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                when {
+                    uiState.isLoading && !uiState.isRefreshing -> LoadingScreen()
+                    uiState.error != null && !hasOwned && uiState.filter != AccountListFilter.COUNTERPARTY -> {
+                        ErrorScreen(
+                            message = uiState.error ?: "",
+                            onRetry = viewModel::refresh,
+                        )
+                    }
+                    showEmpty -> {
+                        EmptyScreen(
+                            icon = Icons.Default.AccountBalance,
+                            title = when (uiState.filter) {
+                                AccountListFilter.COUNTERPARTY -> "No parties found"
+                                else -> "No accounts yet"
+                            },
+                            message = when (uiState.filter) {
+                                AccountListFilter.COUNTERPARTY -> if (uiState.counterpartySearchQuery.isNotBlank()) {
+                                    "Try a different search term."
+                                } else {
+                                    "Add creditors and debtors you pay or receive money from."
+                                }
+                                else -> "Add checking, savings, credit, or counterparty accounts."
+                            },
+                            actionLabel = if (uiState.filter == AccountListFilter.COUNTERPARTY) {
+                                "Add party"
+                            } else {
+                                "Add account"
+                            },
+                            onAction = { showAddMenu = true },
+                        )
+                    }
+                    else -> {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            item { Spacer(modifier = Modifier.height(8.dp)) }
 
-                        val grouped = uiState.accounts.groupBy { it.typeCode }
-                        grouped.forEach { (typeCode, accounts) ->
+                            if (uiState.filter != AccountListFilter.COUNTERPARTY) {
+                                item {
+                                    AccountsSummaryCard(
+                                        accountCount = uiState.filteredAccounts.size,
+                                        totalBalance = uiState.totalBalance,
+                                        currency = uiState.filteredAccounts.firstOrNull()?.currency ?: "EUR",
+                                        subtitle = when (uiState.filter) {
+                                            AccountListFilter.ALL -> "owned accounts"
+                                            else -> "in this view"
+                                        },
+                                    )
+                                }
+                            } else {
+                                item {
+                                    CounterpartiesSummaryCard(
+                                        loaded = uiState.counterpartyLoadedCount,
+                                        total = uiState.counterpartyTotal,
+                                    )
+                                }
+                            }
+
                             item {
-                                Text(
-                                    text = accounts.firstOrNull()?.typeDisplayName
-                                        ?: typeCode.replace("_", " ").replaceFirstChar { it.uppercase() },
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(vertical = 4.dp),
-                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    FilterChip(
+                                        selected = uiState.filter == AccountListFilter.ALL,
+                                        onClick = { viewModel.setFilter(AccountListFilter.ALL) },
+                                        label = { Text("All") },
+                                    )
+                                    FilterChip(
+                                        selected = uiState.filter == AccountListFilter.OWNED,
+                                        onClick = { viewModel.setFilter(AccountListFilter.OWNED) },
+                                        label = { Text("Owned (${uiState.ownedCount})") },
+                                    )
+                                    FilterChip(
+                                        selected = uiState.filter == AccountListFilter.COUNTERPARTY,
+                                        onClick = { viewModel.setFilter(AccountListFilter.COUNTERPARTY) },
+                                        label = {
+                                            val n = uiState.counterpartyTotal
+                                            Text(
+                                                if (n > 0) "Parties ($n)" else "Parties",
+                                            )
+                                        },
+                                    )
+                                }
                             }
-                            items(accounts, key = { it.id }) { account ->
-                                AccountCard(
-                                    account = account,
-                                    onClick = { onNavigateToDetail(account.id) },
-                                )
-                            }
-                        }
 
-                        item { Spacer(modifier = Modifier.height(80.dp)) }
+                            if (uiState.filter == AccountListFilter.COUNTERPARTY) {
+                                item {
+                                    OutlinedTextField(
+                                        value = uiState.counterpartySearchQuery,
+                                        onValueChange = viewModel::onCounterpartySearchChanged,
+                                        modifier = Modifier.fillMaxWidth(),
+                                        placeholder = { Text("Search parties…") },
+                                        leadingIcon = {
+                                            Icon(Icons.Default.Search, contentDescription = null)
+                                        },
+                                        trailingIcon = {
+                                            if (uiState.counterpartySearchQuery.isNotEmpty()) {
+                                                IconButton(
+                                                    onClick = { viewModel.onCounterpartySearchChanged("") },
+                                                ) {
+                                                    Icon(Icons.Default.Clear, contentDescription = "Clear")
+                                                }
+                                            }
+                                        },
+                                        singleLine = true,
+                                    )
+                                }
+
+                                if (uiState.isLoadingCounterparties) {
+                                    item {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(32.dp),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            CircularProgressIndicator(color = EmeraldGreen)
+                                        }
+                                    }
+                                }
+
+                                uiState.counterpartyError?.let { error ->
+                                    item {
+                                        Text(
+                                            text = error,
+                                            color = MaterialTheme.colorScheme.error,
+                                            style = MaterialTheme.typography.bodySmall,
+                                        )
+                                    }
+                                }
+                            }
+
+                            if (uiState.showCounterpartyBrowseCard) {
+                                item {
+                                    CounterpartiesBrowseCard(
+                                        total = uiState.counterpartyTotal,
+                                        onBrowse = { viewModel.setFilter(AccountListFilter.COUNTERPARTY) },
+                                    )
+                                }
+                            }
+
+                            if (uiState.filter == AccountListFilter.COUNTERPARTY &&
+                                !uiState.isLoadingCounterparties &&
+                                uiState.counterpartyAccounts.isEmpty() &&
+                                uiState.counterpartyError == null
+                            ) {
+                                // Handled by showEmpty above
+                            } else if (
+                                uiState.filter != AccountListFilter.COUNTERPARTY &&
+                                uiState.filteredAccounts.isEmpty()
+                            ) {
+                                item {
+                                    Text(
+                                        text = "No accounts in this view.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(vertical = 24.dp),
+                                    )
+                                }
+                            } else {
+                                uiState.sections.forEach { section ->
+                                    item(key = "header-${section.group.name}") {
+                                        AccountSectionHeader(section = section)
+                                    }
+                                    items(
+                                        items = section.accounts,
+                                        key = { account -> "${section.group.name}_${account.id}" },
+                                    ) { account ->
+                                        AccountCard(
+                                            account = account,
+                                            onClick = { onNavigateToDetail(account.id) },
+                                        )
+                                    }
+                                }
+                            }
+
+                            if (uiState.isLoadingMoreCounterparties) {
+                                item(key = "loading-more-counterparties") {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(24.dp),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(24.dp),
+                                            strokeWidth = 2.dp,
+                                            color = EmeraldGreen,
+                                        )
+                                    }
+                                }
+                            }
+
+                            item { Spacer(modifier = Modifier.height(88.dp)) }
+                        }
                     }
                 }
             }
+
+            AccountAddFabMenu(
+                expanded = showAddMenu,
+                onExpandedChange = { showAddMenu = it },
+                accountTypeOptions = uiState.accountTypeOptions,
+                onAddAccount = { typeCode -> onNavigateToAdd(typeCode) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun CounterpartiesSummaryCard(loaded: Int, total: Long) {
+    PledgerCard {
+        Column {
+            Text(
+                text = "Counterparties",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = if (total > 0 && loaded < total) {
+                    "Showing $loaded of $total"
+                } else {
+                    "$loaded parties"
+                },
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = "Search or scroll to load more. Balances are loaded when you open an account.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun CounterpartiesBrowseCard(
+    total: Long,
+    onBrowse: () -> Unit,
+) {
+    PledgerCard(
+        modifier = Modifier.clickable(onClick = onBrowse),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Counterparties",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = "$total creditors & debtors — search and scroll to browse",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = "Browse parties",
+                tint = EmeraldGreen,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AccountsSummaryCard(
+    accountCount: Int,
+    totalBalance: Double,
+    currency: String,
+    subtitle: String = "in this view",
+) {
+    PledgerCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column {
+                Text(
+                    text = "Total balance",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = totalBalance.formatCurrency(currency),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = if (totalBalance >= 0) IncomeGreen else ExpenseRed,
+                )
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = "$accountCount accounts",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium,
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AccountSectionHeader(section: AccountSection) {
+    val currency = section.accounts.firstOrNull()?.currency ?: "EUR"
+    Column(modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = section.group.icon(),
+                contentDescription = null,
+                tint = EmeraldGreen,
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = section.group.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = section.group.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text(
+                text = section.totalBalance.formatCurrency(currency),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Medium,
+                color = if (section.totalBalance >= 0) IncomeGreen else ExpenseRed,
+            )
         }
     }
 }
@@ -139,17 +491,17 @@ private fun AccountCard(
     account: Account,
     onClick: () -> Unit,
 ) {
+    val meta = AccountTypeCatalog.metadataFor(account.typeCode)
     PledgerCard(
-        modifier = Modifier.clickable(onClick = onClick)
+        modifier = Modifier.clickable(onClick = onClick),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                imageVector = account.type.icon(),
-                contentDescription = null,
-                tint = EmeraldGreen,
-                modifier = Modifier.size(24.dp),
+            AccountIcon(
+                iconFileCode = account.iconFileCode,
+                size = 44.dp,
+                contentDescription = account.name,
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -158,10 +510,15 @@ private fun AccountCard(
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
                 )
+                Text(
+                    text = meta.displayName,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 account.iban?.let {
                     Text(
                         text = it.take(8) + "****",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
@@ -174,26 +531,4 @@ private fun AccountCard(
             )
         }
     }
-}
-
-private fun AccountType.icon(): ImageVector = when (this) {
-    AccountType.CHECKING -> Icons.Default.AccountBalance
-    AccountType.SAVINGS -> Icons.Default.Savings
-    AccountType.CREDIT_CARD -> Icons.Default.CreditCard
-    AccountType.CASH -> Icons.Default.Wallet
-    else -> Icons.Default.AccountBalance
-}
-
-private fun AccountType.displayName(): String = when (this) {
-    AccountType.CHECKING -> "Checking Accounts"
-    AccountType.SAVINGS -> "Savings"
-    AccountType.CREDIT_CARD -> "Credit Cards"
-    AccountType.CASH -> "Cash"
-    AccountType.LIABILITY -> "Liabilities"
-    AccountType.LOAN -> "Loans"
-    AccountType.INVESTMENT -> "Investments"
-    AccountType.MORTGAGE -> "Mortgages"
-    AccountType.DEBTOR -> "Debtor"
-    AccountType.CREDITOR -> "Creditor"
-    AccountType.OTHER -> "Other"
 }
