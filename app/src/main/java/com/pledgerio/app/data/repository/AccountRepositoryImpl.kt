@@ -82,6 +82,48 @@ class AccountRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun searchAccounts(
+        typeCode: String,
+        nameQuery: String,
+        limit: Int,
+    ): Resource<List<Account>> {
+        return try {
+            val response = apiService.getAccounts(
+                type = listOf(typeCode),
+                accountName = nameQuery.ifBlank { null },
+                offset = 0,
+                numberOfResults = limit,
+            )
+            if (response.isSuccessful) {
+                val accounts = response.body()?.content?.map { it.toDomain() } ?: emptyList()
+                Resource.Success(accounts)
+            } else {
+                Resource.Error("Failed to search accounts: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun getAccountsByTypes(typeCodes: List<String>): Resource<List<Account>> {
+        if (typeCodes.isEmpty()) return Resource.Success(emptyList())
+        return try {
+            val response = apiService.getAccounts(
+                type = typeCodes,
+                offset = 0,
+                numberOfResults = 200,
+            )
+            if (response.isSuccessful) {
+                val accounts = response.body()?.content?.map { it.toDomain() } ?: emptyList()
+                Resource.Success(accounts.sortedBy { it.name })
+            } else {
+                Resource.Error("Failed to fetch accounts: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
     override suspend fun getAccount(id: Long): Resource<Account> {
         return try {
             val response = apiService.getAccount(id)

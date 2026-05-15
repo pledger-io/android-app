@@ -7,6 +7,13 @@ import kotlinx.coroutines.flow.Flow
 
 interface AccountRepository {
     fun getAccounts(): Flow<Resource<List<Account>>>
+    suspend fun searchAccounts(
+        typeCode: String,
+        nameQuery: String,
+        limit: Int = 25,
+    ): Resource<List<Account>>
+
+    suspend fun getAccountsByTypes(typeCodes: List<String>): Resource<List<Account>>
     suspend fun getAccount(id: Long): Resource<Account>
     suspend fun getAccountTypes(): Resource<List<AccountTypeOption>>
     suspend fun createAccount(account: Account): Resource<Account>

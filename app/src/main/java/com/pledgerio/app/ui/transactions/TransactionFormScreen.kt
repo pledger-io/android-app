@@ -41,6 +41,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.domain.model.Account
+import com.pledgerio.app.domain.model.FilterOption
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.ui.components.LoadingScreen
 
@@ -146,18 +147,34 @@ fun TransactionFormScreen(
                         )
                     }
 
-                    AccountDropdown(
+                    TransactionAccountField(
                         label = "From account *",
-                        accounts = uiState.accounts,
+                        kind = uiState.sourceInputKind,
                         selectedId = uiState.sourceAccountId,
-                        onSelected = viewModel::onSourceAccountChanged,
+                        selectedOption = uiState.sourceSelected,
+                        query = uiState.sourceQuery,
+                        suggestions = uiState.sourceSuggestions,
+                        isSearching = uiState.isSearchingSource,
+                        ownedAccounts = uiState.ownedAccounts,
+                        onQueryChange = viewModel::onSourceQueryChanged,
+                        onAutocompleteSelected = viewModel::selectSourceAutocomplete,
+                        onAutocompleteClear = viewModel::clearSourceAccount,
+                        onDropdownSelected = viewModel::onSourceDropdownSelected,
                     )
 
-                    AccountDropdown(
+                    TransactionAccountField(
                         label = "To account *",
-                        accounts = uiState.accounts,
+                        kind = uiState.targetInputKind,
                         selectedId = uiState.targetAccountId,
-                        onSelected = viewModel::onTargetAccountChanged,
+                        selectedOption = uiState.targetSelected,
+                        query = uiState.targetQuery,
+                        suggestions = uiState.targetSuggestions,
+                        isSearching = uiState.isSearchingTarget,
+                        ownedAccounts = uiState.ownedAccounts,
+                        onQueryChange = viewModel::onTargetQueryChanged,
+                        onAutocompleteSelected = viewModel::selectTargetAutocomplete,
+                        onAutocompleteClear = viewModel::clearTargetAccount,
+                        onDropdownSelected = viewModel::onTargetDropdownSelected,
                     )
 
                     StringDropdown(
@@ -171,7 +188,7 @@ fun TransactionFormScreen(
 
                     Button(
                         onClick = viewModel::save,
-                        enabled = uiState.isValid && !uiState.isSaving && uiState.accounts.isNotEmpty(),
+                        enabled = uiState.canSubmit && !uiState.isSaving,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text("Create Transaction")
@@ -184,9 +201,50 @@ fun TransactionFormScreen(
     }
 }
 
+@Composable
+private fun TransactionAccountField(
+    label: String,
+    kind: AccountInputKind,
+    selectedId: Long?,
+    selectedOption: FilterOption?,
+    query: String,
+    suggestions: List<FilterOption>,
+    isSearching: Boolean,
+    ownedAccounts: List<Account>,
+    onQueryChange: (String) -> Unit,
+    onAutocompleteSelected: (FilterOption) -> Unit,
+    onAutocompleteClear: () -> Unit,
+    onDropdownSelected: (Long) -> Unit,
+) {
+    when (kind) {
+        AccountInputKind.CREDITOR_AUTOCOMPLETE,
+        AccountInputKind.DEBTOR_AUTOCOMPLETE,
+        -> {
+            FilterAutocompleteField(
+                label = label,
+                query = query,
+                selected = selectedOption,
+                suggestions = suggestions,
+                isLoading = isSearching,
+                onQueryChange = onQueryChange,
+                onSelected = onAutocompleteSelected,
+                onClear = onAutocompleteClear,
+            )
+        }
+        AccountInputKind.OWNED_DROPDOWN -> {
+            OwnedAccountDropdown(
+                label = label,
+                accounts = ownedAccounts,
+                selectedId = selectedId,
+                onSelected = onDropdownSelected,
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AccountDropdown(
+private fun OwnedAccountDropdown(
     label: String,
     accounts: List<Account>,
     selectedId: Long?,
@@ -213,14 +271,31 @@ private fun AccountDropdown(
             expanded = expanded,
             onDismissRequest = { expanded = false },
         ) {
-            accounts.forEach { account ->
+            if (accounts.isEmpty()) {
                 DropdownMenuItem(
-                    text = { Text(account.name) },
-                    onClick = {
-                        onSelected(account.id)
-                        expanded = false
-                    },
+                    text = { Text("No accounts available") },
+                    onClick = { expanded = false },
+                    enabled = false,
                 )
+            } else {
+                accounts.forEach { account ->
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(account.name)
+                                Text(
+                                    text = account.typeDisplayName,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        },
+                        onClick = {
+                            onSelected(account.id)
+                            expanded = false
+                        },
+                    )
+                }
             }
         }
     }
