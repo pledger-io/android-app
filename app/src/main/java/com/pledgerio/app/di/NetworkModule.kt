@@ -1,6 +1,7 @@
 package com.pledgerio.app.di
 
 import android.content.Context
+import coil.ImageLoader
 import com.pledgerio.app.data.remote.api.AuthInterceptor
 import com.pledgerio.app.data.remote.api.DynamicBaseUrlInterceptor
 import com.pledgerio.app.data.remote.api.PledgerApiService
@@ -71,4 +72,14 @@ object NetworkModule {
     @Singleton
     fun providePledgerApiService(retrofit: Retrofit): PledgerApiService =
         retrofit.create(PledgerApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideImageLoader(
+        @ApplicationContext context: Context,
+        okHttpClient: OkHttpClient,
+    ): ImageLoader = ImageLoader.Builder(context)
+        .okHttpClient(okHttpClient)
+        .crossfade(true)
+        .build()
 }

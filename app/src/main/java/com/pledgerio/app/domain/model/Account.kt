@@ -7,6 +7,7 @@ data class Account(
     val currency: String = "EUR",
     val balance: Double = 0.0,
     val typeCode: String = "default",
+    val iconFileCode: String? = null,
     val iban: String? = null,
     val bic: String? = null,
     val openingBalance: Double = 0.0,

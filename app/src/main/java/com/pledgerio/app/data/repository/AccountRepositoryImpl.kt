@@ -229,6 +229,7 @@ class AccountRepositoryImpl @Inject constructor(
             description = description ?: "",
             currency = account?.currency ?: "EUR",
             typeCode = type,
+            iconFileCode = iconFileCode,
             iban = account?.iban,
             bic = account?.bic,
             lastActivity = history?.lastTransaction,

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -28,11 +29,14 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.TransactionType
+import com.pledgerio.app.ui.components.AccountIcon
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.theme.ExpenseRed
@@ -117,20 +121,16 @@ fun TransactionDetailScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     SectionHeader("Accounts")
-                    when (transaction.type) {
-                        TransactionType.CREDIT -> {
-                            DetailRow("From", transaction.sourceAccountName.ifBlank { "—" })
-                            DetailRow("To", transaction.destinationAccountName.ifBlank { "—" })
-                        }
-                        TransactionType.DEBIT -> {
-                            DetailRow("From", transaction.sourceAccountName.ifBlank { "—" })
-                            DetailRow("To", transaction.destinationAccountName.ifBlank { "—" })
-                        }
-                        TransactionType.TRANSFER -> {
-                            DetailRow("From", transaction.sourceAccountName.ifBlank { "—" })
-                            DetailRow("To", transaction.destinationAccountName.ifBlank { "—" })
-                        }
-                    }
+                    AccountDetailRow(
+                        label = "From",
+                        accountName = transaction.sourceAccountName,
+                        account = uiState.sourceAccount,
+                    )
+                    AccountDetailRow(
+                        label = "To",
+                        accountName = transaction.destinationAccountName,
+                        account = uiState.destinationAccount,
+                    )
 
                     if (transaction.budgetName != null || transaction.categoryName != null) {
                         Spacer(modifier = Modifier.height(16.dp))
@@ -185,6 +185,41 @@ private fun SectionHeader(title: String) {
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(bottom = 8.dp),
     )
+}
+
+@Composable
+private fun AccountDetailRow(
+    label: String,
+    accountName: String,
+    account: Account?,
+) {
+    val displayName = accountName.ifBlank { account?.name ?: "—" }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            AccountIcon(
+                iconFileCode = account?.iconFileCode,
+                size = 32.dp,
+                contentDescription = displayName,
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = displayName,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+    }
 }
 
 @Composable
