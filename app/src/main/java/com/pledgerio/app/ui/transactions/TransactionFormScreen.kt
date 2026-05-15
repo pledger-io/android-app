@@ -1,48 +1,43 @@
 package com.pledgerio.app.ui.transactions
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.pledgerio.app.domain.model.Account
-import com.pledgerio.app.domain.model.FilterOption
-import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerTopBar
+import com.pledgerio.app.ui.transactions.form.TransactionAmountCard
+import com.pledgerio.app.ui.transactions.form.TransactionFlowCard
+import com.pledgerio.app.ui.transactions.form.TransactionFormFooter
+import com.pledgerio.app.ui.transactions.form.TransactionTypeSelector
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +46,9 @@ fun TransactionFormScreen(
     viewModel: TransactionFormViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val zone = remember { ZoneId.systemDefault() }
+    val today = remember { LocalDate.now() }
+    val yesterday = remember { today.minusDays(1) }
 
     LaunchedEffect(uiState.saveSuccess) {
         if (uiState.saveSuccess) {
@@ -58,17 +56,63 @@ fun TransactionFormScreen(
         }
     }
 
+    if (uiState.showDatePicker) {
+        val initialMillis = uiState.date
+            .atStartOfDay(zone)
+            .toInstant()
+            .toEpochMilli()
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = initialMillis,
+        )
+        DatePickerDialog(
+            onDismissRequest = viewModel::dismissDatePicker,
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val selected = Instant.ofEpochMilli(millis)
+                                .atZone(zone)
+                                .toLocalDate()
+                            viewModel.onDateSelected(selected)
+                        } ?: viewModel.dismissDatePicker()
+                    },
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissDatePicker) {
+                    Text("Cancel")
+                }
+            },
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
     Scaffold(
         topBar = {
             PledgerTopBar(
-                title = "New Transaction",
+                title = "New transaction",
+                subtitle = uiState.typeSubtitle,
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
             )
-        }
+        },
+        bottomBar = {
+            if (!uiState.isLoading) {
+                TransactionFormFooter(
+                    canSubmit = uiState.canSubmit,
+                    isSaving = uiState.isSaving,
+                    validationSummary = uiState.validationSummary,
+                    serverError = uiState.error,
+                    onSubmit = viewModel::submit,
+                )
+            }
+        },
     ) { paddingValues ->
         when {
             uiState.isLoading -> LoadingScreen(modifier = Modifier.padding(paddingValues))
@@ -76,263 +120,91 @@ fun TransactionFormScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues)
-                        .padding(16.dp)
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                        .padding(paddingValues),
                 ) {
                     if (uiState.isSaving) {
                         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
 
-                    uiState.error?.let { error ->
-                        Text(
-                            text = error,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-
-                    OutlinedTextField(
-                        value = uiState.description,
-                        onValueChange = viewModel::onDescriptionChanged,
-                        label = { Text("Description *") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-
-                    OutlinedTextField(
-                        value = uiState.amount,
-                        onValueChange = viewModel::onAmountChanged,
-                        label = { Text("Amount *") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    )
-
-                    OutlinedTextField(
-                        value = uiState.date,
-                        onValueChange = viewModel::onDateChanged,
-                        label = { Text("Date (YYYY-MM-DD) *") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-
-                    Text(
-                        text = "Type *",
-                        style = MaterialTheme.typography.labelLarge,
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 16.dp)
+                            .padding(top = 8.dp),
                     ) {
-                        FilterChip(
-                            selected = uiState.type == TransactionType.DEBIT,
-                            onClick = { viewModel.onTypeChanged(TransactionType.DEBIT) },
-                            label = { Text("Income") },
+                        TransactionTypeSelector(
+                            selected = uiState.type,
+                            subtitle = uiState.typeSubtitle,
+                            onSelected = viewModel::onTypeChanged,
                         )
-                        FilterChip(
-                            selected = uiState.type == TransactionType.CREDIT,
-                            onClick = { viewModel.onTypeChanged(TransactionType.CREDIT) },
-                            label = { Text("Expense") },
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        TransactionAmountCard(
+                            amount = uiState.amount,
+                            onAmountChange = viewModel::onAmountChanged,
+                            amountError = uiState.fieldErrors.amount,
+                            currency = uiState.currency,
+                            currencies = uiState.currencies,
+                            onCurrencyChange = viewModel::onCurrencyChanged,
+                            date = uiState.date,
+                            isToday = uiState.date == today,
+                            isYesterday = uiState.date == yesterday,
+                            onTodayClick = viewModel::setDateToday,
+                            onYesterdayClick = viewModel::setDateYesterday,
+                            onPickDateClick = viewModel::showDatePicker,
                         )
-                        FilterChip(
-                            selected = uiState.type == TransactionType.TRANSFER,
-                            onClick = { viewModel.onTypeChanged(TransactionType.TRANSFER) },
-                            label = { Text("Transfer") },
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        TransactionFlowCard(
+                            sourceLabel = uiState.sourceLabel,
+                            targetLabel = uiState.targetLabel,
+                            helperText = uiState.flowHelperText,
+                            sourceKind = uiState.sourceInputKind,
+                            targetKind = uiState.targetInputKind,
+                            sourceAccountId = uiState.sourceAccountId,
+                            sourceSelected = uiState.sourceSelected,
+                            sourceQuery = uiState.sourceQuery,
+                            sourceSuggestions = uiState.sourceSuggestions,
+                            isSearchingSource = uiState.isSearchingSource,
+                            targetAccountId = uiState.targetAccountId,
+                            targetSelected = uiState.targetSelected,
+                            targetQuery = uiState.targetQuery,
+                            targetSuggestions = uiState.targetSuggestions,
+                            isSearchingTarget = uiState.isSearchingTarget,
+                            ownedAccounts = uiState.ownedAccounts,
+                            sourceError = uiState.fieldErrors.source,
+                            targetError = uiState.fieldErrors.target,
+                            onSourceQueryChange = viewModel::onSourceQueryChanged,
+                            onSourceAutocompleteSelected = viewModel::selectSourceAutocomplete,
+                            onSourceAutocompleteClear = viewModel::clearSourceAccount,
+                            onSourceDropdownSelected = viewModel::onSourceDropdownSelected,
+                            onTargetQueryChange = viewModel::onTargetQueryChanged,
+                            onTargetAutocompleteSelected = viewModel::selectTargetAutocomplete,
+                            onTargetAutocompleteClear = viewModel::clearTargetAccount,
+                            onTargetDropdownSelected = viewModel::onTargetDropdownSelected,
                         )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        OutlinedTextField(
+                            value = uiState.description,
+                            onValueChange = viewModel::onDescriptionChanged,
+                            label = { Text("What was this for?") },
+                            placeholder = { Text("Groceries, salary, rent…") },
+                            singleLine = false,
+                            minLines = 1,
+                            maxLines = 3,
+                            isError = uiState.fieldErrors.description != null,
+                            supportingText = uiState.fieldErrors.description?.let { { Text(it) } },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
                     }
-
-                    TransactionAccountField(
-                        label = "From account *",
-                        kind = uiState.sourceInputKind,
-                        selectedId = uiState.sourceAccountId,
-                        selectedOption = uiState.sourceSelected,
-                        query = uiState.sourceQuery,
-                        suggestions = uiState.sourceSuggestions,
-                        isSearching = uiState.isSearchingSource,
-                        ownedAccounts = uiState.ownedAccounts,
-                        onQueryChange = viewModel::onSourceQueryChanged,
-                        onAutocompleteSelected = viewModel::selectSourceAutocomplete,
-                        onAutocompleteClear = viewModel::clearSourceAccount,
-                        onDropdownSelected = viewModel::onSourceDropdownSelected,
-                    )
-
-                    TransactionAccountField(
-                        label = "To account *",
-                        kind = uiState.targetInputKind,
-                        selectedId = uiState.targetAccountId,
-                        selectedOption = uiState.targetSelected,
-                        query = uiState.targetQuery,
-                        suggestions = uiState.targetSuggestions,
-                        isSearching = uiState.isSearchingTarget,
-                        ownedAccounts = uiState.ownedAccounts,
-                        onQueryChange = viewModel::onTargetQueryChanged,
-                        onAutocompleteSelected = viewModel::selectTargetAutocomplete,
-                        onAutocompleteClear = viewModel::clearTargetAccount,
-                        onDropdownSelected = viewModel::onTargetDropdownSelected,
-                    )
-
-                    StringDropdown(
-                        label = "Currency *",
-                        options = uiState.currencies,
-                        selected = uiState.currency,
-                        onSelected = viewModel::onCurrencyChanged,
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Button(
-                        onClick = viewModel::save,
-                        enabled = uiState.canSubmit && !uiState.isSaving,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text("Create Transaction")
-                    }
-
-                    Spacer(modifier = Modifier.height(32.dp))
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TransactionAccountField(
-    label: String,
-    kind: AccountInputKind,
-    selectedId: Long?,
-    selectedOption: FilterOption?,
-    query: String,
-    suggestions: List<FilterOption>,
-    isSearching: Boolean,
-    ownedAccounts: List<Account>,
-    onQueryChange: (String) -> Unit,
-    onAutocompleteSelected: (FilterOption) -> Unit,
-    onAutocompleteClear: () -> Unit,
-    onDropdownSelected: (Long) -> Unit,
-) {
-    when (kind) {
-        AccountInputKind.CREDITOR_AUTOCOMPLETE,
-        AccountInputKind.DEBTOR_AUTOCOMPLETE,
-        -> {
-            FilterAutocompleteField(
-                label = label,
-                query = query,
-                selected = selectedOption,
-                suggestions = suggestions,
-                isLoading = isSearching,
-                onQueryChange = onQueryChange,
-                onSelected = onAutocompleteSelected,
-                onClear = onAutocompleteClear,
-            )
-        }
-        AccountInputKind.OWNED_DROPDOWN -> {
-            OwnedAccountDropdown(
-                label = label,
-                accounts = ownedAccounts,
-                selectedId = selectedId,
-                onSelected = onDropdownSelected,
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun OwnedAccountDropdown(
-    label: String,
-    accounts: List<Account>,
-    selectedId: Long?,
-    onSelected: (Long) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val selectedName = accounts.find { it.id == selectedId }?.name ?: "Select account"
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-    ) {
-        OutlinedTextField(
-            value = selectedName,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            if (accounts.isEmpty()) {
-                DropdownMenuItem(
-                    text = { Text("No accounts available") },
-                    onClick = { expanded = false },
-                    enabled = false,
-                )
-            } else {
-                accounts.forEach { account ->
-                    DropdownMenuItem(
-                        text = {
-                            Column {
-                                Text(account.name)
-                                Text(
-                                    text = account.typeDisplayName,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        },
-                        onClick = {
-                            onSelected(account.id)
-                            expanded = false
-                        },
-                    )
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun StringDropdown(
-    label: String,
-    options: List<String>,
-    selected: String,
-    onSelected: (String) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-    ) {
-        OutlinedTextField(
-            value = selected,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option) },
-                    onClick = {
-                        onSelected(option)
-                        expanded = false
-                    },
-                )
             }
         }
     }

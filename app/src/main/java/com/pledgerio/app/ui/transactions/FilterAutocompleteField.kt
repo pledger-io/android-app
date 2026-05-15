@@ -58,7 +58,11 @@ fun FilterAutocompleteField(
                 }
                 onQueryChange(value)
             },
-            label = { Text(label) },
+            label = if (label.isNotBlank()) {
+                { Text(label) }
+            } else {
+                null
+            },
             singleLine = true,
             readOnly = selected != null,
             trailingIcon = {

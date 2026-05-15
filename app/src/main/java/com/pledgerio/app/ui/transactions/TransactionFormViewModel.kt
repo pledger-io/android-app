@@ -10,6 +10,7 @@ import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
+import com.pledgerio.app.ui.transactions.form.TransactionFormLabels
 import com.pledgerio.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -21,7 +22,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.format.DateTimeParseException
 import javax.inject.Inject
 
 enum class AccountInputKind {
@@ -30,14 +30,23 @@ enum class AccountInputKind {
     OWNED_DROPDOWN,
 }
 
+data class TransactionFormFieldErrors(
+    val amount: String? = null,
+    val source: String? = null,
+    val target: String? = null,
+    val description: String? = null,
+)
+
 data class TransactionFormUiState(
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
     val error: String? = null,
     val saveSuccess: Boolean = false,
+    val validationAttempted: Boolean = false,
+    val showDatePicker: Boolean = false,
     val description: String = "",
     val amount: String = "",
-    val date: String = LocalDate.now().toString(),
+    val date: LocalDate = LocalDate.now(),
     val type: TransactionType = TransactionType.CREDIT,
     val currency: String = "EUR",
     val ownedAccounts: List<Account> = emptyList(),
@@ -54,15 +63,29 @@ data class TransactionFormUiState(
     val isSearchingTarget: Boolean = false,
 ) {
     val sourceInputKind: AccountInputKind
-        get() = when (type) {
-            TransactionType.DEBIT -> AccountInputKind.DEBTOR_AUTOCOMPLETE
-            TransactionType.CREDIT, TransactionType.TRANSFER -> AccountInputKind.OWNED_DROPDOWN
-        }
+        get() = inputKindForSource(type)
 
     val targetInputKind: AccountInputKind
-        get() = when (type) {
-            TransactionType.DEBIT, TransactionType.TRANSFER -> AccountInputKind.OWNED_DROPDOWN
-            TransactionType.CREDIT -> AccountInputKind.CREDITOR_AUTOCOMPLETE
+        get() = inputKindForTarget(type)
+
+    val sourceLabel: String get() = TransactionFormLabels.sourceLabel(type)
+    val targetLabel: String get() = TransactionFormLabels.targetLabel(type)
+    val flowHelperText: String get() = TransactionFormLabels.flowHelperText(type)
+    val typeSubtitle: String get() = TransactionFormLabels.typeSubtitle(type)
+
+    val fieldErrors: TransactionFormFieldErrors
+        get() = if (!validationAttempted) {
+            TransactionFormFieldErrors()
+        } else {
+            TransactionFormFieldErrors(
+                amount = when {
+                    amount.toDoubleOrNull()?.let { it > 0 } != true -> "Enter an amount greater than zero"
+                    else -> null
+                },
+                source = if (sourceAccountId == null) "Choose ${sourceLabel.lowercase()}" else null,
+                target = if (targetAccountId == null) "Choose ${targetLabel.lowercase()}" else null,
+                description = if (description.isBlank()) "Add a short description" else null,
+            )
         }
 
     val isValid: Boolean
@@ -70,7 +93,6 @@ data class TransactionFormUiState(
             && amount.toDoubleOrNull()?.let { it > 0 } == true
             && sourceAccountId != null
             && targetAccountId != null
-            && runCatching { LocalDate.parse(date) }.isSuccess
 
     val canSubmit: Boolean
         get() = isValid && when {
@@ -78,6 +100,30 @@ data class TransactionFormUiState(
             targetInputKind == AccountInputKind.OWNED_DROPDOWN && ownedAccounts.isEmpty() -> false
             else -> true
         }
+
+    val validationSummary: String?
+        get() {
+            if (!validationAttempted || canSubmit) return null
+            val messages = listOfNotNull(
+                fieldErrors.amount,
+                fieldErrors.source,
+                fieldErrors.target,
+                fieldErrors.description,
+            )
+            return messages.firstOrNull()
+        }
+
+    companion object {
+        fun inputKindForSource(type: TransactionType): AccountInputKind = when (type) {
+            TransactionType.DEBIT -> AccountInputKind.DEBTOR_AUTOCOMPLETE
+            TransactionType.CREDIT, TransactionType.TRANSFER -> AccountInputKind.OWNED_DROPDOWN
+        }
+
+        fun inputKindForTarget(type: TransactionType): AccountInputKind = when (type) {
+            TransactionType.DEBIT, TransactionType.TRANSFER -> AccountInputKind.OWNED_DROPDOWN
+            TransactionType.CREDIT -> AccountInputKind.CREDITOR_AUTOCOMPLETE
+        }
+    }
 }
 
 @HiltViewModel
@@ -106,22 +152,34 @@ class TransactionFormViewModel @Inject constructor(
         _uiState.update { it.copy(amount = value, error = null) }
     }
 
-    fun onDateChanged(value: String) {
-        _uiState.update { it.copy(date = value, error = null) }
-    }
-
     fun onTypeChanged(type: TransactionType) {
-        _uiState.update {
-            it.copy(
+        _uiState.update { current ->
+            val oldSourceKind = current.sourceInputKind
+            val oldTargetKind = current.targetInputKind
+            val newSourceKind = TransactionFormUiState.inputKindForSource(type)
+            val newTargetKind = TransactionFormUiState.inputKindForTarget(type)
+
+            val source = preserveSourceSelection(
+                current = current,
+                oldKind = oldSourceKind,
+                newKind = newSourceKind,
+            )
+            val target = preserveTargetSelection(
+                current = current,
+                oldKind = oldTargetKind,
+                newKind = newTargetKind,
+            )
+
+            current.copy(
                 type = type,
                 error = null,
-                sourceAccountId = null,
-                sourceSelected = null,
-                sourceQuery = "",
+                sourceAccountId = source.accountId,
+                sourceSelected = source.selected,
+                sourceQuery = source.query,
                 sourceSuggestions = emptyList(),
-                targetAccountId = null,
-                targetSelected = null,
-                targetQuery = "",
+                targetAccountId = target.accountId,
+                targetSelected = target.selected,
+                targetQuery = target.query,
                 targetSuggestions = emptyList(),
             )
         }
@@ -129,6 +187,26 @@ class TransactionFormViewModel @Inject constructor(
 
     fun onCurrencyChanged(currency: String) {
         _uiState.update { it.copy(currency = currency) }
+    }
+
+    fun setDateToday() {
+        _uiState.update { it.copy(date = LocalDate.now(), error = null) }
+    }
+
+    fun setDateYesterday() {
+        _uiState.update { it.copy(date = LocalDate.now().minusDays(1), error = null) }
+    }
+
+    fun showDatePicker() {
+        _uiState.update { it.copy(showDatePicker = true) }
+    }
+
+    fun dismissDatePicker() {
+        _uiState.update { it.copy(showDatePicker = false) }
+    }
+
+    fun onDateSelected(date: LocalDate) {
+        _uiState.update { it.copy(date = date, showDatePicker = false, error = null) }
     }
 
     fun onSourceQueryChanged(query: String) {
@@ -196,26 +274,31 @@ class TransactionFormViewModel @Inject constructor(
     }
 
     fun onSourceDropdownSelected(accountId: Long) {
-        _uiState.update { it.copy(sourceAccountId = accountId, error = null) }
+        _uiState.update { state ->
+            val account = state.ownedAccounts.find { it.id == accountId }
+            state.copy(
+                sourceAccountId = accountId,
+                currency = account?.currency ?: state.currency,
+                error = null,
+            )
+        }
     }
 
     fun onTargetDropdownSelected(accountId: Long) {
-        _uiState.update { it.copy(targetAccountId = accountId, error = null) }
+        _uiState.update { state ->
+            val account = state.ownedAccounts.find { it.id == accountId }
+            state.copy(
+                targetAccountId = accountId,
+                currency = account?.currency ?: state.currency,
+                error = null,
+            )
+        }
     }
 
-    fun save() {
+    fun submit() {
+        _uiState.update { it.copy(validationAttempted = true) }
         val state = _uiState.value
-        if (!state.isValid) {
-            _uiState.update { it.copy(error = "Please fill in all required fields") }
-            return
-        }
-
-        val date = try {
-            LocalDate.parse(state.date)
-        } catch (_: DateTimeParseException) {
-            _uiState.update { it.copy(error = "Invalid date format (use YYYY-MM-DD)") }
-            return
-        }
+        if (!state.canSubmit) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, error = null) }
@@ -237,7 +320,7 @@ class TransactionFormViewModel @Inject constructor(
                 amount = state.amount.toDouble(),
                 currency = state.currency,
                 type = state.type,
-                date = date,
+                date = state.date,
                 sourceAccountId = state.sourceAccountId,
                 sourceAccountName = sourceName,
                 destinationAccountId = state.targetAccountId,
@@ -252,6 +335,75 @@ class TransactionFormViewModel @Inject constructor(
                     _uiState.update { it.copy(isSaving = false, error = result.message) }
                 }
                 is Resource.Loading -> {}
+            }
+        }
+    }
+
+    private data class PreservedSide(
+        val accountId: Long?,
+        val selected: FilterOption?,
+        val query: String,
+    )
+
+    private fun preserveSourceSelection(
+        current: TransactionFormUiState,
+        oldKind: AccountInputKind,
+        newKind: AccountInputKind,
+    ): PreservedSide {
+        if (oldKind != newKind) return PreservedSide(null, null, "")
+        return when (newKind) {
+            AccountInputKind.OWNED_DROPDOWN -> {
+                val id = current.sourceAccountId
+                if (id != null && current.ownedAccounts.any { it.id == id }) {
+                    val account = current.ownedAccounts.first { it.id == id }
+                    PreservedSide(id, null, "")
+                } else {
+                    PreservedSide(null, null, "")
+                }
+            }
+            AccountInputKind.CREDITOR_AUTOCOMPLETE,
+            AccountInputKind.DEBTOR_AUTOCOMPLETE,
+            -> {
+                if (current.sourceSelected != null && current.sourceAccountId != null) {
+                    PreservedSide(
+                        current.sourceAccountId,
+                        current.sourceSelected,
+                        current.sourceQuery,
+                    )
+                } else {
+                    PreservedSide(null, null, "")
+                }
+            }
+        }
+    }
+
+    private fun preserveTargetSelection(
+        current: TransactionFormUiState,
+        oldKind: AccountInputKind,
+        newKind: AccountInputKind,
+    ): PreservedSide {
+        if (oldKind != newKind) return PreservedSide(null, null, "")
+        return when (newKind) {
+            AccountInputKind.OWNED_DROPDOWN -> {
+                val id = current.targetAccountId
+                if (id != null && current.ownedAccounts.any { it.id == id }) {
+                    PreservedSide(id, null, "")
+                } else {
+                    PreservedSide(null, null, "")
+                }
+            }
+            AccountInputKind.CREDITOR_AUTOCOMPLETE,
+            AccountInputKind.DEBTOR_AUTOCOMPLETE,
+            -> {
+                if (current.targetSelected != null && current.targetAccountId != null) {
+                    PreservedSide(
+                        current.targetAccountId,
+                        current.targetSelected,
+                        current.targetQuery,
+                    )
+                } else {
+                    PreservedSide(null, null, "")
+                }
             }
         }
     }
@@ -271,11 +423,7 @@ class TransactionFormViewModel @Inject constructor(
             AccountInputKind.DEBTOR_AUTOCOMPLETE -> AccountTypeCodes.DEBTOR
             AccountInputKind.OWNED_DROPDOWN -> return
         }
-        searchCounterpartyAccounts(
-            typeCode = typeCode,
-            query = query,
-            isSource = true,
-        )
+        searchCounterpartyAccounts(typeCode = typeCode, query = query, isSource = true)
     }
 
     private suspend fun searchTargetAccounts(query: String) {
@@ -284,11 +432,7 @@ class TransactionFormViewModel @Inject constructor(
             AccountInputKind.DEBTOR_AUTOCOMPLETE -> AccountTypeCodes.DEBTOR
             AccountInputKind.OWNED_DROPDOWN -> return
         }
-        searchCounterpartyAccounts(
-            typeCode = typeCode,
-            query = query,
-            isSource = false,
-        )
+        searchCounterpartyAccounts(typeCode = typeCode, query = query, isSource = false)
     }
 
     private suspend fun searchCounterpartyAccounts(

@@ -105,6 +105,7 @@ app/src/main/java/com/pledgerio/app/
 
 - [Architecture Overview](docs/ARCHITECTURE.md) — Layers, data flow, API integration, UI patterns
 - [Account types](docs/ACCOUNTS.md) — Owned vs counterparty accounts, type codes, transaction mapping
+- [Transaction form redesign](docs/TRANSACTION_FORM_REDESIGN.md) — Planned UX for creating transactions (type-first flow, amount hero, contextual account labels)
 - [Architecture Decision Records](docs/adr/README.md) — Rationale for major technical choices
 
 Backend API reference: [pledger-io/rest-application](https://github.com/pledger-io/rest-application) (`/v2/api/…` contract).

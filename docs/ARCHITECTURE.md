@@ -85,6 +85,8 @@ Account fields depend on transaction type:
 
 Owned account types come from `GET /v2/api/account-types` (excluding counterparty types); lists are loaded with `GET /v2/api/accounts?type=…`.
 
+**Redesign (planned):** See [Transaction form redesign](TRANSACTION_FORM_REDESIGN.md) for UX goals (type-first layout, money-flow card, date picker, sticky submit) and phased implementation.
+
 #### Account logos
 
 - Accounts expose `iconFileCode` from the API.
