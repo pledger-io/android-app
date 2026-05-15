@@ -92,6 +92,12 @@ interface PledgerApiService {
         @Body request: CreateTransactionRequest,
     ): Response<TransactionDto>
 
+    @PATCH("v2/api/transactions/{id}")
+    suspend fun patchTransaction(
+        @Path("id") id: Long,
+        @Body splits: List<TransactionSplitDto>,
+    ): Response<TransactionDto>
+
     @DELETE("v2/api/transactions/{id}")
     suspend fun deleteTransaction(@Path("id") id: Long): Response<Unit>
 

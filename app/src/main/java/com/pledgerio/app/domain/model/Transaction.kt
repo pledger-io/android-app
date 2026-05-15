@@ -20,7 +20,13 @@ data class Transaction(
     val expenseId: Long? = null,
     val contractId: Long? = null,
     val tags: List<String> = emptyList(),
+    val split: List<TransactionSplit> = emptyList(),
 ) {
+    val splitTotal: Double
+        get() = split.sumOf { it.amount }
+
+    val hasSplit: Boolean
+        get() = split.isNotEmpty()
     val displayAccountName: String
         get() = when (type) {
             TransactionType.CREDIT -> sourceAccountName

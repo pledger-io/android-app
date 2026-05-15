@@ -7,8 +7,11 @@ import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.AccountTypeCodes
 import com.pledgerio.app.domain.model.FilterOption
 import com.pledgerio.app.domain.model.Transaction
+import com.pledgerio.app.domain.model.TransactionSplit
 import com.pledgerio.app.domain.model.TransactionTemplate
 import com.pledgerio.app.domain.model.TransactionType
+import java.util.UUID
+import kotlin.math.abs
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.domain.repository.CategoryRepository
@@ -41,6 +44,12 @@ enum class OwnedAccountPickerSide {
     SOURCE,
     TARGET,
 }
+
+data class TransactionSplitLineUi(
+    val id: String,
+    val description: String = "",
+    val amount: String = "",
+)
 
 data class TransactionFormFieldErrors(
     val amount: String? = null,
@@ -94,7 +103,33 @@ data class TransactionFormUiState(
     val templates: List<TransactionTemplate> = emptyList(),
     val showSaveTemplateDialog: Boolean = false,
     val saveTemplateName: String = "",
+    val splitSectionExpanded: Boolean = false,
+    val splitLines: List<TransactionSplitLineUi> = emptyList(),
+    val originalSplitSnapshot: List<TransactionSplit> = emptyList(),
 ) {
+    val splitTotal: Double
+        get() = splitLines.sumOf { it.amount.toDoubleOrNull() ?: 0.0 }
+
+    val splitRemaining: Double
+        get() = (amount.toDoubleOrNull() ?: 0.0) - splitTotal
+
+    val splitValidationError: String?
+        get() {
+            if (splitLines.isEmpty()) return null
+            if (splitLines.any { it.description.isBlank() }) {
+                return "Each split line needs a description"
+            }
+            if (splitLines.any { it.amount.toDoubleOrNull() == null }) {
+                return "Enter a valid amount for each split line"
+            }
+            if (abs(splitRemaining) > 0.01) {
+                return "Split amounts must add up to the transaction total"
+            }
+            return null
+        }
+
+    val hasSplitChanges: Boolean
+        get() = splitLines.toDomainSplits() != originalSplitSnapshot
     val sourceInputKind: AccountInputKind
         get() = inputKindForSource(type)
 
@@ -130,11 +165,13 @@ data class TransactionFormUiState(
             && targetAccountId != null
 
     val canSubmit: Boolean
-        get() = isValid && when {
-            sourceInputKind == AccountInputKind.OWNED_DROPDOWN && ownedAccounts.isEmpty() -> false
-            targetInputKind == AccountInputKind.OWNED_DROPDOWN && ownedAccounts.isEmpty() -> false
-            else -> true
-        }
+        get() = isValid &&
+            splitValidationError == null &&
+            when {
+                sourceInputKind == AccountInputKind.OWNED_DROPDOWN && ownedAccounts.isEmpty() -> false
+                targetInputKind == AccountInputKind.OWNED_DROPDOWN && ownedAccounts.isEmpty() -> false
+                else -> true
+            }
 
     val validationSummary: String?
         get() {
@@ -144,6 +181,7 @@ data class TransactionFormUiState(
                 fieldErrors.source,
                 fieldErrors.target,
                 fieldErrors.description,
+                splitValidationError,
             )
             return messages.firstOrNull()
         }
@@ -277,6 +315,43 @@ class TransactionFormViewModel @Inject constructor(
 
     fun toggleMoreOptions() {
         _uiState.update { it.copy(moreOptionsExpanded = !it.moreOptionsExpanded) }
+    }
+
+    fun toggleSplitSection() {
+        _uiState.update { it.copy(splitSectionExpanded = !it.splitSectionExpanded) }
+    }
+
+    fun addSplitLine() {
+        _uiState.update {
+            it.copy(
+                splitLines = it.splitLines + TransactionSplitLineUi(id = UUID.randomUUID().toString()),
+                splitSectionExpanded = true,
+            )
+        }
+    }
+
+    fun removeSplitLine(lineId: String) {
+        _uiState.update { it.copy(splitLines = it.splitLines.filterNot { line -> line.id == lineId }) }
+    }
+
+    fun onSplitLineDescriptionChanged(lineId: String, value: String) {
+        _uiState.update { state ->
+            state.copy(
+                splitLines = state.splitLines.map { line ->
+                    if (line.id == lineId) line.copy(description = value) else line
+                },
+            )
+        }
+    }
+
+    fun onSplitLineAmountChanged(lineId: String, value: String) {
+        _uiState.update { state ->
+            state.copy(
+                splitLines = state.splitLines.map { line ->
+                    if (line.id == lineId) line.copy(amount = value) else line
+                },
+            )
+        }
     }
 
     fun onTagInputChanged(value: String) {
@@ -623,23 +698,49 @@ class TransactionFormViewModel @Inject constructor(
                 tags = state.tags,
             )
 
-            val result = if (state.isEditing && state.editingTransactionId != null) {
-                transactionRepository.updateTransaction(transaction)
+            if (state.isEditing && state.editingTransactionId != null) {
+                val transactionId = state.editingTransactionId
+                when (val putResult = transactionRepository.updateTransaction(transaction)) {
+                    is Resource.Success -> {
+                        if (state.hasSplitChanges) {
+                            when (
+                                val patchResult = transactionRepository.patchTransactionSplits(
+                                    transactionId,
+                                    state.splitLines.toDomainSplits(),
+                                )
+                            ) {
+                                is Resource.Success -> finishSave(state.type)
+                                is Resource.Error -> {
+                                    _uiState.update {
+                                        it.copy(isSaving = false, error = patchResult.message)
+                                    }
+                                }
+                                is Resource.Loading -> {}
+                            }
+                        } else {
+                            finishSave(state.type)
+                        }
+                    }
+                    is Resource.Error -> {
+                        _uiState.update { it.copy(isSaving = false, error = putResult.message) }
+                    }
+                    is Resource.Loading -> {}
+                }
             } else {
-                transactionRepository.createTransaction(transaction)
-            }
-
-            when (result) {
-                is Resource.Success -> {
-                    userPreferences.setLastTransactionType(state.type)
-                    _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
+                when (val result = transactionRepository.createTransaction(transaction)) {
+                    is Resource.Success -> finishSave(state.type)
+                    is Resource.Error -> {
+                        _uiState.update { it.copy(isSaving = false, error = result.message) }
+                    }
+                    is Resource.Loading -> {}
                 }
-                is Resource.Error -> {
-                    _uiState.update { it.copy(isSaving = false, error = result.message) }
-                }
-                is Resource.Loading -> {}
             }
         }
+    }
+
+    private suspend fun finishSave(type: TransactionType) {
+        userPreferences.setLastTransactionType(type)
+        _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
     }
 
     private data class PreservedSide(
@@ -890,6 +991,9 @@ class TransactionFormViewModel @Inject constructor(
                             expenseQuery = tx.budgetName.orEmpty(),
                             contractQuery = tx.contractName.orEmpty(),
                             tags = tx.tags,
+                            splitLines = tx.split.toSplitLineUi(),
+                            originalSplitSnapshot = tx.split,
+                            splitSectionExpanded = tx.split.isNotEmpty(),
                             moreOptionsExpanded = tx.tags.isNotEmpty() ||
                                 tx.categoryName != null ||
                                 tx.budgetName != null ||
@@ -952,7 +1056,26 @@ class TransactionFormViewModel @Inject constructor(
         }
     }
 
+    private fun List<TransactionSplit>.toSplitLineUi(): List<TransactionSplitLineUi> {
+        return map { split ->
+            TransactionSplitLineUi(
+                id = UUID.randomUUID().toString(),
+                description = split.description,
+                amount = split.amount.toString(),
+            )
+        }
+    }
+
     companion object {
         private const val SEARCH_DEBOUNCE_MS = 300L
+    }
+}
+
+internal fun List<TransactionSplitLineUi>.toDomainSplits(): List<TransactionSplit> {
+    return mapNotNull { line ->
+        val amountValue = line.amount.toDoubleOrNull() ?: return@mapNotNull null
+        val description = line.description.trim()
+        if (description.isBlank()) return@mapNotNull null
+        TransactionSplit(description = description, amount = amountValue)
     }
 }

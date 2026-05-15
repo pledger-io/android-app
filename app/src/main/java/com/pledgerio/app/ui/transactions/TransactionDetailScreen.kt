@@ -18,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,6 +53,7 @@ fun TransactionDetailScreen(
     viewModel: TransactionDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val transaction = uiState.transaction
 
     Scaffold(
         topBar = {
@@ -62,15 +64,17 @@ fun TransactionDetailScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
-                actions = {
-                    uiState.transaction?.id?.let { transactionId ->
-                        IconButton(onClick = { onNavigateToEdit(transactionId) }) {
-                            Icon(Icons.Default.Edit, contentDescription = "Edit")
-                        }
-                    }
-                },
             )
-        }
+        },
+        floatingActionButton = {
+            if (transaction != null) {
+                ExtendedFloatingActionButton(
+                    onClick = { onNavigateToEdit(transaction.id) },
+                    icon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                    text = { Text("Edit") },
+                )
+            }
+        },
     ) { paddingValues ->
         when {
             uiState.isLoading -> LoadingScreen(modifier = Modifier.padding(paddingValues))
@@ -78,8 +82,7 @@ fun TransactionDetailScreen(
                 message = uiState.error ?: "",
                 modifier = Modifier.padding(paddingValues),
             )
-            uiState.transaction != null -> {
-                val transaction = uiState.transaction!!
+            transaction != null -> {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -139,6 +142,24 @@ fun TransactionDetailScreen(
                         SectionHeader("Classification")
                         transaction.budgetName?.let { DetailRow("Category", it) }
                         transaction.categoryName?.let { DetailRow("Sub category", it) }
+                    }
+
+                    if (transaction.hasSplit) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        HorizontalDivider()
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        SectionHeader("Split")
+                        transaction.split.forEach { part ->
+                            DetailRow(
+                                label = part.description.ifBlank { "Part" },
+                                value = part.amount.formatCurrency(transaction.currency),
+                            )
+                        }
+                        DetailRow(
+                            label = "Split total",
+                            value = transaction.splitTotal.formatCurrency(transaction.currency),
+                        )
                     }
 
                     if (transaction.tags.isNotEmpty()) {

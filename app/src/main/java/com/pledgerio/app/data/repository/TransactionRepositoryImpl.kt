@@ -5,6 +5,8 @@ import com.pledgerio.app.data.local.entity.TransactionEntity
 import com.pledgerio.app.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.CreateTransactionRequest
 import com.pledgerio.app.data.remote.dto.TransactionDto
+import com.pledgerio.app.data.remote.dto.TransactionSplitDto
+import com.pledgerio.app.domain.model.TransactionSplit
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionFilters
 import com.pledgerio.app.domain.model.TransactionType
@@ -149,10 +151,30 @@ class TransactionRepositoryImpl @Inject constructor(
             )
             val response = apiService.updateTransaction(transaction.id, request)
             if (response.isSuccessful) {
-                transactionDao.insert(TransactionEntity.fromDomain(transaction))
-                Resource.Success(transaction)
+                val updated = response.body()?.toDomain() ?: transaction
+                transactionDao.insert(TransactionEntity.fromDomain(updated))
+                Resource.Success(updated)
             } else {
                 Resource.Error("Failed to update transaction: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun patchTransactionSplits(
+        id: Long,
+        splits: List<TransactionSplit>,
+    ): Resource<Transaction> {
+        return try {
+            val body = splits.map { TransactionSplitDto(description = it.description, amount = it.amount) }
+            val response = apiService.patchTransaction(id, body)
+            if (response.isSuccessful) {
+                val updated = response.body()?.toDomain() ?: return Resource.Error("Invalid response")
+                transactionDao.insert(TransactionEntity.fromDomain(updated))
+                Resource.Success(updated)
+            } else {
+                Resource.Error("Failed to update split: ${response.code()}")
             }
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Network error")
@@ -212,6 +234,8 @@ class TransactionRepositoryImpl @Inject constructor(
             budgetName = metadata?.budget,
             contractName = metadata?.contract,
             tags = metadata?.tags ?: emptyList(),
+            split = split?.map { TransactionSplit(description = it.description, amount = it.amount) }
+                ?: emptyList(),
         )
     }
 }

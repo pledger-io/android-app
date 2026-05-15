@@ -296,7 +296,7 @@ Extend unit tests:
 |------|--------|
 | Template transactions (local DataStore, apply + save) | ✅ |
 | Tags on create/edit (`POST` / `PUT` tags field) | ✅ |
-| Split bill / recurring | ⏸ API create payload has no `split` field |
+| Split bill (PATCH on existing transaction) | ✅ |
 | Photo/receipt attachment | ⏸ No file upload endpoint in client |
 
 ---

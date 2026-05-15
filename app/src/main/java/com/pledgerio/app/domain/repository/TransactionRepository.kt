@@ -2,6 +2,7 @@ package com.pledgerio.app.domain.repository
 
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionFilters
+import com.pledgerio.app.domain.model.TransactionSplit
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.util.Resource
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,7 @@ interface TransactionRepository {
     suspend fun getTransaction(id: Long): Resource<Transaction>
     suspend fun createTransaction(transaction: Transaction): Resource<Transaction>
     suspend fun updateTransaction(transaction: Transaction): Resource<Transaction>
+    suspend fun patchTransactionSplits(id: Long, splits: List<TransactionSplit>): Resource<Transaction>
     suspend fun deleteTransaction(id: Long): Resource<Unit>
     fun getRecentTransactions(limit: Int = 5): Flow<Resource<List<Transaction>>>
 }

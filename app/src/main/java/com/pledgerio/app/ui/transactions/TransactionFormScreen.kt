@@ -37,6 +37,7 @@ import com.pledgerio.app.ui.transactions.form.TransactionFlowCard
 import com.pledgerio.app.ui.transactions.form.TransactionFormFooter
 import com.pledgerio.app.ui.transactions.form.SaveTemplateDialog
 import com.pledgerio.app.ui.transactions.form.TransactionFormMoreOptions
+import com.pledgerio.app.ui.transactions.form.TransactionSplitEditor
 import com.pledgerio.app.ui.transactions.form.TransactionTemplatesSection
 import com.pledgerio.app.ui.transactions.form.TransactionTypeSelector
 import java.time.Instant
@@ -261,6 +262,28 @@ fun TransactionFormScreen(
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
+
+                        if (uiState.isEditing) {
+                            TransactionSplitEditor(
+                                expanded = uiState.splitSectionExpanded,
+                                onToggle = viewModel::toggleSplitSection,
+                                transactionAmount = uiState.amount.toDoubleOrNull() ?: 0.0,
+                                currency = uiState.currency,
+                                lines = uiState.splitLines,
+                                splitTotal = uiState.splitTotal,
+                                remaining = uiState.splitRemaining,
+                                validationError = if (uiState.validationAttempted) {
+                                    uiState.splitValidationError
+                                } else {
+                                    null
+                                },
+                                onLineDescriptionChange = viewModel::onSplitLineDescriptionChanged,
+                                onLineAmountChange = viewModel::onSplitLineAmountChanged,
+                                onRemoveLine = viewModel::removeSplitLine,
+                                onAddLine = viewModel::addSplitLine,
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
 
                         TransactionFormMoreOptions(
                             expanded = uiState.moreOptionsExpanded,

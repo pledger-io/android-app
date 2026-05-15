@@ -116,7 +116,9 @@ fun NavGraph(
             TransactionDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToEdit = { transactionId ->
-                    navController.navigate(Screen.EditTransaction.createRoute(transactionId))
+                    navController.navigate(Screen.EditTransaction.createRoute(transactionId)) {
+                        launchSingleTop = true
+                    }
                 },
             )
         }
