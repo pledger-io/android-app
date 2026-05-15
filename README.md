@@ -110,6 +110,15 @@ Backend API reference: [pledger-io/rest-application](https://github.com/pledger-
 
 ## Building
 
+### Local scripts
+
+| Script | Output |
+|--------|--------|
+| `scripts/build-debug.sh` / `build-debug.ps1` | Debug APK |
+| `scripts/build-release.sh` / `build-release.ps1` | Release APK (minified) |
+
+Or use Gradle directly:
+
 ```bash
 ./gradlew assembleDebug
 ```
@@ -118,6 +127,38 @@ On Windows (PowerShell):
 
 ```powershell
 .\gradlew.bat assembleDebug
+```
+
+Requires **JDK 21**.
+
+### GitHub Actions
+
+| Workflow | Trigger | Result |
+|----------|---------|--------|
+| [CI](.github/workflows/ci.yml) | Push / PR to `main` or `master` | Unit tests + debug APK artifact |
+| [Release](.github/workflows/release.yml) | **Publish** a GitHub Release, or manual run | Release APK attached to the release |
+
+**Distributing an APK on GitHub Release**
+
+1. Push a tag (e.g. `v1.0.0`) and [create a release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-your-repository) from that tag, or create a release in the GitHub UI.
+2. Click **Publish release** (draft releases do not run the workflow).
+3. The **Release** workflow builds `assembleRelease` and uploads `pledger-io-<tag>-<version>.apk` to the release assets.
+
+To test the release build without publishing: **Actions → Release → Run workflow**. The APK is saved as a workflow artifact.
+
+**Optional production signing** — add these repository secrets; if omitted, CI signs the release APK with the debug keystore (fine for sideloading, not for Play Store):
+
+| Secret | Description |
+|--------|-------------|
+| `ANDROID_KEYSTORE_BASE64` | Base64-encoded `.jks` / `.keystore` file |
+| `ANDROID_KEYSTORE_PASSWORD` | Keystore password |
+| `ANDROID_KEY_ALIAS` | Key alias |
+| `ANDROID_KEY_PASSWORD` | Key password |
+
+Encode a keystore (example):
+
+```bash
+base64 -w 0 release.keystore > keystore.b64
 ```
 
 ## License
