@@ -148,6 +148,7 @@ object AccountTypeCatalog {
             isCounterparty = true,
             group = AccountTypeGroup.COUNTERPARTY,
             showOpeningBalance = false,
+            showBankDetails = false,
         ),
         AccountTypeCodes.DEBTOR to metadata(
             code = AccountTypeCodes.DEBTOR,
@@ -156,6 +157,7 @@ object AccountTypeCatalog {
             isCounterparty = true,
             group = AccountTypeGroup.COUNTERPARTY,
             showOpeningBalance = false,
+            showBankDetails = false,
         ),
         "debit" to metadata(
             code = "debit",
@@ -164,6 +166,7 @@ object AccountTypeCatalog {
             isCounterparty = true,
             group = AccountTypeGroup.COUNTERPARTY,
             showOpeningBalance = false,
+            showBankDetails = false,
         ),
     )
 
