@@ -19,6 +19,7 @@ This directory contains Architecture Decision Records (ADRs) for the Pledger.io 
 | [011](011-single-module-structure.md) | Single Module with Package Boundaries | Accepted |
 | [012](012-google-fonts-provider.md) | Google Fonts Provider for Typography | Accepted |
 | [013](013-ksp-over-kapt.md) | KSP over KAPT for Annotation Processing | Accepted |
+| [014](014-coil-authenticated-images.md) | Coil for Authenticated Account Logos | Accepted |
 
 ## ADR Format
 

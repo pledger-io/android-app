@@ -18,10 +18,14 @@ Use **Retrofit** with **OkHttp** for HTTP and **Moshi** with KSP codegen for JSO
 
 Key implementation details:
 - `PledgerApiService` is a Retrofit interface with suspend functions for coroutine support
-- `AuthInterceptor` (OkHttp Interceptor) attaches JWT bearer tokens and handles 401 responses
+- All business endpoints use the **`/v2/api/`** prefix (see backend OpenAPI contract)
+- `DynamicBaseUrlInterceptor` rewrites request host/port/scheme from `SessionManager.getBaseUrl()` so users can point at any self-hosted instance
+- `AuthInterceptor` attaches JWT bearer tokens and handles 401 responses on authenticated calls
+- Server validation during onboarding uses a direct OkHttp `GET {baseUrl}/health` call before login
 - `HttpLoggingInterceptor` provides debug-level request/response logging
 - DTOs use `@JsonClass(generateAdapter = true)` for compile-time Moshi adapter generation
 - 30-second timeouts for connect, read, and write
+- Account search supports `type` (repeatable) and `accountName` query params for autocomplete in the transaction form
 
 ## Consequences
 

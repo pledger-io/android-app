@@ -1,11 +1,11 @@
 # ADR-008: Jetpack Navigation Compose
 
-**Date:** 2026-05-13
+**Date:** 2026-05-13 (updated 2026-05-15)
 **Status:** Accepted
 
 ## Context
 
-The app has 10+ screens with various navigation patterns: bottom tabs, detail push/pop, and onboarding flow with backstack clearing. We need a navigation solution that integrates with Compose and Hilt.
+The app has 15+ routes (onboarding, five bottom tabs, detail screens, add/edit forms) with bottom tabs, detail push/pop, FABs, and onboarding backstack clearing. We need a navigation solution that integrates with Compose and Hilt.
 
 Options considered:
 - **Jetpack Navigation Compose** — Official Google solution, type-safe routes, integrates with Hilt ViewModels
@@ -45,3 +45,7 @@ Use **Jetpack Navigation Compose** with:
 | Detail screen | `navController.navigate(Screen.Detail.createRoute(id))` |
 | Onboarding → Main | `popUpTo(onboarding) { inclusive = true }` |
 | Logout | `popUpTo(0) { inclusive = true }` clears entire stack |
+| Add flows | `transaction/add`, `account/add`, `account/{id}/edit` |
+| FAB entry | Dashboard menu → add transaction or account; Transactions tab → add transaction; Accounts tab → add account |
+
+Bottom bar visibility is tied to `mainScreens` in `PledgerApp` (dashboard, transactions, budgets, accounts, reports only).

@@ -1,6 +1,6 @@
 # ADR-005: Room for Offline Caching
 
-**Date:** 2026-05-13
+**Date:** 2026-05-13 (updated 2026-05-15)
 **Status:** Accepted
 
 ## Context
@@ -15,7 +15,9 @@ Options considered:
 
 ## Decision
 
-Use **Room** as the local database for offline caching of accounts, transactions, budgets, and categories.
+Use **Room** as the local database for offline caching of accounts, transactions, budgets, categories, and currencies.
+
+Current schema (**version 3**): `AccountEntity` (includes `iconFileCode`), `TransactionEntity`, `BudgetEntity`, `CategoryEntity`, `CurrencyEntity`.
 
 Design choices:
 - Entities are separate from domain models — they contain `toDomain()` / `fromDomain()` mapping functions

@@ -2,183 +2,229 @@
 
 ## Overview
 
-Pledger.io Android is a native Android client for the self-hosted Pledger.io personal finance manager. It connects to a user-provided REST backend and provides a mobile-native experience for managing accounts, transactions, budgets, and financial reports.
+Pledger.io Android is a native client for the self-hosted Pledger.io personal finance manager. It connects to a user-configured REST backend and provides a mobile experience for accounts, transactions, budgets, and reports.
+
+All API paths use the **v2** prefix (e.g. `/v2/api/accounts`, `/v2/api/security/authenticate`). The base URL is stored per installation and applied at request time.
 
 ## High-Level Architecture
 
-The application follows **Clean Architecture** principles with three distinct layers, enforced through package boundaries:
+The application follows **Clean Architecture** with three layers:
 
 ```
 ┌─────────────────────────────────────────────┐
 │                  UI Layer                    │
-│  (Jetpack Compose screens + ViewModels)     │
+│  (Compose screens + ViewModels + UiState)   │
 ├─────────────────────────────────────────────┤
 │               Domain Layer                   │
-│  (Use Cases + Models + Repository Interfaces)│
+│  (Models + Repository interfaces + UseCases) │
 ├─────────────────────────────────────────────┤
 │                Data Layer                    │
-│  (Retrofit API + Room DB + Repo Impls)      │
+│  (Retrofit + Room + Repository implementations)│
 └─────────────────────────────────────────────┘
 ```
 
 ### Dependency Rule
 
-Dependencies point **inward only**: UI → Domain ← Data. The domain layer has no dependencies on Android framework, networking libraries, or database implementations. Repository interfaces are defined in `domain/` and implemented in `data/`.
+Dependencies point **inward only**: UI → Domain ← Data. The domain layer has no Android, Retrofit, or Room types. Repository interfaces live in `domain/`; implementations in `data/`.
 
 ## Layer Details
 
 ### UI Layer (`ui/`)
 
-Each feature is organized into its own package containing:
+Each feature package typically contains:
 
-- **Screen** — A `@Composable` function representing the full screen. Receives state from the ViewModel and dispatches user events back to it.
-- **ViewModel** — An `@HiltViewModel` that holds a `StateFlow<UiState>` and exposes action functions. Collects data from use cases or repositories and maps it to the screen's UI state.
-- **UiState** — A data class colocated with the ViewModel, representing the screen's complete state (loading, error, data).
+| Artifact | Role |
+|----------|------|
+| `*Screen.kt` | `@Composable` UI; reads `StateFlow<UiState>`; forwards events to ViewModel |
+| `*ViewModel.kt` | `@HiltViewModel`; coroutines; maps `Resource` / repository data to `UiState` |
+| `*UiState` | Data class colocated with ViewModel |
+
+Shared UI lives in `ui/components/` (`PledgerCard`, `LoadingScreen`, `ErrorScreen`, `EmptyScreen`, `AccountIcon`, …).
+
+#### Feature packages
 
 ```
 ui/
-├── theme/          # Material 3 theme definition
-├── components/     # Shared composables (cards, loading, error, empty)
-├── navigation/     # NavGraph and Screen route definitions
-├── onboarding/     # Server setup + Login
-├── dashboard/      # Financial overview
-├── transactions/   # Transaction list + detail
-├── accounts/       # Account list + detail
-├── budgets/        # Budget management
-├── reports/        # Charts and analytics
-└── settings/       # App configuration
+├── theme/              # Material 3 colors, typography (Sora + DM Sans)
+├── components/         # Reusable composables
+├── navigation/         # NavGraph, Screen routes
+├── onboarding/         # Server setup, login
+├── dashboard/          # Overview, recent transactions
+├── transactions/       # List, detail, form, filters, autocomplete
+├── accounts/           # List, detail, form
+├── budgets/
+├── reports/
+├── settings/
+└── PledgerApp.kt       # Scaffold + bottom navigation
 ```
 
 #### Navigation
 
-Navigation uses Jetpack Navigation Compose with a sealed `Screen` class defining all routes. Arguments (like `accountId`, `transactionId`) are passed as path parameters and extracted via `SavedStateHandle` in ViewModels.
+- Routes are defined in `Screen` (sealed class).
+- `NavGraph` wires composable destinations; path args (`accountId`, `transactionId`) are read in ViewModels via `SavedStateHandle`.
+- **Bottom tabs:** Dashboard, Transactions, Budgets, Accounts, Reports.
+- **Stack screens:** Detail views, add/edit forms, onboarding, settings (bottom bar hidden when not on a main tab).
+- Outer scaffold padding is passed into `NavGraph` so FABs clear the bottom navigation bar.
 
-Bottom navigation covers five main tabs: Dashboard, Transactions, Budgets, Accounts, Reports. Detail screens and onboarding sit outside the bottom nav and show/hide the bar accordingly.
+#### Transaction list UX
+
+- **Paging:** `TransactionRepository.getTransactionsPage()` returns `PagedResult`; ViewModels merge pages and deduplicate by `id`.
+- **Month navigator:** `startDate` / `endDate` sent to API per visible month; can load older months when scrolling.
+- **Filters:** Optional `category`, `expense`, `contract` query params; UI uses debounced autocomplete against category/budget/contract APIs.
+- **Type display:** `DEBIT` = income (green), `CREDIT` = expense (red) in lists.
+
+#### Transaction create form
+
+Account fields depend on transaction type:
+
+| Type | From account | To account |
+|------|--------------|------------|
+| Income (`DEBIT`) | Debtor autocomplete (`type=debtor`) | Owned accounts dropdown |
+| Expense (`CREDIT`) | Owned accounts dropdown | Creditor autocomplete (`type=creditor`) |
+| Transfer | Owned accounts dropdown | Owned accounts dropdown |
+
+Owned account types come from `GET /v2/api/account-types` (excluding counterparty types); lists are loaded with `GET /v2/api/accounts?type=…`.
+
+#### Account logos
+
+- Accounts expose `iconFileCode` from the API.
+- `AccountIconUrlProvider` builds `{baseUrl}/v2/api/files/{fileCode}`.
+- Coil loads images with the same `OkHttpClient` as Retrofit (JWT + dynamic host).
+- Shown on **account detail** (balance card) and **transaction detail** (from/to rows; accounts fetched by id for icon codes).
 
 ### Domain Layer (`domain/`)
 
-The domain layer is a pure Kotlin module with no Android framework dependencies.
+- **Models** — `Account`, `Transaction`, `Budget`, `Category`, `Currency`, `TransactionFilters`, `FilterOption`, `AccountTypeOption`, etc.
+- **Repositories** — `AuthRepository`, `AccountRepository`, `TransactionRepository`, `BudgetRepository`, `CategoryRepository`, `ContractRepository`, `CurrencyRepository`.
+- **Use cases** — e.g. `GetDashboardDataUseCase` aggregates dashboard data.
 
-- **Models** — Domain entities (`Account`, `Transaction`, `Budget`, `Category`) with business logic (e.g., `Budget.percentUsed`, `Budget.remaining`).
-- **Repository Interfaces** — Contracts for data access. Return `Flow<Resource<T>>` for observable data or `suspend fun` for one-shot operations.
-- **Use Cases** — Single-responsibility classes that encapsulate business logic. Each use case has an `operator fun invoke()` convention, making call sites readable. Use cases validate inputs, combine repository calls, and transform data.
+`AccountRepository` additionally supports `searchAccounts(typeCode, nameQuery)` and `getAccountsByTypes(typeCodes)` for the transaction form.
 
 ### Data Layer (`data/`)
 
-- **Remote** (`remote/`) — Retrofit service interface (`PledgerApiService`) and Moshi DTOs. DTOs are annotated with `@JsonClass(generateAdapter = true)` for compile-time adapter generation.
-- **Local** (`local/`) — Room database with entities, DAOs, and type converters. Entities contain `toDomain()` and `fromDomain()` mapping functions.
-- **Repository Implementations** (`repository/`) — Coordinate between remote and local sources. General pattern:
-  1. Emit `Resource.Loading`
-  2. Attempt network fetch
-  3. On success: cache to Room, emit `Resource.Success`
-  4. On failure: fall back to Room cache if available, emit `Resource.Error`
+- **Remote** — `PledgerApiService`, Moshi DTOs (`@JsonClass(generateAdapter = true)`).
+- **Local** — Room (`PledgerDatabase` v3): accounts, transactions, budgets, categories, currencies.
+- **Repositories** — Network-first with Room fallback pattern:
+
+  1. Emit `Resource.Loading` (where applicable)
+  2. Call API
+  3. On success: persist to Room, emit `Resource.Success`
+  4. On failure: emit cached data if present, else `Resource.Error`
+
+Account balances are enriched via `POST /v2/api/balance/account` (partitioned by account name) after list/detail fetches.
 
 ## Dependency Injection
 
-Hilt provides compile-time verified DI with three modules:
+| Module | Provides |
+|--------|----------|
+| `NetworkModule` | Moshi, `OkHttpClient`, `Retrofit`, `PledgerApiService`, Coil `ImageLoader` |
+| `DatabaseModule` | `PledgerDatabase`, DAOs |
+| `RepositoryModule` | Repository bindings |
 
-| Module | Scope | Provides |
-|--------|-------|----------|
-| `NetworkModule` | Singleton | Moshi, OkHttpClient, Retrofit, API service |
-| `DatabaseModule` | Singleton | Room database and all DAOs |
-| `RepositoryModule` | Singleton | Binds repository implementations to interfaces |
+ViewModels: `@HiltViewModel` + `hiltViewModel()` in Compose.
 
-ViewModels are injected via `@HiltViewModel` and accessed in Compose through `hiltViewModel()`.
+`PledgerApp` sets global `CurrencyProvider` and `Coil.setImageLoader()` on startup.
 
 ## Networking
 
-### Request Pipeline
+### Request pipeline
 
 ```
-Composable → ViewModel → UseCase → Repository → Retrofit → OkHttp → Server
-                                                              ↑
-                                                    AuthInterceptor
-                                                    (attaches JWT)
-                                                    LoggingInterceptor
+Screen → ViewModel → Repository → Retrofit
+                                    ↓
+                              OkHttpClient
+                    ┌───────────────┼───────────────┐
+         DynamicBaseUrlInterceptor   AuthInterceptor   LoggingInterceptor
+                    (user base URL)   (Bearer JWT)
 ```
 
-### Authentication Flow
+- **Placeholder Retrofit base URL** — Real host comes from `DynamicBaseUrlInterceptor` using `SessionManager.getBaseUrl()`.
+- **Auth** — `AuthInterceptor` adds `Authorization: Bearer …`; 401 on authenticated calls clears session.
 
-1. User enters server URL → validated via `GET /api/info`
-2. User submits credentials → `POST /api/authenticate` returns JWT
-3. Token stored in `EncryptedSharedPreferences` via `SessionManager`
-4. `AuthInterceptor` attaches `Authorization: Bearer <token>` to every request
-5. On 401 response → session cleared → user redirected to login
+### Authentication flow
 
-### Error Handling
+1. User enters server URL → validated with `GET {baseUrl}/health` (OkHttp, not Retrofit).
+2. URL saved → `POST /v2/api/security/authenticate` → JWT + refresh token in `SessionManager`.
+3. Subsequent API and image requests use the stored base URL and token.
 
-All repository methods return `Resource<T>` — a sealed class with three states:
-- `Resource.Success(data)` — operation completed, data available
-- `Resource.Error(message)` — operation failed, human-readable message
-- `Resource.Loading` — operation in progress
+### Key API surface (non-exhaustive)
+
+| Area | Endpoints |
+|------|-----------|
+| Auth | `/v2/api/security/authenticate`, `/v2/api/security/oauth`, `/v2/api/security/logout` |
+| Accounts | `/v2/api/accounts`, `/v2/api/accounts/{id}`, `/v2/api/account-types` |
+| Transactions | `/v2/api/transactions`, `/v2/api/transactions/{id}` |
+| Categories | `/v2/api/categories` |
+| Budgets | `/v2/api/budgets`, `/v2/api/budgets/expenses` |
+| Contracts | `/v2/api/contracts` |
+| Balance | `/v2/api/balance`, `/v2/api/balance/{partition}` |
+| Currencies | `/v2/api/currencies` |
+| Files | `/v2/api/files/{fileCode}` |
+| Health | `/health` |
+
+### Error handling
+
+Repositories return `Resource<T>`:
+
+- `Resource.Success(data)`
+- `Resource.Error(message)`
+- `Resource.Loading`
 
 ## Offline Strategy
 
-### Caching
+### Room cache
 
-Room serves as an offline cache. Every successful API response is persisted to Room before being emitted to the UI. When the network is unavailable, repositories fall back to cached data.
+Entities: accounts (including `iconFileCode`), transactions, budgets, categories, currencies. Successful writes refresh the cache; reads fall back when offline.
 
-### Background Sync
+### Background sync (`SyncWorker`)
 
-`SyncWorker` (via WorkManager) runs every 12 hours to:
-1. Refresh accounts and transactions
-2. Check budget thresholds
-3. Fire local notifications when any budget exceeds 80%
+Periodic work (12 h) via WorkManager:
 
-### Network Monitoring
+1. Sync currencies
+2. Refresh accounts (`getAccounts().first()`)
+3. Load current-month budgets and notify if any group exceeds 80% spend
 
-`NetworkMonitor` exposes a `Flow<Boolean>` of connectivity state using `ConnectivityManager.NetworkCallback`. The UI can display offline banners reactively.
+Transactions are refreshed on screen load rather than in the worker.
+
+### Network monitoring
+
+`NetworkMonitor` exposes connectivity as `Flow<Boolean>` for optional offline UI.
 
 ## Security
 
 | Concern | Implementation |
-|---------|---------------|
-| Token storage | `EncryptedSharedPreferences` with AES-256-GCM |
-| Transport | HTTPS enforced by server URL validation |
-| Biometric | `BiometricPrompt` API (optional, toggle in settings) |
-| Session expiry | 401 interceptor clears session automatically |
-| ProGuard | Enabled in release builds, keeps DTOs and Room entities |
+|---------|----------------|
+| Token storage | `EncryptedSharedPreferences` (AES-256-GCM) |
+| Transport | User-supplied URL; cleartext permitted in debug config for dev servers |
+| Biometric | Optional via settings (`BiometricPrompt`) |
+| Session expiry | 401 handling in `AuthInterceptor` |
+| Release | ProGuard / R8 enabled |
 
 ## State Management
 
-Each screen follows a unidirectional data flow:
+Unidirectional flow per screen:
 
 ```
-User Action → ViewModel function
-                    ↓
-            Update StateFlow<UiState>
-                    ↓
-            Compose recomposes with new state
+User action → ViewModel → StateFlow<UiState> → Compose recomposition
 ```
 
-UI state is a single data class per screen, making state easy to reason about, test, and preview. ViewModels never hold Android framework references — they use `SavedStateHandle` for navigation arguments.
+Navigation arguments via `SavedStateHandle`. No Android framework types inside ViewModels beyond `SavedStateHandle`.
 
 ## Theming
 
-The app uses Material 3 with a custom color scheme:
+- **Dark-first** navy background with **emerald** primary (`#00C896`)
+- **Semantic:** income green, expense red, warning amber
+- **Fonts:** Sora (headlines), DM Sans (body) via Google Fonts provider
 
-- **Dark theme** (default): Deep navy background (`#0D1B2A`) with emerald green accent (`#00C896`)
-- **Light theme**: Light gray background with the same emerald accent
-- **Typography**: Sora (geometric, for headlines) + DM Sans (friendly, for body text), loaded via Google Fonts provider
-- **Semantic colors**: Income green (`#4ADE80`), expense red (`#F87171`), warning amber (`#FBBF24`)
+## Testing Strategy (target)
 
-## Testing Strategy
-
-| Layer | Tool | What's Tested |
-|-------|------|---------------|
-| Use Cases | JUnit + MockK + Coroutines Test | Input validation, data transformation, business rules |
-| ViewModels | JUnit + MockK + Turbine | State transitions, error handling |
-| Repositories | JUnit + MockK | Network/cache coordination |
-| UI | Compose UI Test | Critical flows (login, add transaction) |
+| Layer | Tools |
+|-------|--------|
+| Use cases | JUnit, MockK, coroutines-test |
+| ViewModels | JUnit, MockK, Turbine |
+| Repositories | JUnit, MockK |
+| UI | Compose UI tests for critical flows |
 
 ## Module Boundaries
 
-While currently a single-module app, the package structure is designed for future modularization:
-
-```
-:app           → Android application module
-:core:data     → Retrofit, Room, repository impls (future)
-:core:domain   → Models, use cases, repo interfaces (future)
-:core:ui       → Shared composables, theme (future)
-:feature:*     → Individual feature modules (future)
-```
+Single `:app` module today; package layout supports future `:core:*` and `:feature:*` modules (see ADR-011).

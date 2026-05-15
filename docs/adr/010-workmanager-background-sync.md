@@ -24,8 +24,10 @@ Use **WorkManager** with `PeriodicWorkRequest` for a 12-hour background sync cyc
 
 Implementation:
 - `SyncWorker` is annotated with `@HiltWorker` for dependency injection
-- Refreshes accounts data on each execution
+- Syncs **currencies** to Room (`CurrencyRepository.sync()`)
+- Refreshes **accounts** data on each execution (`AccountRepository.getAccounts()`)
 - Checks budget utilization and fires local notifications when any budget exceeds 80%
+- Transaction cache is **not** refreshed here; lists load from the API when screens are opened
 - Uses `ExistingPeriodicWorkPolicy.KEEP` to avoid duplicate scheduling
 - `Configuration.Provider` on the Application class enables Hilt worker injection
 
