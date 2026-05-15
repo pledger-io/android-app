@@ -1,51 +1,39 @@
 package com.pledgerio.app.ui.transactions
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.pledgerio.app.domain.model.Account
-import com.pledgerio.app.domain.model.TransactionType
-import com.pledgerio.app.ui.components.AccountIcon
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
+import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar
-import com.pledgerio.app.ui.theme.ExpenseRed
-import com.pledgerio.app.ui.theme.IncomeGreen
+import com.pledgerio.app.ui.transactions.detail.DetailInfoRow
+import com.pledgerio.app.ui.transactions.detail.TransactionDetailClassificationCard
+import com.pledgerio.app.ui.transactions.detail.TransactionDetailFlowCard
+import com.pledgerio.app.ui.transactions.detail.TransactionDetailHeroCard
+import com.pledgerio.app.ui.transactions.detail.TransactionDetailSplitCard
+import com.pledgerio.app.ui.transactions.detail.TransactionDetailTagsCard
 import com.pledgerio.app.util.CurrencyProvider
-import com.pledgerio.app.util.formatCurrency
-import com.pledgerio.app.util.formatDisplay
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionDetailScreen(
     onNavigateBack: () -> Unit,
@@ -58,7 +46,7 @@ fun TransactionDetailScreen(
     Scaffold(
         topBar = {
             PledgerTopBar(
-                title = "Transaction Details",
+                title = transaction?.description?.takeIf { it.isNotBlank() } ?: "Transaction",
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -83,182 +71,59 @@ fun TransactionDetailScreen(
                 modifier = Modifier.padding(paddingValues),
             )
             transaction != null -> {
-                Column(
+                val currencyInfo = CurrencyProvider.getInstance()?.get(transaction.currency)
+                val currencyDisplay = currencyInfo?.let { "${it.name} (${it.symbol})" }
+                    ?: transaction.currency
+                val hasClassification = transaction.budgetName != null ||
+                    transaction.categoryName != null ||
+                    transaction.contractName != null
+
+                LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues)
-                        .padding(16.dp)
-                        .verticalScroll(rememberScrollState()),
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Text(
-                        text = transaction.description.ifBlank { "Transaction" },
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "${if (transaction.type == TransactionType.DEBIT) "+" else "-"}${transaction.amount.formatCurrency(transaction.currency)}",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = if (transaction.type == TransactionType.DEBIT) IncomeGreen else ExpenseRed,
-                    )
+                    item { Spacer(modifier = Modifier.height(8.dp)) }
 
-                    Spacer(modifier = Modifier.height(24.dp))
-                    HorizontalDivider()
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    SectionHeader("Details")
-                    DetailRow("Date", transaction.date.formatDisplay())
-                    DetailRow("Type", transaction.type.name.lowercase().replaceFirstChar { it.uppercase() })
-                    val currencyInfo = CurrencyProvider.getInstance()?.get(transaction.currency)
-                    val currencyDisplay = if (currencyInfo != null) {
-                        "${currencyInfo.name} (${currencyInfo.symbol})"
-                    } else {
-                        transaction.currency
-                    }
-                    DetailRow("Currency", currencyDisplay)
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    HorizontalDivider()
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    SectionHeader("Accounts")
-                    AccountDetailRow(
-                        label = "From",
-                        accountName = transaction.sourceAccountName,
-                        account = uiState.sourceAccount,
-                    )
-                    AccountDetailRow(
-                        label = "To",
-                        accountName = transaction.destinationAccountName,
-                        account = uiState.destinationAccount,
-                    )
-
-                    if (transaction.budgetName != null || transaction.categoryName != null) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        HorizontalDivider()
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        SectionHeader("Classification")
-                        transaction.budgetName?.let { DetailRow("Category", it) }
-                        transaction.categoryName?.let { DetailRow("Sub category", it) }
+                    item {
+                        TransactionDetailHeroCard(transaction = transaction)
                     }
 
-                    if (transaction.hasSplit) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        HorizontalDivider()
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        SectionHeader("Split")
-                        transaction.split.forEach { part ->
-                            DetailRow(
-                                label = part.description.ifBlank { "Part" },
-                                value = part.amount.formatCurrency(transaction.currency),
-                            )
-                        }
-                        DetailRow(
-                            label = "Split total",
-                            value = transaction.splitTotal.formatCurrency(transaction.currency),
+                    item {
+                        TransactionDetailFlowCard(
+                            transaction = transaction,
+                            sourceAccount = uiState.sourceAccount,
+                            destinationAccount = uiState.destinationAccount,
                         )
                     }
 
-                    if (transaction.tags.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        HorizontalDivider()
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        SectionHeader("Tags")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            transaction.tags.forEach { tag ->
-                                AssistChip(
-                                    onClick = { },
-                                    label = { Text(tag) },
-                                )
-                            }
+                    if (hasClassification) {
+                        item {
+                            TransactionDetailClassificationCard(
+                                budgetName = transaction.budgetName,
+                                categoryName = transaction.categoryName,
+                                contractName = transaction.contractName,
+                            )
                         }
                     }
 
-                    transaction.contractName?.let {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        HorizontalDivider()
-                        Spacer(modifier = Modifier.height(16.dp))
-                        DetailRow("Contract", it)
+                    if (transaction.hasSplit) {
+                        item {
+                            TransactionDetailSplitCard(transaction = transaction)
+                        }
                     }
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                    if (transaction.tags.isNotEmpty()) {
+                        item {
+                            TransactionDetailTagsCard(tags = transaction.tags)
+                        }
+                    }
+
+                    item { Spacer(modifier = Modifier.height(88.dp)) }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun SectionHeader(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleSmall,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(bottom = 8.dp),
-    )
-}
-
-@Composable
-private fun AccountDetailRow(
-    label: String,
-    accountName: String,
-    account: Account?,
-) {
-    val displayName = accountName.ifBlank { account?.name ?: "—" }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            AccountIcon(
-                iconFileCode = account?.iconFileCode,
-                size = 32.dp,
-                contentDescription = displayName,
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = displayName,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-            )
-        }
-    }
-}
-
-@Composable
-private fun DetailRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
-        )
     }
 }
