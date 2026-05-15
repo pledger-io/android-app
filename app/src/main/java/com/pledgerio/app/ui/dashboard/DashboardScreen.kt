@@ -21,16 +21,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -93,41 +89,12 @@ fun DashboardScreen(
                 },
             )
         },
-        floatingActionButton = {
-            Box(contentAlignment = Alignment.BottomEnd) {
-                DropdownMenu(
-                    expanded = showAddMenu,
-                    onDismissRequest = { showAddMenu = false },
-                    modifier = Modifier.align(Alignment.BottomEnd),
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Transaction") },
-                        onClick = {
-                            showAddMenu = false
-                            onNavigateToAddTransaction()
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Account") },
-                        onClick = {
-                            showAddMenu = false
-                            onNavigateToAddAccount()
-                        },
-                    )
-                }
-                FloatingActionButton(
-                    onClick = { showAddMenu = true },
-                    containerColor = EmeraldGreen,
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add")
-                }
-            }
-        }
     ) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
         PullToRefreshBox(
             isRefreshing = uiState.isRefreshing,
             onRefresh = viewModel::refresh,
-            modifier = Modifier.padding(paddingValues),
+            modifier = Modifier.fillMaxSize(),
         ) {
             when {
                 uiState.isLoading && !uiState.isRefreshing -> LoadingScreen()
@@ -204,6 +171,14 @@ fun DashboardScreen(
                     }
                 }
             }
+        }
+
+            DashboardAddFabMenu(
+                expanded = showAddMenu,
+                onExpandedChange = { showAddMenu = it },
+                onAddTransaction = onNavigateToAddTransaction,
+                onAddAccount = onNavigateToAddAccount,
+            )
         }
     }
 }
