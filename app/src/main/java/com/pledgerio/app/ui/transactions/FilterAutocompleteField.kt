@@ -42,6 +42,8 @@ fun FilterAutocompleteField(
     onQueryChange: (String) -> Unit,
     onSelected: (FilterOption) -> Unit,
     onClear: () -> Unit,
+    addNewLabel: String? = null,
+    onAddNew: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     var isFocused by remember(label) { mutableStateOf(false) }
@@ -120,6 +122,18 @@ fun FilterAutocompleteField(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                             )
+                            if (onAddNew != null && addNewLabel != null) {
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                                Text(
+                                    text = addNewLabel,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { onAddNew() }
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                )
+                            }
                         }
                         else -> {
                             suggestions.forEachIndexed { index, option ->
@@ -134,6 +148,18 @@ fun FilterAutocompleteField(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable { onSelected(option) }
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                )
+                            }
+                            if (onAddNew != null && addNewLabel != null) {
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                                Text(
+                                    text = addNewLabel,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { onAddNew() }
                                         .padding(horizontal = 16.dp, vertical = 12.dp),
                                 )
                             }

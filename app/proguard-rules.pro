@@ -13,3 +13,9 @@
 # Room
 -keep class * extends androidx.room.RoomDatabase
 -keep @androidx.room.Entity class *
+
+# Hilt
+-keep class com.pledgerio.app.PledgerApp { *; }
+-keep class com.pledgerio.app.Hilt_PledgerApp { *; }
+-keep class com.pledgerio.app.**_HiltComponents_* { *; }
+-keep class dagger.hilt.** { *; }

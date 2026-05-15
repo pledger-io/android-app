@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.transactions
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Account
@@ -8,10 +9,14 @@ import com.pledgerio.app.domain.model.FilterOption
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.AccountRepository
+import com.pledgerio.app.domain.repository.BudgetRepository
+import com.pledgerio.app.domain.repository.CategoryRepository
+import com.pledgerio.app.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.ui.transactions.form.TransactionFormLabels
 import com.pledgerio.app.util.Resource
+import com.pledgerio.app.util.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -30,6 +35,11 @@ enum class AccountInputKind {
     OWNED_DROPDOWN,
 }
 
+enum class OwnedAccountPickerSide {
+    SOURCE,
+    TARGET,
+}
+
 data class TransactionFormFieldErrors(
     val amount: String? = null,
     val source: String? = null,
@@ -44,6 +54,10 @@ data class TransactionFormUiState(
     val saveSuccess: Boolean = false,
     val validationAttempted: Boolean = false,
     val showDatePicker: Boolean = false,
+    val isEditing: Boolean = false,
+    val editingTransactionId: Long? = null,
+    val moreOptionsExpanded: Boolean = false,
+    val ownedAccountPickerSide: OwnedAccountPickerSide? = null,
     val description: String = "",
     val amount: String = "",
     val date: LocalDate = LocalDate.now(),
@@ -61,6 +75,18 @@ data class TransactionFormUiState(
     val targetQuery: String = "",
     val targetSuggestions: List<FilterOption> = emptyList(),
     val isSearchingTarget: Boolean = false,
+    val categoryQuery: String = "",
+    val categorySelected: FilterOption? = null,
+    val categorySuggestions: List<FilterOption> = emptyList(),
+    val isSearchingCategory: Boolean = false,
+    val expenseQuery: String = "",
+    val expenseSelected: FilterOption? = null,
+    val expenseSuggestions: List<FilterOption> = emptyList(),
+    val isSearchingExpense: Boolean = false,
+    val contractQuery: String = "",
+    val contractSelected: FilterOption? = null,
+    val contractSuggestions: List<FilterOption> = emptyList(),
+    val isSearchingContract: Boolean = false,
 ) {
     val sourceInputKind: AccountInputKind
         get() = inputKindForSource(type)
@@ -72,6 +98,8 @@ data class TransactionFormUiState(
     val targetLabel: String get() = TransactionFormLabels.targetLabel(type)
     val flowHelperText: String get() = TransactionFormLabels.flowHelperText(type)
     val typeSubtitle: String get() = TransactionFormLabels.typeSubtitle(type)
+    val screenTitle: String get() = if (isEditing) "Edit transaction" else "New transaction"
+    val submitLabel: String get() = if (isEditing) "Save changes" else "Create transaction"
 
     val fieldErrors: TransactionFormFieldErrors
         get() = if (!validationAttempted) {
@@ -131,17 +159,35 @@ class TransactionFormViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
     private val accountRepository: AccountRepository,
     private val currencyRepository: CurrencyRepository,
+    private val categoryRepository: CategoryRepository,
+    private val budgetRepository: BudgetRepository,
+    private val contractRepository: ContractRepository,
+    private val userPreferences: UserPreferences,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(TransactionFormUiState())
+    private val editTransactionId: Long? = savedStateHandle.get<Long>("transactionId")
+
+    private val _uiState = MutableStateFlow(
+        TransactionFormUiState(
+            isEditing = editTransactionId != null,
+            editingTransactionId = editTransactionId,
+        ),
+    )
     val uiState: StateFlow<TransactionFormUiState> = _uiState.asStateFlow()
 
     private var sourceSearchJob: Job? = null
     private var targetSearchJob: Job? = null
+    private var categorySearchJob: Job? = null
+    private var expenseSearchJob: Job? = null
+    private var contractSearchJob: Job? = null
 
     init {
         loadOwnedAccounts()
         loadCurrencies()
+        if (editTransactionId != null) {
+            loadTransactionForEdit(editTransactionId)
+        }
     }
 
     fun onDescriptionChanged(value: String) {
@@ -153,6 +199,9 @@ class TransactionFormViewModel @Inject constructor(
     }
 
     fun onTypeChanged(type: TransactionType) {
+        viewModelScope.launch {
+            userPreferences.setLastTransactionType(type)
+        }
         _uiState.update { current ->
             val oldSourceKind = current.sourceInputKind
             val oldTargetKind = current.targetInputKind
@@ -209,6 +258,27 @@ class TransactionFormViewModel @Inject constructor(
         _uiState.update { it.copy(date = date, showDatePicker = false, error = null) }
     }
 
+    fun toggleMoreOptions() {
+        _uiState.update { it.copy(moreOptionsExpanded = !it.moreOptionsExpanded) }
+    }
+
+    fun openOwnedAccountPicker(side: OwnedAccountPickerSide) {
+        _uiState.update { it.copy(ownedAccountPickerSide = side) }
+    }
+
+    fun dismissOwnedAccountPicker() {
+        _uiState.update { it.copy(ownedAccountPickerSide = null) }
+    }
+
+    fun partyTypeCodeForNewAccount(isSource: Boolean): String? {
+        val kind = if (isSource) _uiState.value.sourceInputKind else _uiState.value.targetInputKind
+        return when (kind) {
+            AccountInputKind.CREDITOR_AUTOCOMPLETE -> AccountTypeCodes.CREDITOR
+            AccountInputKind.DEBTOR_AUTOCOMPLETE -> AccountTypeCodes.DEBTOR
+            AccountInputKind.OWNED_DROPDOWN -> null
+        }
+    }
+
     fun onSourceQueryChanged(query: String) {
         _uiState.update { it.copy(sourceQuery = query, error = null) }
         sourceSearchJob?.cancel()
@@ -224,6 +294,81 @@ class TransactionFormViewModel @Inject constructor(
         targetSearchJob = viewModelScope.launch {
             delay(SEARCH_DEBOUNCE_MS)
             searchTargetAccounts(query)
+        }
+    }
+
+    fun onCategoryQueryChanged(query: String) {
+        _uiState.update { it.copy(categoryQuery = query) }
+        categorySearchJob?.cancel()
+        categorySearchJob = viewModelScope.launch {
+            delay(SEARCH_DEBOUNCE_MS)
+            searchCategories(query)
+        }
+    }
+
+    fun onExpenseQueryChanged(query: String) {
+        _uiState.update { it.copy(expenseQuery = query) }
+        expenseSearchJob?.cancel()
+        expenseSearchJob = viewModelScope.launch {
+            delay(SEARCH_DEBOUNCE_MS)
+            searchExpenses(query)
+        }
+    }
+
+    fun onContractQueryChanged(query: String) {
+        _uiState.update { it.copy(contractQuery = query) }
+        contractSearchJob?.cancel()
+        contractSearchJob = viewModelScope.launch {
+            delay(SEARCH_DEBOUNCE_MS)
+            searchContracts(query)
+        }
+    }
+
+    fun selectCategory(option: FilterOption) {
+        _uiState.update {
+            it.copy(
+                categorySelected = option,
+                categoryQuery = option.label,
+                categorySuggestions = emptyList(),
+            )
+        }
+    }
+
+    fun clearCategory() {
+        _uiState.update {
+            it.copy(categorySelected = null, categoryQuery = "", categorySuggestions = emptyList())
+        }
+    }
+
+    fun selectExpense(option: FilterOption) {
+        _uiState.update {
+            it.copy(
+                expenseSelected = option,
+                expenseQuery = option.label,
+                expenseSuggestions = emptyList(),
+            )
+        }
+    }
+
+    fun clearExpense() {
+        _uiState.update {
+            it.copy(expenseSelected = null, expenseQuery = "", expenseSuggestions = emptyList())
+        }
+    }
+
+    fun selectContract(option: FilterOption) {
+        _uiState.update {
+            it.copy(
+                contractSelected = option,
+                contractQuery = option.label,
+                contractSuggestions = emptyList(),
+            )
+        }
+    }
+
+    fun clearContract() {
+        _uiState.update {
+            it.copy(contractSelected = null, contractQuery = "", contractSuggestions = emptyList())
         }
     }
 
@@ -279,6 +424,7 @@ class TransactionFormViewModel @Inject constructor(
             state.copy(
                 sourceAccountId = accountId,
                 currency = account?.currency ?: state.currency,
+                ownedAccountPickerSide = null,
                 error = null,
             )
         }
@@ -290,6 +436,7 @@ class TransactionFormViewModel @Inject constructor(
             state.copy(
                 targetAccountId = accountId,
                 currency = account?.currency ?: state.currency,
+                ownedAccountPickerSide = null,
                 error = null,
             )
         }
@@ -315,7 +462,7 @@ class TransactionFormViewModel @Inject constructor(
             )
 
             val transaction = Transaction(
-                id = 0,
+                id = state.editingTransactionId ?: 0,
                 description = state.description.trim(),
                 amount = state.amount.toDouble(),
                 currency = state.currency,
@@ -325,10 +472,20 @@ class TransactionFormViewModel @Inject constructor(
                 sourceAccountName = sourceName,
                 destinationAccountId = state.targetAccountId,
                 destinationAccountName = targetName,
+                categoryId = state.categorySelected?.id,
+                expenseId = state.expenseSelected?.id,
+                contractId = state.contractSelected?.id,
             )
 
-            when (val result = transactionRepository.createTransaction(transaction)) {
+            val result = if (state.isEditing && state.editingTransactionId != null) {
+                transactionRepository.updateTransaction(transaction)
+            } else {
+                transactionRepository.createTransaction(transaction)
+            }
+
+            when (result) {
                 is Resource.Success -> {
+                    userPreferences.setLastTransactionType(state.type)
                     _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
                 }
                 is Resource.Error -> {
@@ -355,7 +512,6 @@ class TransactionFormViewModel @Inject constructor(
             AccountInputKind.OWNED_DROPDOWN -> {
                 val id = current.sourceAccountId
                 if (id != null && current.ownedAccounts.any { it.id == id }) {
-                    val account = current.ownedAccounts.first { it.id == id }
                     PreservedSide(id, null, "")
                 } else {
                     PreservedSide(null, null, "")
@@ -480,39 +636,153 @@ class TransactionFormViewModel @Inject constructor(
         }
     }
 
-    private fun loadOwnedAccounts() {
+    private suspend fun searchCategories(query: String) {
+        if (query.isBlank()) {
+            _uiState.update { it.copy(categorySuggestions = emptyList(), isSearchingCategory = false) }
+            return
+        }
+        _uiState.update { it.copy(isSearchingCategory = true) }
+        when (val result = categoryRepository.searchCategories(query)) {
+            is Resource.Success -> {
+                _uiState.update {
+                    it.copy(
+                        isSearchingCategory = false,
+                        categorySuggestions = result.data.map { c -> FilterOption(c.id, c.name) },
+                    )
+                }
+            }
+            is Resource.Error -> {
+                _uiState.update { it.copy(isSearchingCategory = false, categorySuggestions = emptyList()) }
+            }
+            is Resource.Loading -> {}
+        }
+    }
+
+    private suspend fun searchExpenses(query: String) {
+        if (query.isBlank()) {
+            _uiState.update { it.copy(expenseSuggestions = emptyList(), isSearchingExpense = false) }
+            return
+        }
+        _uiState.update { it.copy(isSearchingExpense = true) }
+        when (val result = budgetRepository.searchExpenses(query)) {
+            is Resource.Success -> {
+                _uiState.update {
+                    it.copy(
+                        isSearchingExpense = false,
+                        expenseSuggestions = result.data.map { e -> FilterOption(e.id, e.name) },
+                    )
+                }
+            }
+            is Resource.Error -> {
+                _uiState.update { it.copy(isSearchingExpense = false, expenseSuggestions = emptyList()) }
+            }
+            is Resource.Loading -> {}
+        }
+    }
+
+    private suspend fun searchContracts(query: String) {
+        if (query.isBlank()) {
+            _uiState.update { it.copy(contractSuggestions = emptyList(), isSearchingContract = false) }
+            return
+        }
+        _uiState.update { it.copy(isSearchingContract = true) }
+        when (val result = contractRepository.searchContracts(query)) {
+            is Resource.Success -> {
+                _uiState.update {
+                    it.copy(
+                        isSearchingContract = false,
+                        contractSuggestions = result.data.map { c -> FilterOption(c.id, c.name) },
+                    )
+                }
+            }
+            is Resource.Error -> {
+                _uiState.update { it.copy(isSearchingContract = false, contractSuggestions = emptyList()) }
+            }
+            is Resource.Loading -> {}
+        }
+    }
+
+    private fun loadTransactionForEdit(id: Long) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-
-            val ownedTypeCodes = when (val typesResult = accountRepository.getAccountTypes()) {
-                is Resource.Success -> typesResult.data
-                    .filter { !it.isCounterparty }
-                    .map { it.code }
-                is Resource.Error -> {
-                    _uiState.update {
-                        it.copy(isLoading = false, error = typesResult.message)
-                    }
-                    return@launch
-                }
-                is Resource.Loading -> emptyList()
-            }
-
-            when (val accountsResult = accountRepository.getAccountsByTypes(ownedTypeCodes)) {
+            when (val result = transactionRepository.getTransaction(id)) {
                 is Resource.Success -> {
-                    _uiState.update {
-                        it.copy(
+                    val tx = result.data
+                    val sourceKind = TransactionFormUiState.inputKindForSource(tx.type)
+                    val targetKind = TransactionFormUiState.inputKindForTarget(tx.type)
+                    _uiState.update { state ->
+                        val sourceSelected = if (
+                            sourceKind != AccountInputKind.OWNED_DROPDOWN &&
+                            tx.sourceAccountId != null
+                        ) {
+                            FilterOption(tx.sourceAccountId, tx.sourceAccountName)
+                        } else {
+                            null
+                        }
+                        val targetSelected = if (
+                            targetKind != AccountInputKind.OWNED_DROPDOWN &&
+                            tx.destinationAccountId != null
+                        ) {
+                            FilterOption(tx.destinationAccountId, tx.destinationAccountName)
+                        } else {
+                            null
+                        }
+                        state.copy(
                             isLoading = false,
-                            ownedAccounts = accountsResult.data,
+                            type = tx.type,
+                            description = tx.description,
+                            amount = tx.amount.toString(),
+                            currency = tx.currency,
+                            date = tx.date,
+                            sourceAccountId = tx.sourceAccountId,
+                            sourceSelected = sourceSelected,
+                            sourceQuery = tx.sourceAccountName,
+                            targetAccountId = tx.destinationAccountId,
+                            targetSelected = targetSelected,
+                            targetQuery = tx.destinationAccountName,
+                            categoryQuery = tx.categoryName.orEmpty(),
+                            expenseQuery = tx.budgetName.orEmpty(),
+                            contractQuery = tx.contractName.orEmpty(),
                         )
                     }
                 }
                 is Resource.Error -> {
-                    _uiState.update {
-                        it.copy(isLoading = false, error = accountsResult.message)
-                    }
+                    _uiState.update { it.copy(isLoading = false, error = result.message) }
                 }
                 is Resource.Loading -> {}
             }
+        }
+    }
+
+    private fun loadOwnedAccounts() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            when (val result = accountRepository.refreshOwnedAccounts()) {
+                is Resource.Success -> {
+                    _uiState.update { it.copy(ownedAccounts = result.data) }
+                    if (editTransactionId == null) {
+                        applyLastTransactionType()
+                    } else {
+                        _uiState.update { it.copy(isLoading = false) }
+                    }
+                }
+                is Resource.Error -> {
+                    _uiState.update {
+                        it.copy(isLoading = false, error = result.message)
+                    }
+                }
+                is Resource.Loading -> Unit
+            }
+        }
+    }
+
+    private suspend fun applyLastTransactionType() {
+        val lastType = userPreferences.getLastTransactionType()
+        _uiState.update { state ->
+            state.copy(
+                isLoading = false,
+                type = lastType ?: state.type,
+            )
         }
     }
 

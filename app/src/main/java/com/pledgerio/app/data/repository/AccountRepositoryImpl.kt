@@ -13,7 +13,9 @@ import com.pledgerio.app.domain.model.AccountTypeOption
 import com.pledgerio.app.domain.model.PagedAccounts
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.util.Resource
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import java.time.LocalDate
 import javax.inject.Inject
@@ -25,20 +27,24 @@ class AccountRepositoryImpl @Inject constructor(
 
     override fun getAccounts(): Flow<Resource<List<Account>>> = flow {
         emit(Resource.Loading)
+        emit(refreshOwnedAccounts())
+    }
 
-        try {
+    override suspend fun refreshOwnedAccounts(): Resource<List<Account>> {
+        return try {
             val accounts = fetchOwnedAccountsFromApi()
             if (accounts != null) {
                 val enriched = enrichWithBalances(accounts)
-
                 accountDao.deleteAll()
                 accountDao.insertAll(enriched.map { AccountEntity.fromDomain(it) })
-                emit(Resource.Success(enriched))
+                Resource.Success(enriched)
             } else {
-                emitCachedOrError("Failed to fetch accounts")
+                cachedOwnedOrError("Failed to fetch accounts")
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            emitCachedOrError(e.message ?: "Network error")
+            cachedOwnedOrError(e.message ?: "Network error")
         }
     }
 
@@ -148,16 +154,15 @@ class AccountRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun kotlinx.coroutines.flow.FlowCollector<Resource<List<Account>>>.emitCachedOrError(message: String) {
-        accountDao.getAll().collect { cached ->
-            if (cached.isNotEmpty()) {
-                val owned = cached.map { it.toDomain() }
-                    .distinctBy { it.id }
-                    .filter { !AccountTypeCatalog.isCounterparty(it.typeCode) }
-                emit(Resource.Success(owned))
-            } else {
-                emit(Resource.Error(message))
-            }
+    private suspend fun cachedOwnedOrError(message: String): Resource<List<Account>> {
+        val cached = accountDao.getAll().first()
+        return if (cached.isNotEmpty()) {
+            val owned = cached.map { it.toDomain() }
+                .distinctBy { it.id }
+                .filter { !AccountTypeCatalog.isCounterparty(it.typeCode) }
+            Resource.Success(owned)
+        } else {
+            Resource.Error(message)
         }
     }
 

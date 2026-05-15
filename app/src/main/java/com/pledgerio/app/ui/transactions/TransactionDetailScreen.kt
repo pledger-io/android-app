@@ -48,6 +48,7 @@ import com.pledgerio.app.util.formatDisplay
 @Composable
 fun TransactionDetailScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToEdit: (Long) -> Unit = {},
     viewModel: TransactionDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -62,8 +63,10 @@ fun TransactionDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Edit */ }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit")
+                    uiState.transaction?.id?.let { transactionId ->
+                        IconButton(onClick = { onNavigateToEdit(transactionId) }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit")
+                        }
                     }
                 },
             )

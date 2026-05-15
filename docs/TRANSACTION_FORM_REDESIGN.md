@@ -2,7 +2,7 @@
 
 Design and implementation plan for the **New Transaction** screen (`TransactionFormScreen` / `TransactionFormViewModel`). Goal: a clearer, more attractive flow that matches how people think about money (income, spending, transfers) while keeping Pledger’s account-type rules intact.
 
-**Status:** Phase 1 implemented (create screen)  
+**Status:** Phase 1–2 implemented (create + edit, bottom sheet, more options)  
 **Related:** [Architecture — transaction create form](ARCHITECTURE.md#transaction-create-form), [Account types](ACCOUNTS.md)
 
 ---
@@ -280,7 +280,7 @@ Extend unit tests:
 - No regression in `TransactionFormViewModel` save payload.
 - TalkBack reads “Paid from” / “Deposited to” correctly per type.
 
-### Phase 2 — Polish
+### Phase 2 — Polish ✅
 
 | Task | Effort |
 |------|--------|

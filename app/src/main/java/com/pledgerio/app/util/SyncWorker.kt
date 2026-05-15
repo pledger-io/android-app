@@ -35,7 +35,7 @@ class SyncWorker @AssistedInject constructor(
         return try {
             currencyRepository.sync()
 
-            accountRepository.getAccounts().first()
+            accountRepository.refreshOwnedAccounts()
 
             val now = LocalDate.now()
             val budgetsResult = budgetRepository.getBudgets(now.year, now.monthValue).first()

@@ -91,6 +91,21 @@ fun NavGraph(
         composable(Screen.AddTransaction.route) {
             TransactionFormScreen(
                 onNavigateBack = { navController.popBackStack() },
+                onNavigateToAddAccount = { typeCode ->
+                    navController.navigate(Screen.AddAccount.createRoute(typeCode))
+                },
+            )
+        }
+
+        composable(
+            route = Screen.EditTransaction.route,
+            arguments = listOf(navArgument("transactionId") { type = NavType.LongType }),
+        ) {
+            TransactionFormScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAddAccount = { typeCode ->
+                    navController.navigate(Screen.AddAccount.createRoute(typeCode))
+                },
             )
         }
 
@@ -99,7 +114,10 @@ fun NavGraph(
             arguments = listOf(navArgument("transactionId") { type = NavType.LongType })
         ) {
             TransactionDetailScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEdit = { transactionId ->
+                    navController.navigate(Screen.EditTransaction.createRoute(transactionId))
+                },
             )
         }
 

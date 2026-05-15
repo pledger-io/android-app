@@ -5,11 +5,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
@@ -29,6 +30,8 @@ import com.pledgerio.app.ui.transactions.AccountInputKind
 import com.pledgerio.app.ui.transactions.FilterAutocompleteField
 import com.pledgerio.app.util.formatCurrency
 
+private const val SEARCH_SHEET_ACCOUNT_THRESHOLD = 8
+
 @Composable
 fun TransactionAccountSlot(
     label: String,
@@ -44,6 +47,8 @@ fun TransactionAccountSlot(
     onAutocompleteSelected: (FilterOption) -> Unit,
     onAutocompleteClear: () -> Unit,
     onDropdownSelected: (Long) -> Unit,
+    onOpenOwnedAccountSearch: (() -> Unit)? = null,
+    onAddNewParty: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -65,6 +70,8 @@ fun TransactionAccountSlot(
                     onQueryChange = onQueryChange,
                     onSelected = onAutocompleteSelected,
                     onClear = onAutocompleteClear,
+                    addNewLabel = if (onAddNewParty != null) "Add new party" else null,
+                    onAddNew = onAddNewParty,
                 )
             }
             AccountInputKind.OWNED_DROPDOWN -> {
@@ -73,6 +80,7 @@ fun TransactionAccountSlot(
                     selectedId = selectedId,
                     isError = error != null,
                     onSelected = onDropdownSelected,
+                    onOpenSearch = onOpenOwnedAccountSearch,
                 )
             }
         }
@@ -94,9 +102,11 @@ private fun OwnedAccountPicker(
     selectedId: Long?,
     isError: Boolean,
     onSelected: (Long) -> Unit,
+    onOpenSearch: (() -> Unit)?,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val selected = accounts.find { it.id == selectedId }
+    val showSearchEntry = onOpenSearch != null && accounts.size >= SEARCH_SHEET_ACCOUNT_THRESHOLD
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -128,14 +138,14 @@ private fun OwnedAccountPicker(
             onDismissRequest = { expanded = false },
         ) {
             if (accounts.isEmpty()) {
-                androidx.compose.material3.DropdownMenuItem(
+                DropdownMenuItem(
                     text = { Text("No accounts available") },
                     onClick = { expanded = false },
                     enabled = false,
                 )
             } else {
                 accounts.forEach { account ->
-                    androidx.compose.material3.DropdownMenuItem(
+                    DropdownMenuItem(
                         text = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 AccountIcon(
@@ -157,6 +167,16 @@ private fun OwnedAccountPicker(
                         onClick = {
                             onSelected(account.id)
                             expanded = false
+                        },
+                    )
+                }
+                if (showSearchEntry) {
+                    HorizontalDivider()
+                    DropdownMenuItem(
+                        text = { Text("Search all accounts…") },
+                        onClick = {
+                            expanded = false
+                            onOpenSearch()
                         },
                     )
                 }

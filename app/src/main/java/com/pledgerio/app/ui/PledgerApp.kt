@@ -59,7 +59,7 @@ private val mainScreens = setOf(
 )
 
 @Composable
-fun PledgerApp(
+fun PledgerRoot(
     appViewModel: AppViewModel = hiltViewModel(),
 ) {
     val sessionManager = appViewModel.sessionManager

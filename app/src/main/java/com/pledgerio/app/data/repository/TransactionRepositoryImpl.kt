@@ -115,6 +115,9 @@ class TransactionRepositoryImpl @Inject constructor(
                 amount = transaction.amount,
                 source = transaction.sourceAccountId ?: 0,
                 target = transaction.destinationAccountId ?: 0,
+                category = transaction.categoryId,
+                expense = transaction.expenseId,
+                contract = transaction.contractId,
                 tags = transaction.tags.ifEmpty { null },
             )
             val response = apiService.createTransaction(request)
@@ -139,6 +142,9 @@ class TransactionRepositoryImpl @Inject constructor(
                 amount = transaction.amount,
                 source = transaction.sourceAccountId ?: 0,
                 target = transaction.destinationAccountId ?: 0,
+                category = transaction.categoryId,
+                expense = transaction.expenseId,
+                contract = transaction.contractId,
                 tags = transaction.tags.ifEmpty { null },
             )
             val response = apiService.updateTransaction(transaction.id, request)

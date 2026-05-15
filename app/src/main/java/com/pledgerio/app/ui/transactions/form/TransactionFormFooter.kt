@@ -18,6 +18,7 @@ fun TransactionFormFooter(
     isSaving: Boolean,
     validationSummary: String?,
     serverError: String?,
+    submitLabel: String = "Create transaction",
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -50,7 +51,7 @@ fun TransactionFormFooter(
                 enabled = canSubmit && !isSaving,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(if (isSaving) "Saving…" else "Create transaction")
+                Text(if (isSaving) "Saving…" else submitLabel)
             }
         }
     }

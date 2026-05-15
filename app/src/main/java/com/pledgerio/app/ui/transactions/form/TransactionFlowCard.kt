@@ -43,10 +43,14 @@ fun TransactionFlowCard(
     onSourceAutocompleteSelected: (FilterOption) -> Unit,
     onSourceAutocompleteClear: () -> Unit,
     onSourceDropdownSelected: (Long) -> Unit,
+    onSourceOpenOwnedAccountSearch: (() -> Unit)? = null,
+    onSourceAddNewParty: (() -> Unit)?,
     onTargetQueryChange: (String) -> Unit,
     onTargetAutocompleteSelected: (FilterOption) -> Unit,
     onTargetAutocompleteClear: () -> Unit,
     onTargetDropdownSelected: (Long) -> Unit,
+    onTargetOpenOwnedAccountSearch: (() -> Unit)? = null,
+    onTargetAddNewParty: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     PledgerCard(modifier = modifier) {
@@ -68,6 +72,8 @@ fun TransactionFlowCard(
                 onAutocompleteSelected = onSourceAutocompleteSelected,
                 onAutocompleteClear = onSourceAutocompleteClear,
                 onDropdownSelected = onSourceDropdownSelected,
+                onOpenOwnedAccountSearch = onSourceOpenOwnedAccountSearch,
+                onAddNewParty = onSourceAddNewParty,
                 modifier = Modifier.fillMaxWidth(),
             )
 
@@ -94,6 +100,8 @@ fun TransactionFlowCard(
                 onAutocompleteSelected = onTargetAutocompleteSelected,
                 onAutocompleteClear = onTargetAutocompleteClear,
                 onDropdownSelected = onTargetDropdownSelected,
+                onOpenOwnedAccountSearch = onTargetOpenOwnedAccountSearch,
+                onAddNewParty = onTargetAddNewParty,
                 modifier = Modifier.fillMaxWidth(),
             )
         }

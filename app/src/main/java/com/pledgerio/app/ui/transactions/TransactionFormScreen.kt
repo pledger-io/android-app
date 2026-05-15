@@ -31,9 +31,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerTopBar
+import com.pledgerio.app.ui.transactions.form.OwnedAccountPickerSheet
 import com.pledgerio.app.ui.transactions.form.TransactionAmountCard
 import com.pledgerio.app.ui.transactions.form.TransactionFlowCard
 import com.pledgerio.app.ui.transactions.form.TransactionFormFooter
+import com.pledgerio.app.ui.transactions.form.TransactionFormMoreOptions
 import com.pledgerio.app.ui.transactions.form.TransactionTypeSelector
 import java.time.Instant
 import java.time.LocalDate
@@ -43,6 +45,7 @@ import java.time.ZoneId
 @Composable
 fun TransactionFormScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToAddAccount: (typeCode: String) -> Unit = {},
     viewModel: TransactionFormViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -90,10 +93,32 @@ fun TransactionFormScreen(
         }
     }
 
+    when (uiState.ownedAccountPickerSide) {
+        OwnedAccountPickerSide.SOURCE -> {
+            OwnedAccountPickerSheet(
+                title = uiState.sourceLabel,
+                accounts = uiState.ownedAccounts,
+                selectedId = uiState.sourceAccountId,
+                onDismiss = viewModel::dismissOwnedAccountPicker,
+                onAccountSelected = viewModel::onSourceDropdownSelected,
+            )
+        }
+        OwnedAccountPickerSide.TARGET -> {
+            OwnedAccountPickerSheet(
+                title = uiState.targetLabel,
+                accounts = uiState.ownedAccounts,
+                selectedId = uiState.targetAccountId,
+                onDismiss = viewModel::dismissOwnedAccountPicker,
+                onAccountSelected = viewModel::onTargetDropdownSelected,
+            )
+        }
+        null -> {}
+    }
+
     Scaffold(
         topBar = {
             PledgerTopBar(
-                title = "New transaction",
+                title = uiState.screenTitle,
                 subtitle = uiState.typeSubtitle,
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
@@ -109,6 +134,7 @@ fun TransactionFormScreen(
                     isSaving = uiState.isSaving,
                     validationSummary = uiState.validationSummary,
                     serverError = uiState.error,
+                    submitLabel = uiState.submitLabel,
                     onSubmit = viewModel::submit,
                 )
             }
@@ -181,10 +207,22 @@ fun TransactionFormScreen(
                             onSourceAutocompleteSelected = viewModel::selectSourceAutocomplete,
                             onSourceAutocompleteClear = viewModel::clearSourceAccount,
                             onSourceDropdownSelected = viewModel::onSourceDropdownSelected,
+                            onSourceOpenOwnedAccountSearch = {
+                                viewModel.openOwnedAccountPicker(OwnedAccountPickerSide.SOURCE)
+                            },
+                            onSourceAddNewParty = viewModel.partyTypeCodeForNewAccount(isSource = true)?.let { typeCode ->
+                                { onNavigateToAddAccount(typeCode) }
+                            },
                             onTargetQueryChange = viewModel::onTargetQueryChanged,
                             onTargetAutocompleteSelected = viewModel::selectTargetAutocomplete,
                             onTargetAutocompleteClear = viewModel::clearTargetAccount,
                             onTargetDropdownSelected = viewModel::onTargetDropdownSelected,
+                            onTargetOpenOwnedAccountSearch = {
+                                viewModel.openOwnedAccountPicker(OwnedAccountPickerSide.TARGET)
+                            },
+                            onTargetAddNewParty = viewModel.partyTypeCodeForNewAccount(isSource = false)?.let { typeCode ->
+                                { onNavigateToAddAccount(typeCode) }
+                            },
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -200,6 +238,34 @@ fun TransactionFormScreen(
                             isError = uiState.fieldErrors.description != null,
                             supportingText = uiState.fieldErrors.description?.let { { Text(it) } },
                             modifier = Modifier.fillMaxWidth(),
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        TransactionFormMoreOptions(
+                            expanded = uiState.moreOptionsExpanded,
+                            onToggle = viewModel::toggleMoreOptions,
+                            categoryQuery = uiState.categoryQuery,
+                            categorySelected = uiState.categorySelected,
+                            categorySuggestions = uiState.categorySuggestions,
+                            isSearchingCategory = uiState.isSearchingCategory,
+                            onCategoryQueryChange = viewModel::onCategoryQueryChanged,
+                            onCategorySelected = viewModel::selectCategory,
+                            onCategoryClear = viewModel::clearCategory,
+                            expenseQuery = uiState.expenseQuery,
+                            expenseSelected = uiState.expenseSelected,
+                            expenseSuggestions = uiState.expenseSuggestions,
+                            isSearchingExpense = uiState.isSearchingExpense,
+                            onExpenseQueryChange = viewModel::onExpenseQueryChanged,
+                            onExpenseSelected = viewModel::selectExpense,
+                            onExpenseClear = viewModel::clearExpense,
+                            contractQuery = uiState.contractQuery,
+                            contractSelected = uiState.contractSelected,
+                            contractSuggestions = uiState.contractSuggestions,
+                            isSearchingContract = uiState.isSearchingContract,
+                            onContractQueryChange = viewModel::onContractQueryChanged,
+                            onContractSelected = viewModel::selectContract,
+                            onContractClear = viewModel::clearContract,
                         )
 
                         Spacer(modifier = Modifier.height(24.dp))

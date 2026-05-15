@@ -16,6 +16,9 @@ data class Transaction(
     val categoryName: String? = null,
     val budgetName: String? = null,
     val contractName: String? = null,
+    val categoryId: Long? = null,
+    val expenseId: Long? = null,
+    val contractId: Long? = null,
     val tags: List<String> = emptyList(),
 ) {
     val displayAccountName: String

@@ -1,16 +1,21 @@
 package com.pledgerio.app.ui.transactions
 
+import androidx.lifecycle.SavedStateHandle
 import com.pledgerio.app.domain.model.Account
-import com.pledgerio.app.domain.model.AccountTypeOption
 import com.pledgerio.app.domain.model.FilterOption
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.AccountRepository
+import com.pledgerio.app.domain.repository.BudgetRepository
+import com.pledgerio.app.domain.repository.CategoryRepository
+import com.pledgerio.app.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.ui.transactions.form.TransactionFormLabels
 import com.pledgerio.app.util.MainDispatcherRule
 import com.pledgerio.app.util.Resource
+import com.pledgerio.app.util.UserPreferences
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
@@ -34,16 +39,19 @@ class TransactionFormViewModelTest {
     private val transactionRepository = mockk<TransactionRepository>()
     private val accountRepository = mockk<AccountRepository>()
     private val currencyRepository = mockk<CurrencyRepository>()
+    private val categoryRepository = mockk<CategoryRepository>(relaxed = true)
+    private val budgetRepository = mockk<BudgetRepository>(relaxed = true)
+    private val contractRepository = mockk<ContractRepository>(relaxed = true)
+    private val userPreferences = mockk<UserPreferences>(relaxed = true)
+    private val savedStateHandle = SavedStateHandle()
 
     private val checking = Account(id = 1, name = "Checking", typeCode = "default", currency = "EUR")
     private val savings = Account(id = 2, name = "Savings", typeCode = "savings", currency = "EUR")
 
     private fun setupRepository() {
         every { currencyRepository.getCurrencies() } returns flowOf(emptyList())
-        coEvery { accountRepository.getAccountTypes() } returns Resource.Success(
-            listOf(AccountTypeOption("default", "Checking")),
-        )
-        coEvery { accountRepository.getAccountsByTypes(any()) } returns Resource.Success(
+        coEvery { userPreferences.setLastTransactionType(any()) } returns Unit
+        coEvery { accountRepository.refreshOwnedAccounts() } returns Resource.Success(
             listOf(checking, savings),
         )
     }
@@ -54,6 +62,11 @@ class TransactionFormViewModelTest {
             transactionRepository,
             accountRepository,
             currencyRepository,
+            categoryRepository,
+            budgetRepository,
+            contractRepository,
+            userPreferences,
+            savedStateHandle,
         )
     }
 
@@ -117,21 +130,52 @@ class TransactionFormViewModelTest {
     @Test
     fun `owned account selection sets currency from account`() = runTest {
         every { currencyRepository.getCurrencies() } returns flowOf(emptyList())
-        coEvery { accountRepository.getAccountTypes() } returns Resource.Success(
-            listOf(AccountTypeOption("default", "Checking")),
-        )
         val usdChecking = checking.copy(currency = "USD")
-        coEvery { accountRepository.getAccountsByTypes(any()) } returns Resource.Success(
+        coEvery { accountRepository.refreshOwnedAccounts() } returns Resource.Success(
             listOf(usdChecking, savings),
         )
         val viewModel = TransactionFormViewModel(
             transactionRepository,
             accountRepository,
             currencyRepository,
+            categoryRepository,
+            budgetRepository,
+            contractRepository,
+            userPreferences,
+            savedStateHandle,
         )
         advanceUntilIdle()
 
         viewModel.onSourceDropdownSelected(usdChecking.id)
         assertEquals("USD", viewModel.uiState.value.currency)
+    }
+
+    @Test
+    fun `restores last transaction type for new transaction`() = runTest {
+        coEvery { userPreferences.getLastTransactionType() } returns TransactionType.TRANSFER
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(TransactionType.TRANSFER, viewModel.uiState.value.type)
+    }
+
+    @Test
+    fun `onTypeChanged persists last transaction type`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onTypeChanged(TransactionType.DEBIT)
+        advanceUntilIdle()
+
+        coVerify { userPreferences.setLastTransactionType(TransactionType.DEBIT) }
+    }
+
+    @Test
+    fun `partyTypeCodeForNewAccount returns creditor for expense payee`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals("creditor", viewModel.partyTypeCodeForNewAccount(isSource = false))
+        assertNull(viewModel.partyTypeCodeForNewAccount(isSource = true))
     }
 }

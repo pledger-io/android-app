@@ -10,6 +10,9 @@ interface AccountRepository {
     /** Owned (asset) accounts only — used for dashboard, sync, and the Owned filter. */
     fun getAccounts(): Flow<Resource<List<Account>>>
 
+    /** One-shot fetch of owned accounts (safe for callers that only need a single result). */
+    suspend fun refreshOwnedAccounts(): Resource<List<Account>>
+
     suspend fun getCounterpartyAccountsPage(
         offset: Int = 0,
         pageSize: Int = 50,
