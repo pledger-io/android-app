@@ -4,6 +4,13 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
+data class CreateBudgetRequest(
+    @Json(name = "year") val year: Int,
+    @Json(name = "month") val month: Int,
+    @Json(name = "income") val income: Double,
+)
+
+@JsonClass(generateAdapter = true)
 data class BudgetDto(
     @Json(name = "income") val income: Double = 0.0,
     @Json(name = "period") val period: DateRangeDto? = null,

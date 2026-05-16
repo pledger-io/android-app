@@ -3,8 +3,12 @@ package com.pledgerio.app.data.repository
 import com.pledgerio.app.data.local.dao.BudgetDao
 import com.pledgerio.app.data.local.entity.BudgetEntity
 import com.pledgerio.app.data.remote.api.PledgerApiService
+import com.pledgerio.app.data.remote.dto.CreateBudgetRequest
+import com.pledgerio.app.data.remote.dto.ExpenseComputedDto
+import com.pledgerio.app.data.remote.dto.ExpenseDto
 import com.pledgerio.app.domain.model.Budget
 import com.pledgerio.app.domain.model.BudgetExpense
+import com.pledgerio.app.domain.model.BudgetListState
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.util.Resource
 import kotlinx.coroutines.flow.Flow
@@ -16,55 +20,62 @@ class BudgetRepositoryImpl @Inject constructor(
     private val budgetDao: BudgetDao,
 ) : BudgetRepository {
 
-    override fun getBudgets(year: Int, month: Int): Flow<Resource<List<Budget>>> = flow {
+    override fun getBudgets(year: Int, month: Int): Flow<Resource<BudgetListState>> = flow {
         emit(Resource.Loading)
 
         try {
             val budgetResponse = apiService.getBudgets(year = year, month = month)
-            if (budgetResponse.isSuccessful) {
-                val dto = budgetResponse.body() ?: run {
-                    emit(Resource.Error("Empty budget response"))
-                    return@flow
+            when {
+                budgetResponse.code() == 404 -> {
+                    emit(Resource.Success(BudgetListState(needsInitialSetup = true)))
                 }
+                budgetResponse.isSuccessful -> {
+                    val dto = budgetResponse.body() ?: run {
+                        emit(Resource.Error("Empty budget response"))
+                        return@flow
+                    }
 
-                // Fetch computed expense balances for the period
-                val balanceResponse = apiService.getExpenseBalance(year, month)
-                val balances = if (balanceResponse.isSuccessful) {
-                    balanceResponse.body()?.associateBy { it.id } ?: emptyMap()
-                } else emptyMap()
+                    val balanceResponse = apiService.getExpenseBalance(year, month)
+                    val balances = if (balanceResponse.isSuccessful) {
+                        balanceResponse.body()?.associateBy { it.id } ?: emptyMap()
+                    } else {
+                        emptyMap()
+                    }
 
-                val budgets = dto.expenses.map { expense ->
-                    val computed = balances[expense.id]
-                    Budget(
-                        id = expense.id,
-                        name = expense.name,
-                        amount = expense.expected,
-                        spent = computed?.spent ?: 0.0,
-                        expenses = listOf(
-                            BudgetExpense(
-                                id = expense.id,
-                                name = expense.name,
-                                amount = computed?.spent ?: 0.0,
-                                expected = expense.expected,
-                            )
-                        ),
-                    )
+                    val budgets = mapBudgets(dto.expenses, balances)
+                    budgetDao.deleteAll()
+                    budgetDao.insertAll(budgets.map { BudgetEntity.fromDomain(it) })
+                    emit(Resource.Success(BudgetListState(budgets = budgets)))
                 }
-
-                budgetDao.deleteAll()
-                budgetDao.insertAll(budgets.map { BudgetEntity.fromDomain(it) })
-                emit(Resource.Success(budgets))
-            } else {
-                emit(Resource.Error("Failed to fetch budgets: ${budgetResponse.code()}"))
+                else -> {
+                    emit(Resource.Error("Failed to fetch budgets: ${budgetResponse.code()}"))
+                }
             }
         } catch (e: Exception) {
             budgetDao.getAll().collect { cached ->
                 if (cached.isNotEmpty()) {
-                    emit(Resource.Success(cached.map { it.toDomain() }))
+                    emit(Resource.Success(BudgetListState(budgets = cached.map { it.toDomain() })))
                 } else {
                     emit(Resource.Error(e.message ?: "Network error"))
                 }
             }
+        }
+    }
+
+    override suspend fun createInitialBudget(year: Int, month: Int, income: Double): Resource<Unit> {
+        return try {
+            val response = apiService.createInitialBudget(
+                CreateBudgetRequest(year = year, month = month, income = income),
+            )
+            when {
+                response.isSuccessful -> Resource.Success(Unit)
+                response.code() == 400 -> Resource.Error(
+                    "A budget already exists for this period.",
+                )
+                else -> Resource.Error("Failed to create budget: HTTP ${response.code()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
         }
     }
 
@@ -109,5 +120,26 @@ class BudgetRepositoryImpl @Inject constructor(
 
     override suspend fun deleteBudget(id: Long): Resource<Unit> {
         return Resource.Error("Not implemented via API yet")
+    }
+
+    private fun mapBudgets(
+        expenses: List<ExpenseDto>,
+        balances: Map<Long, ExpenseComputedDto>,
+    ): List<Budget> = expenses.map { expense ->
+        val computed = balances[expense.id]
+        Budget(
+            id = expense.id,
+            name = expense.name,
+            amount = expense.expected,
+            spent = computed?.spent ?: 0.0,
+            expenses = listOf(
+                BudgetExpense(
+                    id = expense.id,
+                    name = expense.name,
+                    amount = computed?.spent ?: 0.0,
+                    expected = expense.expected,
+                ),
+            ),
+        )
     }
 }

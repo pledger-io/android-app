@@ -40,8 +40,8 @@ class SyncWorker @AssistedInject constructor(
             val now = LocalDate.now()
             val budgetsResult = budgetRepository.getBudgets(now.year, now.monthValue).first()
 
-            if (budgetsResult is Resource.Success) {
-                checkBudgetAlerts(budgetsResult.data)
+            if (budgetsResult is Resource.Success && !budgetsResult.data.needsInitialSetup) {
+                checkBudgetAlerts(budgetsResult.data.budgets)
             }
 
             Result.success()

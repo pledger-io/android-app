@@ -3,6 +3,7 @@ package com.pledgerio.app.ui.budgets
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Budget
+import com.pledgerio.app.domain.usecase.CreateInitialBudgetUseCase
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,11 +20,18 @@ data class BudgetsUiState(
     val isRefreshing: Boolean = false,
     val error: String? = null,
     val budgets: List<Budget> = emptyList(),
+    val needsInitialSetup: Boolean = false,
+    val isCreatingInitial: Boolean = false,
+    val setupYear: Int = LocalDate.now().year,
+    val setupMonth: Int = LocalDate.now().monthValue,
+    val setupIncome: String = "",
+    val setupError: String? = null,
 )
 
 @HiltViewModel
 class BudgetsViewModel @Inject constructor(
     private val budgetRepository: BudgetRepository,
+    private val createInitialBudgetUseCase: CreateInitialBudgetUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BudgetsUiState())
@@ -38,25 +46,84 @@ class BudgetsViewModel @Inject constructor(
         loadBudgets()
     }
 
+    fun onSetupYearChange(year: Int) {
+        _uiState.update { it.copy(setupYear = year, setupError = null) }
+    }
+
+    fun onSetupMonthChange(month: Int) {
+        _uiState.update { it.copy(setupMonth = month, setupError = null) }
+    }
+
+    fun onSetupIncomeChange(income: String) {
+        _uiState.update { it.copy(setupIncome = income, setupError = null) }
+    }
+
+    fun createInitialBudget() {
+        val state = _uiState.value
+        val income = state.setupIncome.replace(',', '.').toDoubleOrNull()
+        if (income == null || income < 0) {
+            _uiState.update { it.copy(setupError = "Enter a valid monthly net income") }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isCreatingInitial = true, setupError = null) }
+            when (
+                val result = createInitialBudgetUseCase(
+                    year = state.setupYear,
+                    month = state.setupMonth,
+                    income = income,
+                )
+            ) {
+                is Resource.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            isCreatingInitial = false,
+                            needsInitialSetup = false,
+                            setupIncome = "",
+                        )
+                    }
+                    loadBudgets()
+                }
+                is Resource.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            isCreatingInitial = false,
+                            setupError = result.message,
+                        )
+                    }
+                }
+                is Resource.Loading -> Unit
+            }
+        }
+    }
+
     private fun loadBudgets() {
         val now = LocalDate.now()
         viewModelScope.launch {
             budgetRepository.getBudgets(now.year, now.monthValue).collect { result ->
                 when (result) {
                     is Resource.Loading -> _uiState.update { it.copy(isLoading = true) }
-                    is Resource.Success -> _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            isRefreshing = false,
-                            budgets = result.data,
-                            error = null,
-                        )
+                    is Resource.Success -> {
+                        val data = result.data
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                isRefreshing = false,
+                                budgets = data.budgets,
+                                needsInitialSetup = data.needsInitialSetup,
+                                error = null,
+                                setupYear = if (data.needsInitialSetup) now.year else it.setupYear,
+                                setupMonth = if (data.needsInitialSetup) now.monthValue else it.setupMonth,
+                            )
+                        }
                     }
                     is Resource.Error -> _uiState.update {
                         it.copy(
                             isLoading = false,
                             isRefreshing = false,
                             error = result.message,
+                            needsInitialSetup = false,
                         )
                     }
                 }

@@ -6,4 +6,14 @@
     <string name="tab_budgets">Budgets</string>
     <string name="tab_accounts">Accounts</string>
     <string name="tab_reports">Reports</string>
+
+    <string name="budget_setup_title">Start your first budget</string>
+    <string name="budget_setup_message">Choose when your budget begins and enter your expected monthly net income (the amount deposited in your account).</string>
+    <string name="budget_setup_month">Start month</string>
+    <string name="budget_setup_year">Start year</string>
+    <string name="budget_setup_income">Monthly net income</string>
+    <string name="budget_setup_income_hint">After tax, as received in your bank account</string>
+    <string name="budget_setup_submit">Create budget</string>
+    <string name="budget_empty_title">No expense groups yet</string>
+    <string name="budget_empty_message">Your budget is set up. Add expense groups from the web app or when categorizing transactions.</string>
 </resources>

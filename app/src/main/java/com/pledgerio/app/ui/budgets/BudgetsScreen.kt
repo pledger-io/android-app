@@ -24,9 +24,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.Budget
 import com.pledgerio.app.ui.components.EmptyScreen
 import com.pledgerio.app.ui.components.ErrorScreen
@@ -62,6 +64,19 @@ fun BudgetsScreen(
         ) {
             when {
                 uiState.isLoading && !uiState.isRefreshing -> LoadingScreen()
+                uiState.needsInitialSetup -> {
+                    InitialBudgetSetupContent(
+                        year = uiState.setupYear,
+                        month = uiState.setupMonth,
+                        income = uiState.setupIncome,
+                        setupError = uiState.setupError,
+                        isSubmitting = uiState.isCreatingInitial,
+                        onYearChange = viewModel::onSetupYearChange,
+                        onMonthChange = viewModel::onSetupMonthChange,
+                        onIncomeChange = viewModel::onSetupIncomeChange,
+                        onSubmit = viewModel::createInitialBudget,
+                    )
+                }
                 uiState.error != null && uiState.budgets.isEmpty() -> {
                     ErrorScreen(
                         message = uiState.error ?: "",
@@ -71,8 +86,8 @@ fun BudgetsScreen(
                 uiState.budgets.isEmpty() -> {
                     EmptyScreen(
                         icon = Icons.Default.PieChart,
-                        title = "No budgets yet",
-                        message = "Create a budget to track your spending",
+                        title = stringResource(R.string.budget_empty_title),
+                        message = stringResource(R.string.budget_empty_message),
                     )
                 }
                 else -> {
@@ -84,7 +99,6 @@ fun BudgetsScreen(
                     ) {
                         item { Spacer(modifier = Modifier.height(8.dp)) }
 
-                        // Summary card
                         item {
                             val totalBudgeted = uiState.budgets.sumOf { it.amount }
                             val totalSpent = uiState.budgets.sumOf { it.spent }
@@ -117,7 +131,11 @@ fun BudgetsScreen(
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
-                                val progress = if (totalBudgeted > 0) (totalSpent / totalBudgeted).toFloat().coerceIn(0f, 1f) else 0f
+                                val progress = if (totalBudgeted > 0) {
+                                    (totalSpent / totalBudgeted).toFloat().coerceIn(0f, 1f)
+                                } else {
+                                    0f
+                                }
                                 LinearProgressIndicator(
                                     progress = { progress },
                                     modifier = Modifier.fillMaxWidth(),
