@@ -6,14 +6,19 @@ import okhttp3.Response
 import javax.inject.Inject
 
 class AuthInterceptor @Inject constructor(
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val tokenRefresher: TokenRefresher,
 ) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
 
+        if (!isAuthEndpoint(originalRequest.url.encodedPath)) {
+            tokenRefresher.refreshTokenIfNeeded()
+        }
+
         val token = sessionManager.getToken()
-        val request = if (token != null) {
+        val authenticatedRequest = if (token != null) {
             originalRequest.newBuilder()
                 .header("Authorization", "Bearer $token")
                 .build()
@@ -21,14 +26,31 @@ class AuthInterceptor @Inject constructor(
             originalRequest
         }
 
-        val response = chain.proceed(request)
+        val response = chain.proceed(authenticatedRequest)
 
-        // Only clear session on 401 if we actually sent a token —
-        // unauthenticated requests (like server validation) shouldn't wipe the session
-        if (response.code == 401 && token != null) {
-            sessionManager.clearSession()
+        if (
+            response.code == 401 &&
+            token != null &&
+            !isAuthEndpoint(originalRequest.url.encodedPath)
+        ) {
+            response.close()
+            if (tokenRefresher.refreshToken()) {
+                val newToken = sessionManager.getToken()
+                if (newToken != null) {
+                    val retryRequest = originalRequest.newBuilder()
+                        .header("Authorization", "Bearer $newToken")
+                        .build()
+                    return chain.proceed(retryRequest)
+                }
+            }
+            sessionManager.clearAuthTokens()
         }
 
         return response
     }
+
+    private fun isAuthEndpoint(path: String): Boolean =
+        path.endsWith("/v2/api/security/authenticate") ||
+            path.endsWith("/v2/api/security/oauth") ||
+            path.endsWith("/health")
 }

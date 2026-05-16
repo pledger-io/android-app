@@ -32,6 +32,9 @@ class AuthRepositoryImpl @Inject constructor(
                 sessionManager.saveToken(token)
                 sessionManager.saveUsername(username)
                 body.refreshToken?.let { sessionManager.saveRefreshToken(it) }
+                if (body.expiresIn > 0) {
+                    sessionManager.saveTokenExpiry(body.expiresIn)
+                }
                 Resource.Success(token)
             } else if (response.code() == 401) {
                 Resource.Error("Invalid username or password")
@@ -84,6 +87,6 @@ class AuthRepositoryImpl @Inject constructor(
         } catch (_: Exception) {
             // Clear local session even when the server is unreachable
         }
-        sessionManager.clearSession()
+        sessionManager.clearAuthTokens()
     }
 }

@@ -27,9 +27,13 @@ class SessionManager @Inject constructor(
     companion object {
         private const val KEY_TOKEN = "jwt_token"
         private const val KEY_REFRESH_TOKEN = "refresh_token"
+        private const val KEY_TOKEN_EXPIRES_AT = "token_expires_at"
         private const val KEY_BASE_URL = "base_url"
         private const val KEY_USERNAME = "username"
         private const val KEY_BIOMETRIC_ENABLED = "biometric_enabled"
+
+        /** Refresh the access token this long before it expires. */
+        const val TOKEN_REFRESH_BUFFER_MS = 60_000L
     }
 
     fun saveToken(token: String) {
@@ -37,6 +41,23 @@ class SessionManager @Inject constructor(
     }
 
     fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
+
+    fun saveTokenExpiry(expiresInSeconds: Long) {
+        val expiresAt = System.currentTimeMillis() + expiresInSeconds * 1000
+        prefs.edit().putLong(KEY_TOKEN_EXPIRES_AT, expiresAt).apply()
+    }
+
+    fun getTokenExpiresAt(): Long? {
+        val expiresAt = prefs.getLong(KEY_TOKEN_EXPIRES_AT, 0L)
+        return expiresAt.takeIf { it > 0L }
+    }
+
+    fun isTokenExpiringSoon(
+        bufferMs: Long = TOKEN_REFRESH_BUFFER_MS,
+    ): Boolean {
+        val expiresAt = getTokenExpiresAt() ?: return false
+        return System.currentTimeMillis() >= expiresAt - bufferMs
+    }
 
     fun saveRefreshToken(token: String) {
         prefs.edit().putString(KEY_REFRESH_TOKEN, token).apply()
@@ -63,6 +84,16 @@ class SessionManager @Inject constructor(
     fun isBiometricEnabled(): Boolean = prefs.getBoolean(KEY_BIOMETRIC_ENABLED, false)
 
     fun isLoggedIn(): Boolean = getToken() != null
+
+    /** Clears auth credentials but keeps server URL and biometric preference. */
+    fun clearAuthTokens() {
+        prefs.edit()
+            .remove(KEY_TOKEN)
+            .remove(KEY_REFRESH_TOKEN)
+            .remove(KEY_TOKEN_EXPIRES_AT)
+            .remove(KEY_USERNAME)
+            .apply()
+    }
 
     fun clearSession() {
         prefs.edit().clear().apply()

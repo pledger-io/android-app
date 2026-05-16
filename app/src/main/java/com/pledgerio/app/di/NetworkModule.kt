@@ -5,6 +5,7 @@ import coil.ImageLoader
 import com.pledgerio.app.data.remote.api.AuthInterceptor
 import com.pledgerio.app.data.remote.api.DynamicBaseUrlInterceptor
 import com.pledgerio.app.data.remote.api.PledgerApiService
+import com.pledgerio.app.data.remote.api.TokenRefresher
 import com.pledgerio.app.util.SessionManager
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -32,13 +33,25 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideAuthInterceptor(sessionManager: SessionManager): AuthInterceptor =
-        AuthInterceptor(sessionManager)
+    fun provideAuthInterceptor(
+        sessionManager: SessionManager,
+        tokenRefresher: TokenRefresher,
+    ): AuthInterceptor = AuthInterceptor(sessionManager, tokenRefresher)
 
     @Provides
     @Singleton
     fun provideDynamicBaseUrlInterceptor(sessionManager: SessionManager): DynamicBaseUrlInterceptor =
         DynamicBaseUrlInterceptor(sessionManager)
+
+    @Provides
+    @Singleton
+    @RefreshClient
+    fun provideRefreshOkHttpClient(): OkHttpClient =
+        OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
 
     @Provides
     @Singleton
