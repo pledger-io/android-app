@@ -11,6 +11,7 @@ import androidx.navigation.navArgument
 import com.pledgerio.app.ui.accounts.AccountDetailScreen
 import com.pledgerio.app.ui.accounts.AccountFormScreen
 import com.pledgerio.app.ui.accounts.AccountsScreen
+import com.pledgerio.app.ui.accounts.AccountsViewModel
 import com.pledgerio.app.ui.budgets.BudgetDetailScreen
 import com.pledgerio.app.ui.budgets.BudgetExpensesScreen
 import com.pledgerio.app.ui.budgets.BudgetsScreen
@@ -127,6 +128,7 @@ fun NavGraph(
         }
 
         composable(Screen.Accounts.route) {
+            val accountsViewModel: AccountsViewModel = hiltViewModel()
             AccountsScreen(
                 onNavigateToDetail = { id ->
                     navController.navigate(Screen.AccountDetail.createRoute(id))
@@ -134,6 +136,7 @@ fun NavGraph(
                 onNavigateToAdd = { typeCode ->
                     navController.navigate(Screen.AddAccount.createRoute(typeCode))
                 },
+                viewModel = accountsViewModel,
             )
         }
 
@@ -161,18 +164,18 @@ fun NavGraph(
                 },
             ),
         ) {
-            AccountFormScreen(
-                onNavigateBack = { navController.popBackStack() },
-            )
+            AccountFormRoute(navController = navController) {
+                navController.popBackStack()
+            }
         }
 
         composable(
             route = Screen.EditAccount.route,
             arguments = listOf(navArgument("accountId") { type = NavType.LongType })
         ) {
-            AccountFormScreen(
-                onNavigateBack = { navController.popBackStack() },
-            )
+            AccountFormRoute(navController = navController) {
+                navController.popBackStack()
+            }
         }
 
         composable(Screen.Budgets.route) {
@@ -221,5 +224,23 @@ fun NavGraph(
                 },
             )
         }
+    }
+}
+
+@Composable
+private fun AccountFormRoute(
+    navController: NavHostController,
+    onNavigateBack: () -> Unit,
+) {
+    val accountsEntry = navController.currentBackStack.value
+        .firstOrNull { it.destination.route == Screen.Accounts.route }
+    if (accountsEntry != null) {
+        val accountsViewModel: AccountsViewModel = hiltViewModel(accountsEntry)
+        AccountFormScreen(
+            onNavigateBack = onNavigateBack,
+            onAccountSaved = accountsViewModel::applyAccountSaved,
+        )
+    } else {
+        AccountFormScreen(onNavigateBack = onNavigateBack)
     }
 }

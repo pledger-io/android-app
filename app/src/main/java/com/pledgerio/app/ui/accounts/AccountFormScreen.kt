@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.AccountTypeCatalog
 import com.pledgerio.app.domain.model.AccountTypeOption
 import com.pledgerio.app.ui.components.LoadingScreen
@@ -51,12 +52,14 @@ import com.pledgerio.app.ui.theme.EmeraldGreen
 @Composable
 fun AccountFormScreen(
     onNavigateBack: () -> Unit,
+    onAccountSaved: (Account) -> Unit = {},
     viewModel: AccountFormViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(uiState.saveSuccess) {
         if (uiState.saveSuccess) {
+            viewModel.peekPendingAccountSync()?.let(onAccountSaved)
             onNavigateBack()
         }
     }

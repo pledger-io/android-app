@@ -123,6 +123,48 @@ class AccountsViewModelTest {
   }
 
   @Test
+  fun `applyAccountSaved prepends counterparty on parties filter`() = runTest {
+    val debtor = Account(id = 99, name = "Employer", typeCode = "debtor")
+    every { repository.getAccounts() } returns flowOf(Resource.Success(emptyList()))
+    coEvery { repository.getAccountTypes() } returns Resource.Success(emptyList())
+    coEvery { repository.getCounterpartyAccountsPage(0, 1, "") } returns Resource.Success(
+      PagedAccounts(emptyList(), totalRecords = 0, offset = 0, pageSize = 1),
+    )
+    coEvery { repository.getCounterpartyAccountsPage(0, 50, "") } returns Resource.Success(
+      PagedAccounts(emptyList(), totalRecords = 0, offset = 0, pageSize = 50),
+    )
+
+    val viewModel = AccountsViewModel(repository)
+    advanceUntilIdle()
+    viewModel.setFilter(AccountListFilter.COUNTERPARTY)
+    advanceUntilIdle()
+
+    viewModel.applyAccountSaved(debtor)
+
+    assertEquals(1, viewModel.uiState.value.counterpartyAccounts.size)
+    assertEquals("Employer", viewModel.uiState.value.counterpartyAccounts.first().name)
+    assertEquals(1, viewModel.uiState.value.counterpartyTotal)
+  }
+
+  @Test
+  fun `applyAccountSaved increments counterparty total on all filter`() = runTest {
+    val debtor = Account(id = 99, name = "Employer", typeCode = "debtor")
+    every { repository.getAccounts() } returns flowOf(Resource.Success(emptyList()))
+    coEvery { repository.getAccountTypes() } returns Resource.Success(emptyList())
+    coEvery { repository.getCounterpartyAccountsPage(0, 1, "") } returns Resource.Success(
+      PagedAccounts(emptyList(), totalRecords = 5, offset = 0, pageSize = 1),
+    )
+
+    val viewModel = AccountsViewModel(repository)
+    advanceUntilIdle()
+
+    viewModel.applyAccountSaved(debtor)
+
+    assertEquals(6, viewModel.uiState.value.counterpartyTotal)
+    assertTrue(viewModel.uiState.value.counterpartyAccounts.isEmpty())
+  }
+
+  @Test
   fun `account type options loaded from repository`() = runTest {
     val types = listOf(AccountTypeOption("default", "Checking"))
     every { repository.getAccounts() } returns flowOf(Resource.Success(emptyList()))

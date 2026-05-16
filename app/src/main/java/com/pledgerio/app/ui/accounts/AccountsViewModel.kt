@@ -69,11 +69,62 @@ class AccountsViewModel @Inject constructor(
 
     private var counterpartySearchJob: Job? = null
     private var counterpartyLoadJob: Job? = null
+    private var ownedLoadJob: Job? = null
 
     init {
         loadAccountTypes()
         loadOwnedAccounts()
         loadCounterpartyTotal()
+    }
+
+    fun applyAccountSaved(account: Account) {
+        val isCounterparty = AccountTypeCatalog.isCounterparty(account.typeCode)
+        _uiState.update { state ->
+            if (isCounterparty) {
+                val query = state.counterpartySearchQuery.trim()
+                val matchesSearch =
+                    query.isBlank() || account.name.contains(query, ignoreCase = true)
+                val alreadyListed = state.counterpartyAccounts.any { it.id == account.id }
+                val updatedList = when {
+                    alreadyListed -> state.counterpartyAccounts.map {
+                        if (it.id == account.id) account else it
+                    }
+                    state.filter == AccountListFilter.COUNTERPARTY && matchesSearch ->
+                        (listOf(account) + state.counterpartyAccounts)
+                            .distinctBy { it.id }
+                            .sortedBy { it.name }
+                    else -> state.counterpartyAccounts
+                }
+                state.copy(
+                    counterpartyAccounts = updatedList,
+                    counterpartyTotal = if (alreadyListed) {
+                        state.counterpartyTotal
+                    } else {
+                        state.counterpartyTotal + 1
+                    },
+                )
+            } else {
+                val alreadyListed = state.ownedAccounts.any { it.id == account.id }
+                val updatedOwned = when {
+                    alreadyListed -> state.ownedAccounts.map {
+                        if (it.id == account.id) account else it
+                    }
+                    else -> (state.ownedAccounts + account)
+                        .distinctBy { it.id }
+                        .sortedBy { it.name }
+                }
+                state.copy(ownedAccounts = updatedOwned)
+            }
+        }
+    }
+
+    fun onScreenVisible() {
+        if (_uiState.value.isLoading || _uiState.value.isRefreshing) return
+        loadOwnedAccounts()
+        loadCounterpartyTotal()
+        if (_uiState.value.filter == AccountListFilter.COUNTERPARTY) {
+            loadCounterpartyPage(reset = true)
+        }
     }
 
     fun refresh() {
@@ -120,7 +171,8 @@ class AccountsViewModel @Inject constructor(
     }
 
     private fun loadOwnedAccounts() {
-        viewModelScope.launch {
+        ownedLoadJob?.cancel()
+        ownedLoadJob = viewModelScope.launch {
             accountRepository.getAccounts().collect { result ->
                 when (result) {
                     is Resource.Loading -> _uiState.update { it.copy(isLoading = true) }

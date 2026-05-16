@@ -69,6 +69,11 @@ class AccountFormViewModel @Inject constructor(
     )
     val uiState: StateFlow<AccountFormUiState> = _uiState.asStateFlow()
 
+    private var pendingAccountSync: Account? = null
+
+    fun peekPendingAccountSync(): Account? =
+        pendingAccountSync.also { pendingAccountSync = null }
+
     init {
         loadCurrencies()
         loadAccountTypes()
@@ -140,6 +145,7 @@ class AccountFormViewModel @Inject constructor(
 
             when (result) {
                 is Resource.Success -> {
+                    pendingAccountSync = result.data
                     _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
                 }
                 is Resource.Error -> {
