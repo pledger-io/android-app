@@ -3,6 +3,7 @@ package com.pledgerio.app.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Currency
+import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.ThemeMode
 import com.pledgerio.app.domain.repository.AuthRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
@@ -25,9 +26,11 @@ data class SettingsUiState(
     val displayCurrencyCode: String = "EUR",
     val displayCurrencyLabel: String = "EUR",
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val financeExperienceMode: FinanceExperienceMode = FinanceExperienceMode.GUIDED,
     val currencies: List<Currency> = emptyList(),
     val showCurrencyPicker: Boolean = false,
     val showThemePicker: Boolean = false,
+    val showExperiencePicker: Boolean = false,
     val isLoggingOut: Boolean = false,
 )
 
@@ -64,6 +67,11 @@ class SettingsViewModel @Inject constructor(
                 _uiState.update { it.copy(themeMode = mode) }
             }
         }
+        viewModelScope.launch {
+            userPreferences.financeExperienceMode.collect { mode ->
+                _uiState.update { it.copy(financeExperienceMode = mode) }
+            }
+        }
         loadCurrencies()
     }
 
@@ -88,6 +96,14 @@ class SettingsViewModel @Inject constructor(
         _uiState.update { it.copy(showThemePicker = false) }
     }
 
+    fun openExperiencePicker() {
+        _uiState.update { it.copy(showExperiencePicker = true) }
+    }
+
+    fun dismissExperiencePicker() {
+        _uiState.update { it.copy(showExperiencePicker = false) }
+    }
+
     fun selectCurrency(code: String) {
         viewModelScope.launch {
             userPreferences.setDisplayCurrency(code)
@@ -99,6 +115,13 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferences.setThemeMode(mode)
             dismissThemePicker()
+        }
+    }
+
+    fun selectFinanceExperienceMode(mode: FinanceExperienceMode) {
+        viewModelScope.launch {
+            userPreferences.setFinanceExperienceMode(mode)
+            dismissExperiencePicker()
         }
     }
 

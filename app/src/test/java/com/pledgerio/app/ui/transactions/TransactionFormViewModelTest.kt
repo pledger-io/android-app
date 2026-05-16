@@ -2,6 +2,7 @@ package com.pledgerio.app.ui.transactions
 
 import androidx.lifecycle.SavedStateHandle
 import com.pledgerio.app.domain.model.Account
+import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.FilterOption
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.AccountRepository
@@ -53,6 +54,7 @@ class TransactionFormViewModelTest {
 
     private fun setupRepository() {
         every { currencyRepository.getCurrencies() } returns flowOf(emptyList())
+        every { userPreferences.financeExperienceMode } returns flowOf(FinanceExperienceMode.GUIDED)
         coEvery { userPreferences.setLastTransactionType(any()) } returns Unit
         every { transactionTemplateStore.templates } returns flowOf(emptyList())
         coEvery { accountRepository.refreshOwnedAccounts() } returns Resource.Success(
@@ -211,5 +213,26 @@ class TransactionFormViewModelTest {
 
         assertEquals("creditor", viewModel.partyTypeCodeForNewAccount(isSource = false))
         assertNull(viewModel.partyTypeCodeForNewAccount(isSource = true))
+    }
+
+    @Test
+    fun `guided mode keeps optional sections collapsed by default`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(FinanceExperienceMode.GUIDED, viewModel.uiState.value.financeExperienceMode)
+        assertFalse(viewModel.uiState.value.moreOptionsExpanded)
+        assertFalse(viewModel.uiState.value.showTemplatesSection)
+    }
+
+    @Test
+    fun `power mode expands optional sections and shows templates by default`() = runTest {
+        every { userPreferences.financeExperienceMode } returns flowOf(FinanceExperienceMode.POWER)
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(FinanceExperienceMode.POWER, viewModel.uiState.value.financeExperienceMode)
+        assertTrue(viewModel.uiState.value.moreOptionsExpanded)
+        assertTrue(viewModel.uiState.value.showTemplatesSection)
     }
 }

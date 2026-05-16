@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.AccountTypeCodes
+import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.FilterOption
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionSplit
@@ -114,6 +115,8 @@ data class TransactionFormUiState(
     val splitSectionExpanded: Boolean = false,
     val splitLines: List<TransactionSplitLineUi> = emptyList(),
     val originalSplitSnapshot: List<TransactionSplit> = emptyList(),
+    val financeExperienceMode: FinanceExperienceMode = FinanceExperienceMode.GUIDED,
+    val moreOptionsManuallyToggled: Boolean = false,
 ) {
     val splitTotal: Double
         get() = splitLines.sumOf { it.amount.toDoubleOrNull() ?: 0.0 }
@@ -150,6 +153,8 @@ data class TransactionFormUiState(
     val typeSubtitle: String get() = TransactionFormLabels.typeSubtitle(type)
     val screenTitle: String get() = if (isEditing) "Edit transaction" else "New transaction"
     val submitLabel: String get() = if (isEditing) "Save changes" else "Create transaction"
+    val showTemplatesSection: Boolean
+        get() = !isEditing && financeExperienceMode == FinanceExperienceMode.POWER
 
     val fieldErrors: TransactionFormFieldErrors
         get() = if (!validationAttempted) {
@@ -239,6 +244,7 @@ class TransactionFormViewModel @Inject constructor(
     private val contractQueryFlow = MutableStateFlow("")
 
     init {
+        observeExperienceMode()
         loadOwnedAccounts()
         loadCurrencies()
         observeTemplates()
@@ -375,7 +381,12 @@ class TransactionFormViewModel @Inject constructor(
     }
 
     fun toggleMoreOptions() {
-        _uiState.update { it.copy(moreOptionsExpanded = !it.moreOptionsExpanded) }
+        _uiState.update {
+            it.copy(
+                moreOptionsExpanded = !it.moreOptionsExpanded,
+                moreOptionsManuallyToggled = true,
+            )
+        }
     }
 
     fun toggleSplitSection() {
@@ -537,6 +548,7 @@ class TransactionFormViewModel @Inject constructor(
                     },
                     targetQuery = template.targetAccountName,
                     moreOptionsExpanded = template.tags.isNotEmpty(),
+                    moreOptionsManuallyToggled = template.tags.isNotEmpty(),
                     error = null,
                 )
             }
@@ -981,6 +993,7 @@ class TransactionFormViewModel @Inject constructor(
                                 tx.categoryName != null ||
                                 tx.budgetName != null ||
                                 tx.contractName != null,
+                            moreOptionsManuallyToggled = true,
                         )
                     }
                 }

@@ -16,6 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.ui.transactions.form.OwnedAccountPickerSheet
@@ -177,7 +179,7 @@ fun TransactionFormScreen(
                             onSelected = viewModel::onTypeChanged,
                         )
 
-                        if (!uiState.isEditing) {
+                        if (uiState.showTemplatesSection) {
                             Spacer(modifier = Modifier.height(12.dp))
                             TransactionTemplatesSection(
                                 templates = uiState.templates,
@@ -315,6 +317,18 @@ fun TransactionFormScreen(
                             onAddTag = viewModel::addTag,
                             onRemoveTag = viewModel::removeTag,
                         )
+
+                        if (
+                            uiState.financeExperienceMode == FinanceExperienceMode.GUIDED &&
+                            !uiState.moreOptionsExpanded
+                        ) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Need categories, tags, or contracts? Open More options.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
 
                         Spacer(modifier = Modifier.height(24.dp))
                     }

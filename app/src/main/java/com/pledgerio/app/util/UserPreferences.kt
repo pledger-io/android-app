@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.ThemeMode
 import com.pledgerio.app.domain.model.TransactionType
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -38,6 +39,9 @@ class UserPreferences @Inject constructor(
     private val _themeMode = MutableStateFlow(ThemeMode.SYSTEM)
     val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
 
+    private val _financeExperienceMode = MutableStateFlow(FinanceExperienceMode.GUIDED)
+    val financeExperienceMode: StateFlow<FinanceExperienceMode> = _financeExperienceMode.asStateFlow()
+
     init {
         scope.launch {
             dataStore.data.map { prefs ->
@@ -49,6 +53,11 @@ class UserPreferences @Inject constructor(
                 ThemeMode.fromStorage(prefs[KEY_THEME_MODE])
             }.collect { _themeMode.value = it }
         }
+        scope.launch {
+            dataStore.data.map { prefs ->
+                FinanceExperienceMode.fromStorage(prefs[KEY_FINANCE_EXPERIENCE_MODE])
+            }.collect { _financeExperienceMode.value = it }
+        }
         companionInstance = this
     }
 
@@ -58,6 +67,10 @@ class UserPreferences @Inject constructor(
 
     suspend fun setThemeMode(mode: ThemeMode) {
         dataStore.edit { it[KEY_THEME_MODE] = mode.storageValue }
+    }
+
+    suspend fun setFinanceExperienceMode(mode: FinanceExperienceMode) {
+        dataStore.edit { it[KEY_FINANCE_EXPERIENCE_MODE] = mode.storageValue }
     }
 
     suspend fun getLastTransactionType(): TransactionType? {
@@ -75,6 +88,7 @@ class UserPreferences @Inject constructor(
         private const val DEFAULT_CURRENCY = "EUR"
         private val KEY_DISPLAY_CURRENCY = stringPreferencesKey("display_currency")
         private val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
+        private val KEY_FINANCE_EXPERIENCE_MODE = stringPreferencesKey("finance_experience_mode")
         private val KEY_LAST_TRANSACTION_TYPE = stringPreferencesKey("last_transaction_type")
 
         @Volatile

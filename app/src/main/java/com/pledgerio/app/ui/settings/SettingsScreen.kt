@@ -21,7 +21,7 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.AlertDialog
@@ -35,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.ThemeMode
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -55,7 +56,6 @@ import com.pledgerio.app.ui.theme.ExpenseRed
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToCategories: () -> Unit,
     onLogout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -165,6 +165,47 @@ fun SettingsScreen(
         )
     }
 
+    if (uiState.showExperiencePicker) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissExperiencePicker,
+            title = { Text("Finance experience") },
+            text = {
+                Column {
+                    FinanceExperienceMode.entries.forEach { mode ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { viewModel.selectFinanceExperienceMode(mode) }
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(
+                                selected = uiState.financeExperienceMode == mode,
+                                onClick = { viewModel.selectFinanceExperienceMode(mode) },
+                            )
+                            Column {
+                                Text(
+                                    text = mode.displayName,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                                Text(
+                                    text = mode.description,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::dismissExperiencePicker) {
+                    Text("Cancel")
+                }
+            },
+        )
+    }
+
     Scaffold(
         topBar = {
             PledgerTopBar(
@@ -230,10 +271,10 @@ fun SettingsScreen(
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SettingsItem(
-                        icon = Icons.Default.Category,
-                        title = "Manage categories",
-                        subtitle = "Create, edit, and remove transaction categories",
-                        onClick = onNavigateToCategories,
+                        icon = Icons.Default.Speed,
+                        title = "Finance experience",
+                        subtitle = "${uiState.financeExperienceMode.displayName} — ${uiState.financeExperienceMode.description}",
+                        onClick = viewModel::openExperiencePicker,
                     )
                 }
             }

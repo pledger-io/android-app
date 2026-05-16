@@ -2,7 +2,7 @@
 
 Design and implementation plan for the **New Transaction** screen (`TransactionFormScreen` / `TransactionFormViewModel`). Goal: a clearer, more attractive flow that matches how people think about money (income, spending, transfers) while keeping Pledger’s account-type rules intact.
 
-**Status:** Phase 1–3 implemented (templates, tags; split/receipt deferred — see Phase 3)  
+**Status:** Phase 1–3 implemented (templates, tags, split). Experience-mode defaults shipped (Guided/Power) for novice + advanced workflows.  
 **Related:** [Architecture — transaction create form](ARCHITECTURE.md#transaction-create-form), [Account types](ACCOUNTS.md)
 
 ---
@@ -56,6 +56,7 @@ Description → Amount → Date (text) → Type chips → From * → To * → Cu
 5. **Preserve context** — When changing type, keep accounts that still fit the same role (owned vs counterparty).
 6. **Reuse app patterns** — `PledgerCard`, `PledgerTopBar`, `FilterChip`, `AccountIcon`, theme colors (`IncomeGreen`, `ExpenseRed`, `EmeraldGreen`).
 7. **Same API contract** — No backend changes required for v1; optional category/expense later.
+8. **Do not penalize experts** — Beginners get simpler defaults, while power users can keep advanced controls expanded.
 
 ---
 
@@ -182,10 +183,17 @@ If preserved account is invalid, clear that side only.
 
 | Field | Default |
 |--------|---------|
-| Type | Expense (common case) or last-used (DataStore, Phase 2) |
+| Type | Expense (common case) or last-used (DataStore) |
 | Date | Today |
 | Currency | User display currency from settings, else EUR |
 | Amount | Empty (no 0.00 prefill) |
+
+### Experience mode defaults
+
+| Mode | Behavior |
+|------|----------|
+| **Guided** | Optional sections stay collapsed by default to reduce cognitive load. |
+| **Power** | Optional sections auto-expand and templates are shown immediately on new transactions. |
 
 ---
 
