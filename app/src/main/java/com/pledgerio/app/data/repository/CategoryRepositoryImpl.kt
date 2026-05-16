@@ -6,9 +6,11 @@ import com.pledgerio.app.data.cache.SyncKeys
 import com.pledgerio.app.data.local.dao.CategoryDao
 import com.pledgerio.app.data.local.entity.CategoryEntity
 import com.pledgerio.app.data.remote.api.PledgerApiService
+import com.pledgerio.app.data.remote.dto.CategoryUpsertRequest
 import com.pledgerio.app.domain.model.Category
 import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.util.Resource
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -68,14 +70,80 @@ class CategoryRepositoryImpl @Inject constructor(
             val response = apiService.getCategory(id)
             if (response.isSuccessful) {
                 val dto = response.body() ?: return Resource.Error("Category not found")
-                val entity = CategoryEntity(id = dto.id, name = dto.name, description = dto.description ?: "")
-                categoryDao.insertAll(listOf(entity))
+                val entity = dto.toEntity()
+                categoryDao.insert(entity)
                 Resource.Success(entity.toDomain())
             } else {
                 Resource.Error("Category not found")
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Error fetching category")
+        }
+    }
+
+    override suspend fun createCategory(name: String, description: String): Resource<Category> {
+        return try {
+            val response = apiService.createCategory(
+                CategoryUpsertRequest(
+                    name = name.trim(),
+                    description = description.trim().ifBlank { null },
+                ),
+            )
+            if (response.isSuccessful) {
+                val created = response.body()?.toEntity() ?: return Resource.Error("Invalid category response")
+                categoryDao.insert(created)
+                cacheRefresher.refreshInBackground(SyncKeys.CATEGORIES) { refreshCategories() }
+                Resource.Success(created.toDomain())
+            } else {
+                Resource.Error("Failed to create category: HTTP ${response.code()}")
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun updateCategory(category: Category): Resource<Category> {
+        return try {
+            val response = apiService.updateCategory(
+                id = category.id,
+                request = CategoryUpsertRequest(
+                    name = category.name.trim(),
+                    description = category.description.trim().ifBlank { null },
+                ),
+            )
+            if (response.isSuccessful) {
+                val updated = (response.body()?.toEntity() ?: CategoryEntity.fromDomain(category))
+                categoryDao.insert(updated)
+                cacheRefresher.refreshInBackground(SyncKeys.CATEGORIES) { refreshCategories() }
+                Resource.Success(updated.toDomain())
+            } else {
+                Resource.Error("Failed to update category: HTTP ${response.code()}")
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun deleteCategory(id: Long): Resource<Unit> {
+        return try {
+            val response = apiService.deleteCategory(id)
+            if (response.isSuccessful) {
+                categoryDao.deleteById(id)
+                cacheRefresher.refreshInBackground(SyncKeys.CATEGORIES) { refreshCategories() }
+                Resource.Success(Unit)
+            } else {
+                Resource.Error("Failed to delete category: HTTP ${response.code()}")
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
         }
     }
 
@@ -108,4 +176,10 @@ class CategoryRepositoryImpl @Inject constructor(
             ttlMs = CachePolicy.CATEGORIES_TTL_MS,
         ) { refreshCategories() }
     }
+
+    private fun com.pledgerio.app.data.remote.dto.CategoryDto.toEntity(): CategoryEntity = CategoryEntity(
+        id = id,
+        name = name,
+        description = description.orEmpty(),
+    )
 }

@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.AlertDialog
@@ -54,6 +55,7 @@ import com.pledgerio.app.ui.theme.ExpenseRed
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToCategories: () -> Unit,
     onLogout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -225,6 +227,13 @@ fun SettingsScreen(
                         title = "Notifications",
                         subtitle = "Budget alerts",
                         onClick = { /* TODO: Notification settings */ },
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    SettingsItem(
+                        icon = Icons.Default.Category,
+                        title = "Manage categories",
+                        subtitle = "Create, edit, and remove transaction categories",
+                        onClick = onNavigateToCategories,
                     )
                 }
             }

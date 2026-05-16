@@ -8,6 +8,7 @@ import com.pledgerio.app.data.local.entity.CategoryEntity
 import com.pledgerio.app.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.CategoryDto
 import com.pledgerio.app.data.remote.dto.CategoryPagedResponse
+import com.pledgerio.app.domain.model.Category
 import com.pledgerio.app.util.FakeSyncMetadataDao
 import com.pledgerio.app.util.Resource
 import io.mockk.Runs
@@ -63,6 +64,68 @@ class CategoryRepositoryImplTest {
         assertTrue(result is Resource.Success)
         coVerify { categoryDao.replaceAll(match { it.size == 1 && it.first().name == "Fuel" }) }
         assertNotNull(syncMetadataDao.getLastSyncedAt(SyncKeys.CATEGORIES))
+    }
+
+    @Test
+    fun `createCategory writes new category to cache`() = runTest {
+        coEvery { apiService.createCategory(any()) } returns Response.success(
+            CategoryDto(
+                id = 9,
+                name = "Travel",
+                description = "Trips and stays",
+            ),
+        )
+        coEvery { categoryDao.insert(any()) } just Runs
+        coEvery { apiService.getCategories(any(), any(), any()) } returns
+            Response.success(CategoryPagedResponse(content = emptyList()))
+
+        val result = repository.createCategory(
+            name = "Travel",
+            description = "Trips and stays",
+        )
+
+        assertTrue(result is Resource.Success)
+        assertEquals("Travel", (result as Resource.Success).data.name)
+        coVerify { categoryDao.insert(match { it.id == 9L && it.name == "Travel" }) }
+    }
+
+    @Test
+    fun `updateCategory writes updated category to cache`() = runTest {
+        coEvery { apiService.updateCategory(any(), any()) } returns Response.success(
+            CategoryDto(
+                id = 4,
+                name = "Home",
+                description = "Housing costs",
+            ),
+        )
+        coEvery { categoryDao.insert(any()) } just Runs
+        coEvery { apiService.getCategories(any(), any(), any()) } returns
+            Response.success(CategoryPagedResponse(content = emptyList()))
+
+        val result = repository.updateCategory(
+            Category(
+                id = 4,
+                name = "Home",
+                description = "Housing costs",
+            ),
+        )
+
+        assertTrue(result is Resource.Success)
+        assertEquals("Home", (result as Resource.Success).data.name)
+        coVerify { categoryDao.insert(match { it.id == 4L && it.description == "Housing costs" }) }
+    }
+
+    @Test
+    fun `deleteCategory removes category from cache on success`() = runTest {
+        coEvery { apiService.deleteCategory(8L) } returns Response.success(Unit)
+        coEvery { categoryDao.deleteById(8L) } just Runs
+        coEvery { apiService.getCategories(any(), any(), any()) } returns
+            Response.success(CategoryPagedResponse(content = emptyList()))
+
+        val result = repository.deleteCategory(8L)
+
+        assertTrue(result is Resource.Success)
+        coVerify { categoryDao.deleteById(8L) }
     }
 
     @Test

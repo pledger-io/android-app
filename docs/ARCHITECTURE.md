@@ -52,6 +52,7 @@ ui/
 ├── dashboard/          # Overview, recent transactions
 ├── transactions/       # List, detail, form, filters, autocomplete
 ├── accounts/           # List, detail, form
+├── categories/         # Category catalog management (search + CRUD)
 ├── budgets/            # Overview, initial setup, expense groups, detail
 ├── reports/
 ├── settings/
@@ -63,7 +64,7 @@ ui/
 - Routes are defined in `Screen` (sealed class).
 - `NavGraph` wires composable destinations; path args (`accountId`, `transactionId`) are read in ViewModels via `SavedStateHandle`.
 - **Bottom tabs:** Dashboard, Transactions, Budgets, Accounts, Reports.
-- **Stack screens:** Detail views, add/edit forms, onboarding, settings (bottom bar hidden when not on a main tab).
+- **Stack screens:** Detail views, add/edit forms, onboarding, settings, category management (bottom bar hidden when not on a main tab).
 - Outer scaffold padding is passed into `NavGraph` so FABs clear the bottom navigation bar.
 
 #### Transaction list UX
@@ -176,7 +177,7 @@ Screen → ViewModel → Repository → Retrofit
 | Auth | `/v2/api/security/authenticate`, `/v2/api/security/oauth`, `/v2/api/security/logout` |
 | Accounts | `/v2/api/accounts`, `/v2/api/accounts/{id}`, `/v2/api/account-types` |
 | Transactions | `/v2/api/transactions`, `/v2/api/transactions/{id}` |
-| Categories | `/v2/api/categories` |
+| Categories | `/v2/api/categories`, `/v2/api/categories/{id}` |
 | Budgets | `/v2/api/budgets` (GET/POST/PATCH), `/v2/api/budgets/expenses` (GET/PATCH), `/v2/api/budgets/expenses/balance` |
 | Contracts | `/v2/api/contracts` |
 | Balance | `/v2/api/balance`, `/v2/api/balance/{partition}` |

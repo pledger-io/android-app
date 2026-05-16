@@ -16,3 +16,9 @@ data class CategoryPagedResponse(
     @Json(name = "info") val info: PageInfo = PageInfo(),
     @Json(name = "content") val content: List<CategoryDto> = emptyList(),
 )
+
+@JsonClass(generateAdapter = true)
+data class CategoryUpsertRequest(
+    @Json(name = "name") val name: String,
+    @Json(name = "description") val description: String? = null,
+)

@@ -14,6 +14,9 @@ interface CategoryRepository {
     fun getCategories(): Flow<Resource<List<Category>>>
     suspend fun getCategory(id: Long): Resource<Category>
     suspend fun searchCategories(name: String): Resource<List<Category>>
+    suspend fun createCategory(name: String, description: String): Resource<Category>
+    suspend fun updateCategory(category: Category): Resource<Category>
+    suspend fun deleteCategory(id: Long): Resource<Unit>
 
     /** Force a network refresh of the category catalog. */
     suspend fun refreshCategories(): Resource<List<Category>>

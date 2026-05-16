@@ -112,6 +112,18 @@ interface PledgerApiService {
     @GET("v2/api/categories/{id}")
     suspend fun getCategory(@Path("id") id: Long): Response<CategoryDto>
 
+    @POST("v2/api/categories")
+    suspend fun createCategory(@Body request: CategoryUpsertRequest): Response<CategoryDto>
+
+    @PUT("v2/api/categories/{id}")
+    suspend fun updateCategory(
+        @Path("id") id: Long,
+        @Body request: CategoryUpsertRequest,
+    ): Response<CategoryDto>
+
+    @DELETE("v2/api/categories/{id}")
+    suspend fun deleteCategory(@Path("id") id: Long): Response<Unit>
+
     // Budgets
     @GET("v2/api/budgets")
     suspend fun getBudgets(
