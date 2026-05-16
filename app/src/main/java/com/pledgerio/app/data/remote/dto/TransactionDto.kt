@@ -63,7 +63,7 @@ data class CreateTransactionRequest(
 @JsonClass(generateAdapter = true)
 data class DateRangeDto(
     @Json(name = "startDate") val startDate: String,
-    @Json(name = "endDate") val endDate: String,
+    @Json(name = "endDate") val endDate: String? = null,
 )
 
 @JsonClass(generateAdapter = true)

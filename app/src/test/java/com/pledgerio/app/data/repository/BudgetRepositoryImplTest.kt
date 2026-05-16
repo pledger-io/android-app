@@ -2,7 +2,10 @@ package com.pledgerio.app.data.repository
 
 import com.pledgerio.app.data.local.dao.BudgetDao
 import com.pledgerio.app.data.remote.api.PledgerApiService
+import com.pledgerio.app.data.remote.dto.BudgetDto
 import com.pledgerio.app.data.remote.dto.CreateBudgetRequest
+import com.pledgerio.app.data.remote.dto.DateRangeDto
+import com.pledgerio.app.data.remote.dto.ExpenseDto
 import com.pledgerio.app.domain.model.BudgetListState
 import com.pledgerio.app.util.Resource
 import io.mockk.coEvery
@@ -60,6 +63,23 @@ class BudgetRepositoryImplTest {
         val result = repository.createInitialBudget(2026, 3, 4200.0)
 
         assertTrue(result is Resource.Success)
+    }
+
+    @Test
+    fun `getBudgets succeeds when period endDate is null`() = runTest {
+        val budgetDto = BudgetDto(
+            income = 3500.0,
+            period = DateRangeDto(startDate = "2026-05-01", endDate = null),
+            expenses = listOf(ExpenseDto(id = 1, name = "Groceries", expected = 400.0)),
+        )
+        coEvery { apiService.getBudgets(any(), any(), any()) } returns Response.success(budgetDto)
+        coEvery { apiService.getExpenseBalance(any(), any(), any()) } returns Response.success(emptyList())
+
+        val results = repository.getBudgets(2026, 5).toList()
+        val success = results.filterIsInstance<Resource.Success<BudgetListState>>().last()
+
+        assertFalse(success.data.needsInitialSetup)
+        assertEquals(1, success.data.budgets.size)
     }
 
     @Test
