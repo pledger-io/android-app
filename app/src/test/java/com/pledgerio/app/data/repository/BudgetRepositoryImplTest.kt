@@ -1,6 +1,8 @@
 package com.pledgerio.app.data.repository
 
+import com.pledgerio.app.data.cache.CacheRefresher
 import com.pledgerio.app.data.local.dao.BudgetDao
+import com.pledgerio.app.data.local.dao.ExpenseGroupDao
 import com.pledgerio.app.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.BudgetDto
 import com.pledgerio.app.data.remote.dto.CreateBudgetRequest
@@ -8,11 +10,13 @@ import com.pledgerio.app.data.remote.dto.DateRangeDto
 import com.pledgerio.app.data.remote.dto.ExpenseDto
 import com.pledgerio.app.data.remote.dto.ExpenseRequest
 import com.pledgerio.app.domain.model.BudgetListState
+import com.pledgerio.app.util.FakeSyncMetadataDao
 import com.pledgerio.app.util.Resource
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
@@ -26,11 +30,16 @@ class BudgetRepositoryImplTest {
 
     private val apiService = mockk<PledgerApiService>()
     private val budgetDao = mockk<BudgetDao>(relaxed = true)
+    private val expenseGroupDao = mockk<ExpenseGroupDao>(relaxed = true)
+    private val syncMetadataDao = FakeSyncMetadataDao()
+    private lateinit var cacheRefresher: CacheRefresher
     private lateinit var repository: BudgetRepositoryImpl
 
     @Before
     fun setUp() {
-        repository = BudgetRepositoryImpl(apiService, budgetDao)
+        coEvery { budgetDao.getAll() } returns flowOf(emptyList())
+        cacheRefresher = CacheRefresher(syncMetadataDao, TestScope())
+        repository = BudgetRepositoryImpl(apiService, budgetDao, expenseGroupDao, cacheRefresher)
     }
 
     @Test

@@ -13,13 +13,17 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 data class BudgetDetailUiState(
     val isLoading: Boolean = true,
+    val isRefreshing: Boolean = false,
     val error: String? = null,
     val budget: Budget? = null,
     val formVisible: Boolean = false,
@@ -46,6 +50,41 @@ class BudgetDetailViewModel @Inject constructor(
 
     init {
         loadBudget()
+    }
+
+    /**
+     * User-initiated refresh. Forces a network fetch of the current-month budgets so the
+     * spent amount and group metadata are up-to-date.
+     */
+    fun refresh() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isRefreshing = true) }
+            val now = LocalDate.now()
+            val terminalResult = budgetRepository.getBudgets(now.year, now.monthValue)
+                .filterIsInstance<Resource<BudgetListState>>()
+                .first { it !is Resource.Loading }
+            when (terminalResult) {
+                is Resource.Success -> {
+                    val match = terminalResult.data.budgets.firstOrNull { it.id == budgetId }
+                    _uiState.update {
+                        it.copy(
+                            isRefreshing = false,
+                            budget = match ?: it.budget,
+                            error = null,
+                        )
+                    }
+                }
+                is Resource.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            isRefreshing = false,
+                            error = if (it.budget == null) terminalResult.message else null,
+                        )
+                    }
+                }
+                is Resource.Loading -> Unit
+            }
+        }
     }
 
     fun openEditForm() {

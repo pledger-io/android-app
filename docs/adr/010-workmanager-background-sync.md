@@ -1,6 +1,6 @@
 # ADR-010: WorkManager for Background Sync and Notifications
 
-**Date:** 2026-05-13
+**Date:** 2026-05-13 (updated 2026-05-16)
 **Status:** Accepted
 
 ## Context
@@ -24,11 +24,15 @@ Use **WorkManager** with `PeriodicWorkRequest` for a 12-hour background sync cyc
 
 Implementation:
 - `SyncWorker` is annotated with `@HiltWorker` for dependency injection
-- Syncs **currencies** to Room (`CurrencyRepository.sync()`)
-- Refreshes **accounts** data on each execution (`AccountRepository.getAccounts()`)
-- Checks budget utilization and fires local notifications when any budget exceeds 80% (skipped when no budget exists yet for the current month)
+- Scheduled from `PledgerApp.onCreate` (the previous implementation defined the worker but
+  never enqueued it)
+- Syncs the SWR-cached resources from [ADR-015](015-stale-while-revalidate-cache.md):
+  currencies, categories, contracts, expense groups, owned accounts, counterparty accounts
+- Loads the current-month budget and fires local notifications when any budget exceeds 80%
+  (skipped when no budget exists yet for the current month)
 - Transaction cache is **not** refreshed here; lists load from the API when screens are opened
 - Uses `ExistingPeriodicWorkPolicy.KEEP` to avoid duplicate scheduling
+- Requires `NetworkType.CONNECTED` so it doesn't fire when the device is offline
 - `Configuration.Provider` on the Application class enables Hilt worker injection
 
 ## Consequences

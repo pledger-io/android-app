@@ -1,7 +1,7 @@
 # ADR-005: Room for Offline Caching
 
-**Date:** 2026-05-13 (updated 2026-05-15)
-**Status:** Accepted
+**Date:** 2026-05-13 (updated 2026-05-16)
+**Status:** Accepted (cache strategy extended by [ADR-015](015-stale-while-revalidate-cache.md))
 
 ## Context
 
@@ -17,7 +17,7 @@ Options considered:
 
 Use **Room** as the local database for offline caching of accounts, transactions, budgets, categories, and currencies.
 
-Current schema (**version 3**): `AccountEntity` (includes `iconFileCode`), `TransactionEntity`, `BudgetEntity`, `CategoryEntity`, `CurrencyEntity`.
+Current schema (**version 5**): `AccountEntity` (includes `iconFileCode`), `TransactionEntity`, `BudgetEntity`, `CategoryEntity`, `CurrencyEntity`, `ContractEntity`, `ExpenseGroupEntity`, `AccountTypeEntity`, `SyncMetadataEntity`.
 
 Design choices:
 - Entities are separate from domain models — they contain `toDomain()` / `fromDomain()` mapping functions
@@ -41,6 +41,15 @@ Design choices:
 - Room's auto-generated code increases build time slightly
 
 ### Caching Strategy
+
+For reference data (accounts, categories, contracts, expense groups, currencies) the app uses
+the stale-while-revalidate strategy described in [ADR-015](015-stale-while-revalidate-cache.md):
+reads return Room data immediately and a background refresh is launched when the cached value
+is older than its TTL.
+
+For paged data (transactions, counterparty pages) the previous network-first-with-fallback
+flow still applies:
+
 ```
 API Request → Success? → Store in Room → Emit to UI
                   ↓ No

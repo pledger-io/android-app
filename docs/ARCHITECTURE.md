@@ -119,13 +119,17 @@ See [Budgets](BUDGETS.md) for API and screen details.
 ### Data Layer (`data/`)
 
 - **Remote** — `PledgerApiService`, Moshi DTOs (`@JsonClass(generateAdapter = true)`).
-- **Local** — Room (`PledgerDatabase` v3): accounts, transactions, budgets, categories, currencies.
-- **Repositories** — Network-first with Room fallback pattern:
+- **Local** — Room (`PledgerDatabase` v5): accounts, transactions, budgets, categories, currencies, contracts, expense groups, account types, sync metadata.
+- **Repositories** — Stale-while-revalidate cache for reference data, network-first for paged data:
 
-  1. Emit `Resource.Loading` (where applicable)
-  2. Call API
-  3. On success: persist to Room, emit `Resource.Success`
-  4. On failure: emit cached data if present, else `Resource.Error`
+  1. Read returns cached values from Room immediately (via Flow or one-shot query).
+  2. `CacheRefresher` checks the `sync_metadata` TTL for that key.
+  3. If stale, a background refresh is launched on the `@ApplicationScope` coroutine scope.
+  4. The network call writes through to Room and marks the key fresh; Room Flow emits the new data.
+  5. Mutations write through to Room and invoke `CacheRefresher.refreshInBackground` so other observers re-emit.
+  6. If the cache is empty and the network fails the repository returns `Resource.Error`.
+
+  See [ADR-015](adr/015-stale-while-revalidate-cache.md) for the full design.
 
 Account balances are enriched via `POST /v2/api/balance/account` (partitioned by account name) after list/detail fetches.
 
@@ -134,7 +138,8 @@ Account balances are enriched via `POST /v2/api/balance/account` (partitioned by
 | Module | Provides |
 |--------|----------|
 | `NetworkModule` | Moshi, `OkHttpClient`, `TokenRefresher`, `AuthInterceptor`, `Retrofit`, `PledgerApiService`, Coil `ImageLoader` |
-| `DatabaseModule` | `PledgerDatabase`, DAOs |
+| `DatabaseModule` | `PledgerDatabase`, DAOs (including `SyncMetadataDao`, `ContractDao`, `ExpenseGroupDao`) |
+| `DispatcherModule` | `@IoDispatcher`, `@DefaultDispatcher`, `@ApplicationScope` (for background cache refresh) |
 | `RepositoryModule` | Repository bindings |
 
 ViewModels: `@HiltViewModel` + `hiltViewModel()` in Compose.
@@ -191,15 +196,28 @@ Repositories return `Resource<T>`:
 
 ### Room cache
 
-Entities: accounts (including `iconFileCode`), transactions, budgets, categories, currencies. Successful writes refresh the cache; reads fall back when offline.
+Entities: accounts (owned + counterparty, including `iconFileCode`), transactions, budgets,
+categories, contracts, expense groups, currencies, sync metadata. Reads serve from Room first;
+mutations write through.
+
+### Stale-while-revalidate
+
+A `sync_metadata` table tracks `key → lastSyncedAt` per resource. `CacheRefresher`:
+
+- `refreshNow(key, block)` runs the block and marks the key fresh (coalesced per-key via mutex).
+- `launchIfStale(key, ttl, block)` triggers a background refresh on the `@ApplicationScope`
+  coroutine scope only if the cache is older than the TTL (called from Flow `onStart` blocks).
+- `refreshInBackground(key, block)` is the fire-and-forget refresh after mutations.
+
+TTLs live in `CachePolicy`: 15 min for accounts, 60 min for catalogs (categories, contracts,
+expense groups), 24 h for currencies and account types.
 
 ### Background sync (`SyncWorker`)
 
-Periodic work (12 h) via WorkManager:
-
-1. Sync currencies
-2. Refresh accounts (`getAccounts().first()`)
-3. Load current-month budgets; if a budget exists, notify when any group exceeds 80% spend
+Periodic work (every 12 h, requires network) scheduled from `PledgerApp.onCreate`. Each run
+refreshes currencies, account types, categories, contracts, expense groups, owned accounts,
+counterparty accounts, and the current-month budget; fires local notifications when any
+budget group exceeds 80% spend.
 
 Transactions are refreshed on screen load rather than in the worker.
 

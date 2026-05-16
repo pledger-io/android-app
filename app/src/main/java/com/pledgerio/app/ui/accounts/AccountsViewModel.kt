@@ -129,17 +129,23 @@ class AccountsViewModel @Inject constructor(
 
     fun refresh() {
         _uiState.update { it.copy(isRefreshing = true) }
-        loadOwnedAccounts()
-        loadCounterpartyTotal()
-        if (_uiState.value.filter == AccountListFilter.COUNTERPARTY) {
-            loadCounterpartyPage(reset = true)
-        } else {
-            _uiState.update {
-                it.copy(
-                    counterpartyAccounts = emptyList(),
-                    hasMoreCounterparties = true,
-                )
+        viewModelScope.launch {
+            // Force a fresh fetch regardless of TTL; the cache write-through then triggers
+            // the Room-backed Flow in loadOwnedAccounts() to re-emit.
+            accountRepository.refreshOwnedAccounts()
+            accountRepository.refreshCounterpartyAccounts()
+            loadCounterpartyTotal()
+            if (_uiState.value.filter == AccountListFilter.COUNTERPARTY) {
+                loadCounterpartyPage(reset = true)
+            } else {
+                _uiState.update {
+                    it.copy(
+                        counterpartyAccounts = emptyList(),
+                        hasMoreCounterparties = true,
+                    )
+                }
             }
+            _uiState.update { it.copy(isRefreshing = false) }
         }
     }
 

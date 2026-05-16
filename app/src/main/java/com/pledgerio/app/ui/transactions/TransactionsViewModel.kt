@@ -12,11 +12,18 @@ import com.pledgerio.app.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.YearMonth
@@ -64,6 +71,7 @@ data class TransactionsUiState(
         get() = currentMonth.format(MONTH_NAV_FORMATTER)
 }
 
+@OptIn(FlowPreview::class, kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TransactionsViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
@@ -76,19 +84,77 @@ class TransactionsViewModel @Inject constructor(
     val uiState: StateFlow<TransactionsUiState> = _uiState.asStateFlow()
 
     private var loadJob: Job? = null
-    private var categorySearchJob: Job? = null
-    private var expenseSearchJob: Job? = null
-    private var contractSearchJob: Job? = null
+
+    private val categoryQueryFlow = MutableStateFlow("")
+    private val expenseQueryFlow = MutableStateFlow("")
+    private val contractQueryFlow = MutableStateFlow("")
 
     companion object {
         private const val PAGE_SIZE = 25
-        private const val SEARCH_DEBOUNCE_MS = 300L
+        private const val SEARCH_DEBOUNCE_MS = 250L
     }
 
     init {
         val now = YearMonth.now()
         _uiState.update { it.copy(currentMonth = now) }
         loadFirstPage()
+        observeSuggestions(
+            queryFlow = categoryQueryFlow,
+            sourceFlow = { query -> categoryRepository.observeMatching(query).mapToOptions { it.id to it.name } },
+            onLoading = { _uiState.update { state -> state.copy(isSearchingCategories = true) } },
+            onResult = { options ->
+                _uiState.update { state ->
+                    state.copy(isSearchingCategories = false, categorySuggestions = options)
+                }
+            },
+        )
+        observeSuggestions(
+            queryFlow = expenseQueryFlow,
+            sourceFlow = { query -> budgetRepository.observeExpenseGroups(query).mapToOptions { it.id to it.name } },
+            onLoading = { _uiState.update { state -> state.copy(isSearchingExpenses = true) } },
+            onResult = { options ->
+                _uiState.update { state ->
+                    state.copy(isSearchingExpenses = false, expenseSuggestions = options)
+                }
+            },
+        )
+        observeSuggestions(
+            queryFlow = contractQueryFlow,
+            sourceFlow = { query -> contractRepository.observeMatching(query).mapToOptions { it.id to it.name } },
+            onLoading = { _uiState.update { state -> state.copy(isSearchingContracts = true) } },
+            onResult = { options ->
+                _uiState.update { state ->
+                    state.copy(isSearchingContracts = false, contractSuggestions = options)
+                }
+            },
+        )
+    }
+
+    private fun observeSuggestions(
+        queryFlow: MutableStateFlow<String>,
+        sourceFlow: (String) -> Flow<List<FilterOption>>,
+        onLoading: () -> Unit,
+        onResult: (List<FilterOption>) -> Unit,
+    ) {
+        viewModelScope.launch {
+            queryFlow
+                .debounce(SEARCH_DEBOUNCE_MS)
+                .distinctUntilChanged()
+                .onEach { if (it.isNotBlank()) onLoading() }
+                .flatMapLatest { query ->
+                    if (query.isBlank()) flowOf(emptyList()) else sourceFlow(query)
+                }
+                .collect(onResult)
+        }
+    }
+
+    private inline fun <T> Flow<List<T>>.mapToOptions(
+        crossinline extract: (T) -> Pair<Long, String>,
+    ): Flow<List<FilterOption>> = map { items ->
+        items.map { item ->
+            val (id, label) = extract(item)
+            FilterOption(id, label)
+        }
     }
 
     fun refresh() {
@@ -107,29 +173,17 @@ class TransactionsViewModel @Inject constructor(
 
     fun onCategoryQueryChanged(query: String) {
         _uiState.update { it.copy(categoryQuery = query) }
-        categorySearchJob?.cancel()
-        categorySearchJob = viewModelScope.launch {
-            delay(SEARCH_DEBOUNCE_MS)
-            searchCategories(query)
-        }
+        categoryQueryFlow.value = query
     }
 
     fun onExpenseQueryChanged(query: String) {
         _uiState.update { it.copy(expenseQuery = query) }
-        expenseSearchJob?.cancel()
-        expenseSearchJob = viewModelScope.launch {
-            delay(SEARCH_DEBOUNCE_MS)
-            searchExpenses(query)
-        }
+        expenseQueryFlow.value = query
     }
 
     fun onContractQueryChanged(query: String) {
         _uiState.update { it.copy(contractQuery = query) }
-        contractSearchJob?.cancel()
-        contractSearchJob = viewModelScope.launch {
-            delay(SEARCH_DEBOUNCE_MS)
-            searchContracts(query)
-        }
+        contractQueryFlow.value = query
     }
 
     fun selectCategory(option: FilterOption) {
@@ -259,72 +313,6 @@ class TransactionsViewModel @Inject constructor(
             transactionRepository.deleteTransaction(id)
             _uiState.update { it.copy(transactions = emptyList()) }
             loadFirstPage()
-        }
-    }
-
-    private suspend fun searchCategories(query: String) {
-        if (query.isBlank()) {
-            _uiState.update { it.copy(categorySuggestions = emptyList(), isSearchingCategories = false) }
-            return
-        }
-        _uiState.update { it.copy(isSearchingCategories = true) }
-        when (val result = categoryRepository.searchCategories(query)) {
-            is Resource.Success -> {
-                _uiState.update {
-                    it.copy(
-                        isSearchingCategories = false,
-                        categorySuggestions = result.data.map { c -> FilterOption(c.id, c.name) },
-                    )
-                }
-            }
-            is Resource.Error -> {
-                _uiState.update { it.copy(isSearchingCategories = false, categorySuggestions = emptyList()) }
-            }
-            is Resource.Loading -> {}
-        }
-    }
-
-    private suspend fun searchExpenses(query: String) {
-        if (query.isBlank()) {
-            _uiState.update { it.copy(expenseSuggestions = emptyList(), isSearchingExpenses = false) }
-            return
-        }
-        _uiState.update { it.copy(isSearchingExpenses = true) }
-        when (val result = budgetRepository.searchExpenses(query)) {
-            is Resource.Success -> {
-                _uiState.update {
-                    it.copy(
-                        isSearchingExpenses = false,
-                        expenseSuggestions = result.data.map { e -> FilterOption(e.id, e.name) },
-                    )
-                }
-            }
-            is Resource.Error -> {
-                _uiState.update { it.copy(isSearchingExpenses = false, expenseSuggestions = emptyList()) }
-            }
-            is Resource.Loading -> {}
-        }
-    }
-
-    private suspend fun searchContracts(query: String) {
-        if (query.isBlank()) {
-            _uiState.update { it.copy(contractSuggestions = emptyList(), isSearchingContracts = false) }
-            return
-        }
-        _uiState.update { it.copy(isSearchingContracts = true) }
-        when (val result = contractRepository.searchContracts(query)) {
-            is Resource.Success -> {
-                _uiState.update {
-                    it.copy(
-                        isSearchingContracts = false,
-                        contractSuggestions = result.data.map { c -> FilterOption(c.id, c.name) },
-                    )
-                }
-            }
-            is Resource.Error -> {
-                _uiState.update { it.copy(isSearchingContracts = false, contractSuggestions = emptyList()) }
-            }
-            is Resource.Loading -> {}
         }
     }
 

@@ -30,5 +30,24 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+            Disable the default `WorkManagerInitializer` so WorkManager is initialized
+            on-demand from `PledgerApp.onCreate()` AFTER Hilt has injected
+            `HiltWorkerFactory`. Without this, the default initializer (registered via
+            `androidx.startup`) runs before `Application.onCreate()`, initializes
+            WorkManager with the default `Configuration` (no Hilt factory), and the
+            `@HiltWorker`-annotated workers fail to instantiate via reflection.
+        -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
     </application>
 </manifest>

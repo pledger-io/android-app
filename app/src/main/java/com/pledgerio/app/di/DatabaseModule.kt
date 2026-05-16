@@ -4,9 +4,13 @@ import android.content.Context
 import androidx.room.Room
 import com.pledgerio.app.data.local.PledgerDatabase
 import com.pledgerio.app.data.local.dao.AccountDao
+import com.pledgerio.app.data.local.dao.AccountTypeDao
 import com.pledgerio.app.data.local.dao.BudgetDao
 import com.pledgerio.app.data.local.dao.CategoryDao
+import com.pledgerio.app.data.local.dao.ContractDao
 import com.pledgerio.app.data.local.dao.CurrencyDao
+import com.pledgerio.app.data.local.dao.ExpenseGroupDao
+import com.pledgerio.app.data.local.dao.SyncMetadataDao
 import com.pledgerio.app.data.local.dao.TransactionDao
 import dagger.Module
 import dagger.Provides
@@ -44,4 +48,16 @@ object DatabaseModule {
 
     @Provides
     fun provideCurrencyDao(db: PledgerDatabase): CurrencyDao = db.currencyDao()
+
+    @Provides
+    fun provideContractDao(db: PledgerDatabase): ContractDao = db.contractDao()
+
+    @Provides
+    fun provideExpenseGroupDao(db: PledgerDatabase): ExpenseGroupDao = db.expenseGroupDao()
+
+    @Provides
+    fun provideAccountTypeDao(db: PledgerDatabase): AccountTypeDao = db.accountTypeDao()
+
+    @Provides
+    fun provideSyncMetadataDao(db: PledgerDatabase): SyncMetadataDao = db.syncMetadataDao()
 }

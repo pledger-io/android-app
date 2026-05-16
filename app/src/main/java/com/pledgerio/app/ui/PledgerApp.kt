@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
@@ -34,6 +35,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.ThemeMode
+import com.pledgerio.app.ui.components.OfflineBanner
 import com.pledgerio.app.ui.navigation.NavGraph
 import com.pledgerio.app.ui.navigation.Screen
 import com.pledgerio.app.ui.theme.EmeraldGreen
@@ -67,6 +69,7 @@ fun PledgerRoot(
 ) {
     val sessionManager = appViewModel.sessionManager
     val themeMode by appViewModel.themeMode.collectAsState()
+    val isOnline by appViewModel.isOnline.collectAsState()
     val systemDark = isSystemInDarkTheme()
     val darkTheme = when (themeMode) {
         ThemeMode.SYSTEM -> systemDark
@@ -94,6 +97,7 @@ fun PledgerRoot(
             startDestination = startDestination,
             showBottomBar = showBottomBar,
             navBackStackEntry = navBackStackEntry,
+            isOnline = isOnline,
         )
     }
 }
@@ -104,60 +108,64 @@ private fun PledgerAppContent(
     startDestination: String,
     showBottomBar: Boolean,
     navBackStackEntry: androidx.navigation.NavBackStackEntry?,
+    isOnline: Boolean,
 ) {
     Scaffold(
         bottomBar = {
-            AnimatedVisibility(
-                visible = showBottomBar,
-                enter = slideInVertically(initialOffsetY = { it }),
-                exit = slideOutVertically(targetOffsetY = { it }),
-            ) {
-                NavigationBar {
-                    bottomNavItems.forEach { item ->
-                        val selected = navBackStackEntry?.destination?.hierarchy?.any {
-                            it.route == item.route
-                        } == true
+            Column {
+                OfflineBanner(isOnline = isOnline)
+                AnimatedVisibility(
+                    visible = showBottomBar,
+                    enter = slideInVertically(initialOffsetY = { it }),
+                    exit = slideOutVertically(targetOffsetY = { it }),
+                ) {
+                    NavigationBar {
+                        bottomNavItems.forEach { item ->
+                            val selected = navBackStackEntry?.destination?.hierarchy?.any {
+                                it.route == item.route
+                            } == true
 
-                        val label = stringResource(item.labelResId)
-                        NavigationBarItem(
-                            selected = selected,
-                            onClick = {
-                                navController.navigate(item.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                            val label = stringResource(item.labelResId)
+                            NavigationBarItem(
+                                selected = selected,
+                                onClick = {
+                                    navController.navigate(item.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            alwaysShowLabel = false,
-                            icon = {
-                                Icon(
-                                    imageVector = item.icon,
-                                    contentDescription = label,
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = label,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    softWrap = false,
-                                    textAlign = TextAlign.Center,
-                                )
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = EmeraldGreen,
-                                selectedTextColor = EmeraldGreen,
-                                unselectedIconColor = TextSecondary,
-                                unselectedTextColor = TextSecondary,
+                                },
+                                alwaysShowLabel = false,
+                                icon = {
+                                    Icon(
+                                        imageVector = item.icon,
+                                        contentDescription = label,
+                                    )
+                                },
+                                label = {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        softWrap = false,
+                                        textAlign = TextAlign.Center,
+                                    )
+                                },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = EmeraldGreen,
+                                    selectedTextColor = EmeraldGreen,
+                                    unselectedIconColor = TextSecondary,
+                                    unselectedTextColor = TextSecondary,
+                                ),
                             )
-                        )
+                        }
                     }
                 }
             }
-        }
+        },
     ) { paddingValues ->
         NavGraph(
             navController = navController,

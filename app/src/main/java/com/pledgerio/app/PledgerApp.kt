@@ -6,6 +6,7 @@ import androidx.work.Configuration
 import coil.ImageLoader
 import coil.Coil
 import com.pledgerio.app.util.CurrencyProvider
+import com.pledgerio.app.util.SyncWorker
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
@@ -30,5 +31,6 @@ class PledgerApp : Application(), Configuration.Provider {
         super.onCreate()
         CurrencyProvider.setInstance(currencyProvider)
         Coil.setImageLoader(imageLoader)
+        SyncWorker.schedule(this)
     }
 }

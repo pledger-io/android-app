@@ -20,6 +20,7 @@ This directory contains Architecture Decision Records (ADRs) for the Pledger.io 
 | [012](012-google-fonts-provider.md) | Google Fonts Provider for Typography | Accepted |
 | [013](013-ksp-over-kapt.md) | KSP over KAPT for Annotation Processing | Accepted |
 | [014](014-coil-authenticated-images.md) | Coil for Authenticated Account Logos | Accepted |
+| [015](015-stale-while-revalidate-cache.md) | Stale-While-Revalidate Cache for Reference Data | Accepted |
 
 ## ADR Format
 

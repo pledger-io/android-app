@@ -11,10 +11,14 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.work.Constraints
+import androidx.work.NetworkType
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.Budget
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
+import com.pledgerio.app.domain.repository.CategoryRepository
+import com.pledgerio.app.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -28,14 +32,22 @@ class SyncWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val accountRepository: AccountRepository,
     private val budgetRepository: BudgetRepository,
+    private val categoryRepository: CategoryRepository,
+    private val contractRepository: ContractRepository,
     private val currencyRepository: CurrencyRepository,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
         return try {
+            // Refresh the catalogs that rarely change first so the UI has fresh data on
+            // the next cold start, then accounts and budgets.
             currencyRepository.sync()
-
+            accountRepository.refreshAccountTypes()
+            categoryRepository.refreshCategories()
+            contractRepository.refreshContracts()
+            budgetRepository.refreshExpenseGroups()
             accountRepository.refreshOwnedAccounts()
+            accountRepository.refreshCounterpartyAccounts()
 
             val now = LocalDate.now()
             val budgetsResult = budgetRepository.getBudgets(now.year, now.monthValue).first()
@@ -89,9 +101,14 @@ class SyncWorker @AssistedInject constructor(
         private const val WORK_NAME = "pledger_sync"
 
         fun schedule(context: Context) {
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
             val workRequest = PeriodicWorkRequestBuilder<SyncWorker>(
-                12, TimeUnit.HOURS
-            ).build()
+                12, TimeUnit.HOURS,
+            )
+                .setConstraints(constraints)
+                .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 WORK_NAME,
