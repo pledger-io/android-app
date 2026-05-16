@@ -24,6 +24,8 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 
+private val MONTH_NAV_FORMATTER = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
+
 data class TransactionsUiState(
     val isLoading: Boolean = true,
     val isLoadingMore: Boolean = false,
@@ -32,10 +34,8 @@ data class TransactionsUiState(
     val transactions: List<Transaction> = emptyList(),
     val selectedType: TransactionType? = null,
     val currentMonth: YearMonth = YearMonth.now(),
-    val monthLabel: String = "",
     val currentPage: Int = 0,
-    val hasMoreInMonth: Boolean = true,
-    val hasOlderMonths: Boolean = true,
+    val hasMoreInMonth: Boolean = false,
     val totalRecords: Long = 0,
     val filtersExpanded: Boolean = false,
     val selectedCategory: FilterOption? = null,
@@ -59,6 +59,9 @@ data class TransactionsUiState(
         expenseId = selectedExpense?.id,
         contractId = selectedContract?.id,
     )
+
+    val monthLabel: String
+        get() = currentMonth.format(MONTH_NAV_FORMATTER)
 }
 
 @HiltViewModel
@@ -80,12 +83,11 @@ class TransactionsViewModel @Inject constructor(
     companion object {
         private const val PAGE_SIZE = 25
         private const val SEARCH_DEBOUNCE_MS = 300L
-        private val MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
     }
 
     init {
         val now = YearMonth.now()
-        _uiState.update { it.copy(currentMonth = now, monthLabel = now.format(MONTH_FORMATTER)) }
+        _uiState.update { it.copy(currentMonth = now) }
         loadFirstPage()
     }
 
@@ -221,12 +223,15 @@ class TransactionsViewModel @Inject constructor(
     }
 
     fun navigateToMonth(month: YearMonth) {
+        loadJob?.cancel()
         _uiState.update {
             it.copy(
                 currentMonth = month,
-                monthLabel = month.format(MONTH_FORMATTER),
                 transactions = emptyList(),
-                hasOlderMonths = true,
+                currentPage = 0,
+                hasMoreInMonth = false,
+                totalRecords = 0,
+                error = null,
             )
         }
         loadFirstPage()
@@ -245,13 +250,8 @@ class TransactionsViewModel @Inject constructor(
 
     fun loadMore() {
         val state = _uiState.value
-        if (state.isLoadingMore || state.isLoading) return
-
-        if (state.hasMoreInMonth) {
-            loadNextPage()
-        } else if (state.hasOlderMonths) {
-            loadPreviousMonth()
-        }
+        if (state.isLoadingMore || state.isLoading || !state.hasMoreInMonth) return
+        loadNextPage()
     }
 
     fun deleteTransaction(id: Long) {
@@ -347,14 +347,17 @@ class TransactionsViewModel @Inject constructor(
             )
             when (result) {
                 is Resource.Success -> {
+                    val items = result.data.items
+                    val totalRecords = result.data.totalRecords
+                    val hasMoreInMonth = items.size.toLong() < totalRecords
                     _uiState.update {
                         it.copy(
                             isLoading = false,
                             isRefreshing = false,
-                            transactions = result.data.items,
+                            transactions = items,
                             currentPage = 0,
-                            hasMoreInMonth = result.data.items.size.toLong() < result.data.totalRecords,
-                            totalRecords = result.data.totalRecords,
+                            hasMoreInMonth = hasMoreInMonth,
+                            totalRecords = totalRecords,
                             error = null,
                         )
                     }
@@ -405,47 +408,6 @@ class TransactionsViewModel @Inject constructor(
                 }
                 is Resource.Error -> {
                     _uiState.update { it.copy(isLoadingMore = false) }
-                }
-                is Resource.Loading -> {}
-            }
-        }
-    }
-
-    private fun loadPreviousMonth() {
-        val state = _uiState.value
-        val prevMonth = state.currentMonth.minusMonths(1)
-        _uiState.update { it.copy(isLoadingMore = true) }
-
-        viewModelScope.launch {
-            val startDate = prevMonth.atDay(1)
-            val endDate = prevMonth.atEndOfMonth()
-
-            val result = transactionRepository.getTransactionsPage(
-                startDate = startDate,
-                endDate = endDate,
-                type = state.selectedType,
-                filters = state.toTransactionFilters(),
-                page = 0,
-                pageSize = PAGE_SIZE,
-            )
-            when (result) {
-                is Resource.Success -> {
-                    val allItems = (state.transactions + result.data.items).distinctBy { it.id }
-                    _uiState.update {
-                        it.copy(
-                            isLoadingMore = false,
-                            transactions = allItems,
-                            currentMonth = prevMonth,
-                            monthLabel = prevMonth.format(MONTH_FORMATTER),
-                            currentPage = 0,
-                            hasMoreInMonth = result.data.items.size.toLong() < result.data.totalRecords,
-                            hasOlderMonths = result.data.items.isNotEmpty(),
-                            totalRecords = result.data.totalRecords,
-                        )
-                    }
-                }
-                is Resource.Error -> {
-                    _uiState.update { it.copy(isLoadingMore = false, hasOlderMonths = false) }
                 }
                 is Resource.Loading -> {}
             }

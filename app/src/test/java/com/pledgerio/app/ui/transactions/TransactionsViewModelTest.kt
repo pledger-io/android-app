@@ -1,0 +1,101 @@
+package com.pledgerio.app.ui.transactions
+
+import com.pledgerio.app.domain.repository.BudgetRepository
+import com.pledgerio.app.domain.repository.CategoryRepository
+import com.pledgerio.app.domain.repository.ContractRepository
+import com.pledgerio.app.domain.repository.PagedResult
+import com.pledgerio.app.domain.repository.TransactionRepository
+import com.pledgerio.app.util.MainDispatcherRule
+import com.pledgerio.app.util.Resource
+import io.mockk.coEvery
+import io.mockk.mockk
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Rule
+import org.junit.Test
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class TransactionsViewModelTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
+    private val transactionRepository = mockk<TransactionRepository>()
+    private val categoryRepository = mockk<CategoryRepository>(relaxed = true)
+    private val budgetRepository = mockk<BudgetRepository>(relaxed = true)
+    private val contractRepository = mockk<ContractRepository>(relaxed = true)
+
+    @Test
+    fun `navigateToMonth keeps selected month when API returns no transactions`() = runTest {
+        val target = YearMonth.of(2024, 3)
+        coEvery {
+            transactionRepository.getTransactionsPage(
+                startDate = any(),
+                endDate = any(),
+                accountId = any(),
+                type = any(),
+                filters = any(),
+                page = any(),
+                pageSize = any(),
+            )
+        } returns Resource.Success(
+            PagedResult(emptyList(), totalRecords = 0, totalPages = 0, pageSize = 25),
+        )
+
+        val viewModel = TransactionsViewModel(
+            transactionRepository,
+            categoryRepository,
+            budgetRepository,
+            contractRepository,
+        )
+        advanceUntilIdle()
+
+        viewModel.navigateToMonth(target)
+        advanceUntilIdle()
+
+        assertEquals(target, viewModel.uiState.value.currentMonth)
+        assertEquals(
+            target.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())),
+            viewModel.uiState.value.monthLabel,
+        )
+        assertFalse(viewModel.uiState.value.hasMoreInMonth)
+    }
+
+    @Test
+    fun `nextMonth from previous month keeps current month when empty`() = runTest {
+        coEvery {
+            transactionRepository.getTransactionsPage(
+                startDate = any(),
+                endDate = any(),
+                accountId = any(),
+                type = any(),
+                filters = any(),
+                page = any(),
+                pageSize = any(),
+            )
+        } returns Resource.Success(
+            PagedResult(emptyList(), totalRecords = 0, totalPages = 0, pageSize = 25),
+        )
+
+        val viewModel = TransactionsViewModel(
+            transactionRepository,
+            categoryRepository,
+            budgetRepository,
+            contractRepository,
+        )
+        advanceUntilIdle()
+
+        viewModel.previousMonth()
+        advanceUntilIdle()
+        viewModel.nextMonth()
+        advanceUntilIdle()
+
+        assertEquals(YearMonth.now(), viewModel.uiState.value.currentMonth)
+    }
+}

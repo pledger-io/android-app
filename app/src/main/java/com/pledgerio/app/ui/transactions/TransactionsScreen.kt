@@ -70,10 +70,11 @@ fun TransactionsScreen(
         derivedStateOf {
             val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             val totalItems = listState.layoutInfo.totalItemsCount
-            lastVisibleItem >= totalItems - 5
-                && !uiState.isLoadingMore
-                && (uiState.hasMoreInMonth || uiState.hasOlderMonths)
-                && !uiState.isLoading
+            totalItems > 0 &&
+                lastVisibleItem >= totalItems - 5 &&
+                !uiState.isLoadingMore &&
+                uiState.hasMoreInMonth &&
+                !uiState.isLoading
         }
     }
 
