@@ -199,7 +199,8 @@ Transactions are refreshed on screen load rather than in the worker.
 | Token storage | `EncryptedSharedPreferences` (AES-256-GCM) |
 | Transport | User-supplied URL; cleartext permitted in debug config for dev servers |
 | Biometric | Optional via settings (`BiometricPrompt`) |
-| Session expiry | 401 handling in `AuthInterceptor` |
+| Session expiry | Proactive JWT refresh + 401 retry in `AuthInterceptor` |
+| Platform | compile/target SDK 36 (Android 16) |
 | Release | ProGuard / R8 enabled |
 
 ## State Management

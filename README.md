@@ -18,12 +18,13 @@ A native Android client for [Pledger.io](https://github.com/pledger-io) — a se
 | Background work | WorkManager |
 | Auth | JWT in EncryptedSharedPreferences |
 | Min SDK | 26 (Android 8.0) |
-| Target / compile SDK | 35 |
+| Target / compile SDK | 36 (Android 16) |
 
 ## Prerequisites
 
-- **Android Studio** Ladybug (2024.2) or newer
-- **JDK 21** for Gradle builds (JDK 25 is not supported by the current Android Gradle Plugin)
+- **Android Studio** Meerkat (2024.3.1) or newer (Android 16 SDK support)
+- **JDK 21** for Gradle builds (JDK 25 is not supported by the Android Gradle Plugin)
+- **Android SDK Platform 36** and **Build-Tools 36.0.0** (install via SDK Manager)
 
 ## Setup
 
