@@ -105,8 +105,8 @@ interface PledgerApiService {
     @GET("v2/api/categories")
     suspend fun getCategories(
         @Query("name") name: String? = null,
-        @Query("offset") offset: Int? = null,
-        @Query("numberOfResults") numberOfResults: Int? = null,
+        @Query("offset") offset: Int = 0,
+        @Query("numberOfResults") numberOfResults: Int = 200,
     ): Response<CategoryPagedResponse>
 
     @GET("v2/api/categories/{id}")
@@ -123,6 +123,16 @@ interface PledgerApiService {
 
     @DELETE("v2/api/categories/{id}")
     suspend fun deleteCategory(@Path("id") id: Long): Response<Unit>
+
+    // Tags
+    @GET("v2/api/tags")
+    suspend fun getTags(@Query("name") name: String? = null): Response<List<String>>
+
+    @POST("v2/api/tags")
+    suspend fun createTag(@Body request: CreateTagRequest): Response<Unit>
+
+    @DELETE("v2/api/tags/{tag}")
+    suspend fun deleteTag(@Path("tag") tag: String): Response<Unit>
 
     // Budgets
     @GET("v2/api/budgets")

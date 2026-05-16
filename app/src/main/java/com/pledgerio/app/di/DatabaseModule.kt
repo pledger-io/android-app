@@ -11,6 +11,7 @@ import com.pledgerio.app.data.local.dao.ContractDao
 import com.pledgerio.app.data.local.dao.CurrencyDao
 import com.pledgerio.app.data.local.dao.ExpenseGroupDao
 import com.pledgerio.app.data.local.dao.SyncMetadataDao
+import com.pledgerio.app.data.local.dao.TagDao
 import com.pledgerio.app.data.local.dao.TransactionDao
 import dagger.Module
 import dagger.Provides
@@ -45,6 +46,9 @@ object DatabaseModule {
 
     @Provides
     fun provideCategoryDao(db: PledgerDatabase): CategoryDao = db.categoryDao()
+
+    @Provides
+    fun provideTagDao(db: PledgerDatabase): TagDao = db.tagDao()
 
     @Provides
     fun provideCurrencyDao(db: PledgerDatabase): CurrencyDao = db.currencyDao()

@@ -17,6 +17,7 @@ import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
+import com.pledgerio.app.domain.repository.TagRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.ui.transactions.form.TransactionFormLabels
 import com.pledgerio.app.util.Resource
@@ -108,6 +109,11 @@ data class TransactionFormUiState(
     val isSearchingContract: Boolean = false,
     val tags: List<String> = emptyList(),
     val tagInput: String = "",
+    val tagSuggestions: List<String> = emptyList(),
+    val isSearchingTags: Boolean = false,
+    val isAddingTag: Boolean = false,
+    val tagError: String? = null,
+    val catalogTagNames: Set<String> = emptySet(),
     val templates: List<TransactionTemplate> = emptyList(),
     val showSaveTemplateDialog: Boolean = false,
     val saveTemplateName: String = "",
@@ -216,6 +222,7 @@ class TransactionFormViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val budgetRepository: BudgetRepository,
     private val contractRepository: ContractRepository,
+    private val tagRepository: TagRepository,
     private val userPreferences: UserPreferences,
     private val transactionTemplateStore: TransactionTemplateStore,
     savedStateHandle: SavedStateHandle,
@@ -237,6 +244,7 @@ class TransactionFormViewModel @Inject constructor(
     private val categoryQueryFlow = MutableStateFlow("")
     private val expenseQueryFlow = MutableStateFlow("")
     private val contractQueryFlow = MutableStateFlow("")
+    private val tagQueryFlow = MutableStateFlow("")
 
     init {
         loadOwnedAccounts()
@@ -266,6 +274,8 @@ class TransactionFormViewModel @Inject constructor(
                 _uiState.update { state -> state.copy(isSearchingContract = false, contractSuggestions = options) }
             },
         )
+        observeTagSuggestions()
+        observeCatalogTags()
         if (editTransactionId != null) {
             loadTransactionForEdit(editTransactionId)
         }
@@ -295,6 +305,45 @@ class TransactionFormViewModel @Inject constructor(
         items.map { item ->
             val (id, label) = extract(item)
             FilterOption(id, label)
+        }
+    }
+
+    private fun observeTagSuggestions() {
+        viewModelScope.launch {
+            tagQueryFlow
+                .debounce(SEARCH_DEBOUNCE_MS)
+                .distinctUntilChanged()
+                .onEach { query ->
+                    if (query.isNotBlank()) {
+                        _uiState.update { it.copy(isSearchingTags = true) }
+                    }
+                }
+                .flatMapLatest { query ->
+                    if (query.isBlank()) {
+                        tagRepository.observeTags()
+                    } else {
+                        tagRepository.observeMatching(query)
+                    }
+                }
+                .map { tags -> tags.map { it.name } }
+                .collect { names -> applyTagSuggestions(names) }
+        }
+    }
+
+    private fun applyTagSuggestions(names: List<String>) {
+        _uiState.update { state ->
+            val filtered = names.filter { name ->
+                state.tags.none { selected -> selected.equals(name, ignoreCase = true) }
+            }
+            state.copy(isSearchingTags = false, tagSuggestions = filtered)
+        }
+    }
+
+    private fun observeCatalogTags() {
+        viewModelScope.launch {
+            tagRepository.observeTags().collect { tags ->
+                _uiState.update { it.copy(catalogTagNames = tags.map { tag -> tag.name }.toSet()) }
+            }
         }
     }
 
@@ -419,26 +468,96 @@ class TransactionFormViewModel @Inject constructor(
         if (value.endsWith(",")) {
             val tag = value.dropLast(1).trim()
             if (tag.isNotEmpty()) addTag(tag)
-            _uiState.update { it.copy(tagInput = "") }
+            else {
+                _uiState.update { it.copy(tagInput = "", tagError = null) }
+                tagQueryFlow.value = ""
+            }
         } else {
-            _uiState.update { it.copy(tagInput = value) }
+            _uiState.update { it.copy(tagInput = value, tagError = null) }
+            tagQueryFlow.value = value
         }
     }
 
     fun addTag(raw: String) {
         val tag = raw.trim()
         if (tag.isEmpty()) return
-        _uiState.update { state ->
-            if (state.tags.any { it.equals(tag, ignoreCase = true) }) {
-                state.copy(tagInput = "")
-            } else {
-                state.copy(tags = state.tags + tag, tagInput = "")
+
+        val state = _uiState.value
+        if (state.tags.any { it.equals(tag, ignoreCase = true) }) {
+            _uiState.update {
+                it.copy(
+                    tagInput = "",
+                    tagError = null,
+                    tagSuggestions = filterTagSuggestions(it.tagSuggestions, it.tags),
+                )
+            }
+            tagQueryFlow.value = ""
+            return
+        }
+
+        if (state.catalogTagNames.any { it.equals(tag, ignoreCase = true) }) {
+            appendTagToForm(tag)
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isAddingTag = true, tagError = null) }
+            when (val result = tagRepository.createTag(tag)) {
+                is Resource.Success -> appendTagToForm(result.data.name)
+                is Resource.Error -> {
+                    _uiState.update { it.copy(isAddingTag = false, tagError = result.message) }
+                }
+                is Resource.Loading -> Unit
             }
         }
     }
 
+    fun selectTagFromSuggestion(name: String) {
+        appendTagToForm(name.trim())
+    }
+
+    private fun appendTagToForm(tag: String) {
+        if (tag.isEmpty()) return
+        _uiState.update { state ->
+            if (state.tags.any { it.equals(tag, ignoreCase = true) }) {
+                state.copy(tagInput = "", tagError = null, isAddingTag = false)
+            } else {
+                val newTags = state.tags + tag
+                state.copy(
+                    tags = newTags,
+                    tagInput = "",
+                    tagError = null,
+                    isAddingTag = false,
+                    tagSuggestions = filterTagSuggestions(state.tagSuggestions, newTags),
+                )
+            }
+        }
+        tagQueryFlow.value = ""
+    }
+
     fun removeTag(tag: String) {
-        _uiState.update { it.copy(tags = it.tags.filterNot { existing -> existing == tag }) }
+        _uiState.update { state ->
+            val newTags = state.tags.filterNot { existing -> existing == tag }
+            state.copy(
+                tags = newTags,
+                tagSuggestions = filterTagSuggestions(state.tagSuggestions, newTags, reinclude = tag),
+            )
+        }
+    }
+
+    private fun filterTagSuggestions(
+        suggestions: List<String>,
+        selected: List<String>,
+        reinclude: String? = null,
+    ): List<String> {
+        val filtered = suggestions.filter { name ->
+            selected.none { it.equals(name, ignoreCase = true) }
+        }
+        return if (reinclude != null && filtered.none { it.equals(reinclude, ignoreCase = true) }) {
+            filtered + reinclude
+        } else {
+            filtered
+        }
     }
 
     fun showSaveTemplateDialog() {

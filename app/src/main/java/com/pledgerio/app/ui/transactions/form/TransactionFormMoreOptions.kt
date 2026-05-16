@@ -48,9 +48,14 @@ fun TransactionFormMoreOptions(
     onContractClear: () -> Unit,
     tags: List<String>,
     tagInput: String,
+    tagSuggestions: List<String>,
+    isSearchingTags: Boolean,
+    isAddingTag: Boolean,
+    tagError: String?,
     onTagInputChange: (String) -> Unit,
     onAddTag: (String) -> Unit,
     onRemoveTag: (String) -> Unit,
+    onSelectTagSuggestion: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -117,9 +122,14 @@ fun TransactionFormMoreOptions(
                     TransactionTagsField(
                         tags = tags,
                         input = tagInput,
+                        suggestions = tagSuggestions,
+                        isSearching = isSearchingTags,
+                        isAdding = isAddingTag,
+                        error = tagError,
                         onInputChange = onTagInputChange,
                         onAddTag = onAddTag,
                         onRemoveTag = onRemoveTag,
+                        onSelectSuggestion = onSelectTagSuggestion,
                         modifier = Modifier.padding(top = 12.dp),
                     )
                 }

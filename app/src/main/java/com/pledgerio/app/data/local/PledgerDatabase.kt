@@ -11,6 +11,7 @@ import com.pledgerio.app.data.local.dao.ContractDao
 import com.pledgerio.app.data.local.dao.CurrencyDao
 import com.pledgerio.app.data.local.dao.ExpenseGroupDao
 import com.pledgerio.app.data.local.dao.SyncMetadataDao
+import com.pledgerio.app.data.local.dao.TagDao
 import com.pledgerio.app.data.local.dao.TransactionDao
 import com.pledgerio.app.data.local.entity.AccountEntity
 import com.pledgerio.app.data.local.entity.AccountTypeEntity
@@ -20,6 +21,7 @@ import com.pledgerio.app.data.local.entity.ContractEntity
 import com.pledgerio.app.data.local.entity.CurrencyEntity
 import com.pledgerio.app.data.local.entity.ExpenseGroupEntity
 import com.pledgerio.app.data.local.entity.SyncMetadataEntity
+import com.pledgerio.app.data.local.entity.TagEntity
 import com.pledgerio.app.data.local.entity.TransactionEntity
 
 @Database(
@@ -28,13 +30,14 @@ import com.pledgerio.app.data.local.entity.TransactionEntity
         TransactionEntity::class,
         BudgetEntity::class,
         CategoryEntity::class,
+        TagEntity::class,
         CurrencyEntity::class,
         ContractEntity::class,
         ExpenseGroupEntity::class,
         AccountTypeEntity::class,
         SyncMetadataEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -43,6 +46,7 @@ abstract class PledgerDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun budgetDao(): BudgetDao
     abstract fun categoryDao(): CategoryDao
+    abstract fun tagDao(): TagDao
     abstract fun currencyDao(): CurrencyDao
     abstract fun contractDao(): ContractDao
     abstract fun expenseGroupDao(): ExpenseGroupDao

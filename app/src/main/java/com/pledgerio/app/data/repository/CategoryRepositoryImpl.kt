@@ -150,24 +150,52 @@ class CategoryRepositoryImpl @Inject constructor(
     override suspend fun refreshCategories(): Resource<List<Category>> {
         return cacheRefresher.refreshNow(SyncKeys.CATEGORIES) {
             try {
-                val response = apiService.getCategories()
-                if (response.isSuccessful) {
-                    val categories = response.body()?.content?.map { dto ->
-                        Category(
-                            id = dto.id,
-                            name = dto.name,
-                            description = dto.description ?: "",
-                        )
-                    } ?: emptyList()
+                val categories = fetchAllCategoriesFromApi()
+                if (categories != null) {
                     categoryDao.replaceAll(categories.map { CategoryEntity.fromDomain(it) })
                     Resource.Success(categories)
                 } else {
-                    Resource.Error("Failed to fetch categories: HTTP ${response.code()}")
+                    Resource.Error("Failed to fetch categories")
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Resource.Error(e.message ?: "Network error")
             }
         }
+    }
+
+    /**
+     * The categories list endpoint requires [offset] and [numberOfResults] query parameters
+     * (see rest-application contract). Omitting them yields HTTP 404 from the server.
+     */
+    private suspend fun fetchAllCategoriesFromApi(name: String? = null): List<Category>? {
+        val collected = mutableListOf<Category>()
+        var offset = 0
+        val pageSize = 200
+        while (true) {
+            val response = apiService.getCategories(
+                name = name?.trim()?.takeIf { it.isNotEmpty() },
+                offset = offset,
+                numberOfResults = pageSize,
+            )
+            if (!response.isSuccessful) {
+                return if (collected.isNotEmpty()) collected else null
+            }
+            val body = response.body()
+            val page = body?.content?.map { dto ->
+                Category(
+                    id = dto.id,
+                    name = dto.name,
+                    description = dto.description ?: "",
+                )
+            } ?: emptyList()
+            collected.addAll(page)
+            val total = body?.info?.records ?: collected.size.toLong()
+            if (page.isEmpty() || collected.size.toLong() >= total) break
+            offset += pageSize
+        }
+        return collected
     }
 
     private fun triggerStaleRefresh() {

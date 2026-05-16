@@ -9,6 +9,7 @@ object SyncKeys {
     const val COUNTERPARTY_ACCOUNTS = "counterparty_accounts"
     const val ACCOUNT_TYPES = "account_types"
     const val CATEGORIES = "categories"
+    const val TAGS = "tags"
     const val EXPENSE_GROUPS = "expense_groups"
     const val CONTRACTS = "contracts"
     const val CURRENCIES = "currencies"
