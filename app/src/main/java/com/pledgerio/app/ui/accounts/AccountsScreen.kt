@@ -133,144 +133,119 @@ fun AccountsScreen(
                 onRefresh = viewModel::refresh,
                 modifier = Modifier.fillMaxSize(),
             ) {
-                when {
-                    uiState.isLoading && !uiState.isRefreshing -> LoadingScreen()
-                    uiState.error != null && !hasOwned && uiState.filter != AccountListFilter.COUNTERPARTY -> {
-                        ErrorScreen(
-                            message = uiState.error ?: "",
-                            onRetry = viewModel::refresh,
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                ) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    AccountFilterChipsRow(
+                        filter = uiState.filter,
+                        ownedCount = uiState.ownedCount,
+                        counterpartyTotal = uiState.counterpartyTotal,
+                        onFilterSelected = viewModel::setFilter,
+                    )
+                    if (uiState.filter == AccountListFilter.COUNTERPARTY) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        CounterpartySearchField(
+                            query = uiState.counterpartySearchQuery,
+                            onQueryChange = viewModel::onCounterpartySearchChanged,
                         )
                     }
-                    showEmpty -> {
-                        EmptyScreen(
-                            icon = Icons.Default.AccountBalance,
-                            title = when (uiState.filter) {
-                                AccountListFilter.COUNTERPARTY -> "No parties found"
-                                else -> "No accounts yet"
-                            },
-                            message = when (uiState.filter) {
-                                AccountListFilter.COUNTERPARTY -> if (uiState.counterpartySearchQuery.isNotBlank()) {
-                                    "Try a different search term."
-                                } else {
-                                    "Add creditors and debtors you pay or receive money from."
-                                }
-                                else -> "Add checking, savings, credit, or counterparty accounts."
-                            },
-                            actionLabel = if (uiState.filter == AccountListFilter.COUNTERPARTY) {
-                                "Add party"
-                            } else {
-                                "Add account"
-                            },
-                            onAction = { showAddMenu = true },
-                        )
-                    }
-                    else -> {
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            item { Spacer(modifier = Modifier.height(8.dp)) }
-
-                            if (uiState.filter != AccountListFilter.COUNTERPARTY) {
-                                item {
-                                    AccountsSummaryCard(
-                                        accountCount = uiState.filteredAccounts.size,
-                                        totalBalance = uiState.totalBalance,
-                                        currency = uiState.filteredAccounts.firstOrNull()?.currency ?: "EUR",
-                                        subtitle = when (uiState.filter) {
-                                            AccountListFilter.ALL -> "owned accounts"
-                                            else -> "in this view"
-                                        },
-                                    )
-                                }
-                            } else {
-                                item {
-                                    CounterpartiesSummaryCard(
-                                        loaded = uiState.counterpartyLoadedCount,
-                                        total = uiState.counterpartyTotal,
-                                    )
-                                }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                    ) {
+                        when {
+                            uiState.isLoading && !uiState.isRefreshing -> LoadingScreen()
+                            uiState.error != null && !hasOwned &&
+                                uiState.filter != AccountListFilter.COUNTERPARTY -> {
+                                ErrorScreen(
+                                    message = uiState.error ?: "",
+                                    onRetry = viewModel::refresh,
+                                )
                             }
-
-                            item {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    FilterChip(
-                                        selected = uiState.filter == AccountListFilter.ALL,
-                                        onClick = { viewModel.setFilter(AccountListFilter.ALL) },
-                                        label = { Text("All") },
-                                    )
-                                    FilterChip(
-                                        selected = uiState.filter == AccountListFilter.OWNED,
-                                        onClick = { viewModel.setFilter(AccountListFilter.OWNED) },
-                                        label = { Text("Owned (${uiState.ownedCount})") },
-                                    )
-                                    FilterChip(
-                                        selected = uiState.filter == AccountListFilter.COUNTERPARTY,
-                                        onClick = { viewModel.setFilter(AccountListFilter.COUNTERPARTY) },
-                                        label = {
-                                            val n = uiState.counterpartyTotal
-                                            Text(
-                                                if (n > 0) "Parties ($n)" else "Parties",
-                                            )
-                                        },
-                                    )
-                                }
-                            }
-
-                            if (uiState.filter == AccountListFilter.COUNTERPARTY) {
-                                item {
-                                    OutlinedTextField(
-                                        value = uiState.counterpartySearchQuery,
-                                        onValueChange = viewModel::onCounterpartySearchChanged,
-                                        modifier = Modifier.fillMaxWidth(),
-                                        placeholder = { Text("Search parties…") },
-                                        leadingIcon = {
-                                            Icon(Icons.Default.Search, contentDescription = null)
-                                        },
-                                        trailingIcon = {
-                                            if (uiState.counterpartySearchQuery.isNotEmpty()) {
-                                                IconButton(
-                                                    onClick = { viewModel.onCounterpartySearchChanged("") },
-                                                ) {
-                                                    Icon(Icons.Default.Clear, contentDescription = "Clear")
-                                                }
-                                            }
-                                        },
-                                        singleLine = true,
-                                    )
-                                }
-
-                                if (uiState.isLoadingCounterparties) {
-                                    item {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(32.dp),
-                                            contentAlignment = Alignment.Center,
+                            showEmpty -> {
+                                EmptyScreen(
+                                    icon = Icons.Default.AccountBalance,
+                                    title = when (uiState.filter) {
+                                        AccountListFilter.COUNTERPARTY -> "No parties found"
+                                        else -> "No accounts yet"
+                                    },
+                                    message = when (uiState.filter) {
+                                        AccountListFilter.COUNTERPARTY -> if (
+                                            uiState.counterpartySearchQuery.isNotBlank()
                                         ) {
-                                            CircularProgressIndicator(color = EmeraldGreen)
+                                            "Try a different search term."
+                                        } else {
+                                            "Add creditors and debtors you pay or receive money from."
+                                        }
+                                        else -> "Add checking, savings, credit, or counterparty accounts."
+                                    },
+                                    actionLabel = if (uiState.filter == AccountListFilter.COUNTERPARTY) {
+                                        "Add party"
+                                    } else {
+                                        "Add account"
+                                    },
+                                    onAction = { showAddMenu = true },
+                                )
+                            }
+                            else -> {
+                                LazyColumn(
+                                    state = listState,
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                ) {
+                                    if (uiState.filter != AccountListFilter.COUNTERPARTY) {
+                                        item {
+                                            AccountsSummaryCard(
+                                                accountCount = uiState.filteredAccounts.size,
+                                                totalBalance = uiState.totalBalance,
+                                                currency = uiState.filteredAccounts.firstOrNull()?.currency
+                                                    ?: "EUR",
+                                                subtitle = when (uiState.filter) {
+                                                    AccountListFilter.ALL -> "owned accounts"
+                                                    else -> "in this view"
+                                                },
+                                            )
+                                        }
+                                    } else {
+                                        item {
+                                            CounterpartiesSummaryCard(
+                                                loaded = uiState.counterpartyLoadedCount,
+                                                total = uiState.counterpartyTotal,
+                                            )
                                         }
                                     }
-                                }
 
-                                uiState.counterpartyError?.let { error ->
-                                    item {
-                                        Text(
-                                            text = error,
-                                            color = MaterialTheme.colorScheme.error,
-                                            style = MaterialTheme.typography.bodySmall,
-                                        )
+                                    if (uiState.filter == AccountListFilter.COUNTERPARTY) {
+                                        if (uiState.isLoadingCounterparties) {
+                                            item {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(32.dp),
+                                                    contentAlignment = Alignment.Center,
+                                                ) {
+                                                    CircularProgressIndicator(color = EmeraldGreen)
+                                                }
+                                            }
+                                        }
+
+                                        uiState.counterpartyError?.let { error ->
+                                            item {
+                                                Text(
+                                                    text = error,
+                                                    color = MaterialTheme.colorScheme.error,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                )
+                                            }
+                                        }
                                     }
-                                }
-                            }
 
-                            if (uiState.showCounterpartyBrowseCard) {
+                                    if (uiState.showCounterpartyBrowseCard) {
                                 item {
                                     CounterpartiesBrowseCard(
                                         total = uiState.counterpartyTotal,
@@ -331,7 +306,9 @@ fun AccountsScreen(
                                 }
                             }
 
-                            item { Spacer(modifier = Modifier.height(88.dp)) }
+                                    item { Spacer(modifier = Modifier.height(88.dp)) }
+                                }
+                            }
                         }
                     }
                 }
@@ -345,6 +322,63 @@ fun AccountsScreen(
             )
         }
     }
+}
+
+@Composable
+private fun AccountFilterChipsRow(
+    filter: AccountListFilter,
+    ownedCount: Int,
+    counterpartyTotal: Long,
+    onFilterSelected: (AccountListFilter) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        FilterChip(
+            selected = filter == AccountListFilter.ALL,
+            onClick = { onFilterSelected(AccountListFilter.ALL) },
+            label = { Text("All") },
+        )
+        FilterChip(
+            selected = filter == AccountListFilter.OWNED,
+            onClick = { onFilterSelected(AccountListFilter.OWNED) },
+            label = { Text("Owned ($ownedCount)") },
+        )
+        FilterChip(
+            selected = filter == AccountListFilter.COUNTERPARTY,
+            onClick = { onFilterSelected(AccountListFilter.COUNTERPARTY) },
+            label = {
+                Text(if (counterpartyTotal > 0) "Parties ($counterpartyTotal)" else "Parties")
+            },
+        )
+    }
+}
+
+@Composable
+private fun CounterpartySearchField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = modifier.fillMaxWidth(),
+        placeholder = { Text("Search parties…") },
+        leadingIcon = {
+            Icon(Icons.Default.Search, contentDescription = null)
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                }
+            }
+        },
+        singleLine = true,
+    )
 }
 
 @Composable
