@@ -6,6 +6,7 @@ import com.pledgerio.app.data.remote.dto.BudgetDto
 import com.pledgerio.app.data.remote.dto.CreateBudgetRequest
 import com.pledgerio.app.data.remote.dto.DateRangeDto
 import com.pledgerio.app.data.remote.dto.ExpenseDto
+import com.pledgerio.app.data.remote.dto.ExpenseRequest
 import com.pledgerio.app.domain.model.BudgetListState
 import com.pledgerio.app.util.Resource
 import io.mockk.coEvery
@@ -80,6 +81,42 @@ class BudgetRepositoryImplTest {
 
         assertFalse(success.data.needsInitialSetup)
         assertEquals(1, success.data.budgets.size)
+    }
+
+    @Test
+    fun `saveExpenseGroup creates expense and refreshes cache`() = runTest {
+        val now = java.time.LocalDate.now()
+        val budgetDto = BudgetDto(
+            expenses = listOf(ExpenseDto(id = 1, name = "Groceries", expected = 400.0)),
+        )
+        coEvery {
+            apiService.saveExpense(ExpenseRequest(name = "Groceries", amount = 400.0))
+        } returns Response.success(budgetDto)
+        coEvery { apiService.getBudgets(now.year, now.monthValue, any()) } returns Response.success(budgetDto)
+        coEvery { apiService.getExpenseBalance(now.year, now.monthValue, any()) } returns Response.success(emptyList())
+
+        val result = repository.saveExpenseGroup(id = null, name = "Groceries", budgetAmount = 400.0)
+
+        assertTrue(result is Resource.Success)
+        assertEquals(1, (result as Resource.Success).data.budgets.size)
+    }
+
+    @Test
+    fun `saveExpenseGroup updates expense when id provided`() = runTest {
+        val now = java.time.LocalDate.now()
+        val budgetDto = BudgetDto(
+            expenses = listOf(ExpenseDto(id = 5, name = "Groceries", expected = 500.0)),
+        )
+        coEvery {
+            apiService.saveExpense(ExpenseRequest(id = 5, name = "Groceries", amount = 500.0))
+        } returns Response.success(budgetDto)
+        coEvery { apiService.getBudgets(now.year, now.monthValue, any()) } returns Response.success(budgetDto)
+        coEvery { apiService.getExpenseBalance(now.year, now.monthValue, any()) } returns Response.success(emptyList())
+
+        val result = repository.saveExpenseGroup(id = 5, name = "Groceries", budgetAmount = 500.0)
+
+        assertTrue(result is Resource.Success)
+        assertEquals(500.0, (result as Resource.Success).data.budgets.first().amount, 0.001)
     }
 
     @Test

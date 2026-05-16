@@ -26,7 +26,7 @@ Implementation:
 - `SyncWorker` is annotated with `@HiltWorker` for dependency injection
 - Syncs **currencies** to Room (`CurrencyRepository.sync()`)
 - Refreshes **accounts** data on each execution (`AccountRepository.getAccounts()`)
-- Checks budget utilization and fires local notifications when any budget exceeds 80%
+- Checks budget utilization and fires local notifications when any budget exceeds 80% (skipped when no budget exists yet for the current month)
 - Transaction cache is **not** refreshed here; lists load from the API when screens are opened
 - Uses `ExistingPeriodicWorkPolicy.KEEP` to avoid duplicate scheduling
 - `Configuration.Provider` on the Application class enables Hilt worker injection

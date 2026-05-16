@@ -52,7 +52,7 @@ ui/
 ├── dashboard/          # Overview, recent transactions
 ├── transactions/       # List, detail, form, filters, autocomplete
 ├── accounts/           # List, detail, form
-├── budgets/
+├── budgets/            # Overview, initial setup, expense groups, detail
 ├── reports/
 ├── settings/
 └── PledgerApp.kt       # Scaffold + bottom navigation
@@ -94,11 +94,25 @@ Owned account types come from `GET /v2/api/account-types` (excluding counterpart
 - Coil loads images with the same `OkHttpClient` as Retrofit (JWT + dynamic host).
 - Shown on **account detail** (balance card) and **transaction detail** (from/to rows; accounts fetched by id for icon codes).
 
+#### Accounts list UX
+
+- **Filter chips** (All, Owned, Parties) stay visible above the list, including empty and error states, so users can always switch views (e.g. back from an empty Parties tab).
+- **Owned** accounts load in full; **Parties** use paginated search (`type=creditor,debtor,debit`, 50 per page). See [Account types](ACCOUNTS.md).
+
+#### Budgets UX
+
+- **Initial setup:** `GET /v2/api/budgets` for the current month returns **404** when no budget exists → form → `POST /v2/api/budgets`.
+- **Overview:** Cards per expense group with spent/budgeted from `GET …/expenses/balance`.
+- **Manage groups:** `BudgetExpensesScreen` — `PATCH /v2/api/budgets/expenses` to create (no `id`) or update amount (`id` set).
+- **DTO note:** `DateRangeDto.endDate` is nullable for the active month.
+
+See [Budgets](BUDGETS.md) for API and screen details.
+
 ### Domain Layer (`domain/`)
 
 - **Models** — `Account`, `Transaction`, `Budget`, `Category`, `Currency`, `TransactionFilters`, `FilterOption`, `AccountTypeOption`, etc.
 - **Repositories** — `AuthRepository`, `AccountRepository`, `TransactionRepository`, `BudgetRepository`, `CategoryRepository`, `ContractRepository`, `CurrencyRepository`.
-- **Use cases** — e.g. `GetDashboardDataUseCase` aggregates dashboard data.
+- **Use cases** — e.g. `GetDashboardDataUseCase`, `CreateInitialBudgetUseCase`, `SaveBudgetExpenseUseCase`.
 
 `AccountRepository` additionally supports `searchAccounts(typeCode, nameQuery)` and `getAccountsByTypes(typeCodes)` for the transaction form.
 
@@ -119,7 +133,7 @@ Account balances are enriched via `POST /v2/api/balance/account` (partitioned by
 
 | Module | Provides |
 |--------|----------|
-| `NetworkModule` | Moshi, `OkHttpClient`, `Retrofit`, `PledgerApiService`, Coil `ImageLoader` |
+| `NetworkModule` | Moshi, `OkHttpClient`, `TokenRefresher`, `AuthInterceptor`, `Retrofit`, `PledgerApiService`, Coil `ImageLoader` |
 | `DatabaseModule` | `PledgerDatabase`, DAOs |
 | `RepositoryModule` | Repository bindings |
 
@@ -137,17 +151,18 @@ Screen → ViewModel → Repository → Retrofit
                               OkHttpClient
                     ┌───────────────┼───────────────┐
          DynamicBaseUrlInterceptor   AuthInterceptor   LoggingInterceptor
-                    (user base URL)   (Bearer JWT)
+                    (user base URL)   (Bearer JWT + refresh)
 ```
 
 - **Placeholder Retrofit base URL** — Real host comes from `DynamicBaseUrlInterceptor` using `SessionManager.getBaseUrl()`.
-- **Auth** — `AuthInterceptor` adds `Authorization: Bearer …`; 401 on authenticated calls clears session.
+- **Auth** — `AuthInterceptor` adds `Authorization: Bearer …`, refreshes the token before expiry via `POST /v2/api/security/oauth`, retries once on **401**, then clears **auth tokens only** (`clearAuthTokens`) so the **server URL is preserved** (user returns to login, not server setup).
 
 ### Authentication flow
 
 1. User enters server URL → validated with `GET {baseUrl}/health` (OkHttp, not Retrofit).
-2. URL saved → `POST /v2/api/security/authenticate` → JWT + refresh token in `SessionManager`.
-3. Subsequent API and image requests use the stored base URL and token.
+2. URL saved → `POST /v2/api/security/authenticate` → access token, refresh token, and `expires_in` in `SessionManager`.
+3. Subsequent API and image requests use the stored base URL and token; `TokenRefresher` calls the oauth endpoint when the access token is near expiry.
+4. Logout calls `POST /v2/api/security/logout` when possible, then `clearAuthTokens()` (base URL and biometric preference remain).
 
 ### Key API surface (non-exhaustive)
 
@@ -157,7 +172,7 @@ Screen → ViewModel → Repository → Retrofit
 | Accounts | `/v2/api/accounts`, `/v2/api/accounts/{id}`, `/v2/api/account-types` |
 | Transactions | `/v2/api/transactions`, `/v2/api/transactions/{id}` |
 | Categories | `/v2/api/categories` |
-| Budgets | `/v2/api/budgets`, `/v2/api/budgets/expenses` |
+| Budgets | `/v2/api/budgets` (GET/POST/PATCH), `/v2/api/budgets/expenses` (GET/PATCH), `/v2/api/budgets/expenses/balance` |
 | Contracts | `/v2/api/contracts` |
 | Balance | `/v2/api/balance`, `/v2/api/balance/{partition}` |
 | Currencies | `/v2/api/currencies` |
@@ -184,7 +199,7 @@ Periodic work (12 h) via WorkManager:
 
 1. Sync currencies
 2. Refresh accounts (`getAccounts().first()`)
-3. Load current-month budgets and notify if any group exceeds 80% spend
+3. Load current-month budgets; if a budget exists, notify when any group exceeds 80% spend
 
 Transactions are refreshed on screen load rather than in the worker.
 
@@ -199,8 +214,9 @@ Transactions are refreshed on screen load rather than in the worker.
 | Token storage | `EncryptedSharedPreferences` (AES-256-GCM) |
 | Transport | User-supplied URL; cleartext permitted in debug config for dev servers |
 | Biometric | Optional via settings (`BiometricPrompt`) |
-| Session expiry | Proactive JWT refresh + 401 retry in `AuthInterceptor` |
-| Platform | compile/target SDK 36 (Android 16) |
+| Session expiry | Proactive JWT refresh + 401 retry; `clearAuthTokens` keeps server URL |
+| Platform | compile/target SDK 36 (Android 16); edge-to-edge in `MainActivity` |
+| Build | Version catalog `gradle/libs.versions.toml`; AGP 8.13 / Gradle 8.13 |
 | Release | ProGuard / R8 enabled |
 
 ## State Management

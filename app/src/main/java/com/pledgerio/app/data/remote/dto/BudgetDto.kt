@@ -18,6 +18,13 @@ data class BudgetDto(
 )
 
 @JsonClass(generateAdapter = true)
+data class ExpenseRequest(
+    @Json(name = "id") val id: Long? = null,
+    @Json(name = "name") val name: String,
+    @Json(name = "amount") val amount: Double,
+)
+
+@JsonClass(generateAdapter = true)
 data class ExpenseDto(
     @Json(name = "id") val id: Long,
     @Json(name = "name") val name: String = "",

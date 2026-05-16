@@ -15,5 +15,21 @@
     <string name="budget_setup_income_hint">After tax, as received in your bank account</string>
     <string name="budget_setup_submit">Create budget</string>
     <string name="budget_empty_title">No expense groups yet</string>
-    <string name="budget_empty_message">Your budget is set up. Add expense groups from the web app or when categorizing transactions.</string>
+    <string name="budget_empty_message">Add expense groups (e.g. Groceries, Bills) to track spending against your budget.</string>
+    <string name="budget_manage_expenses">Manage expense groups</string>
+
+    <string name="budget_expense_manage_title">Expense groups</string>
+    <string name="budget_expense_manage_subtitle">Labels for budgeted spending</string>
+    <string name="budget_expense_empty_title">No expense groups</string>
+    <string name="budget_expense_empty_message">Create groups to organize expected spending. Link transactions to these labels when categorizing.</string>
+    <string name="budget_expense_add">Add expense group</string>
+    <string name="budget_expense_edit">Edit expense group</string>
+    <string name="budget_expense_add_title">New expense group</string>
+    <string name="budget_expense_edit_title">Edit expense group</string>
+    <string name="budget_expense_name">Name</string>
+    <string name="budget_expense_amount">Monthly budget</string>
+    <string name="budget_expense_amount_hint">Maximum amount for this group each month</string>
+    <string name="budget_expense_save">Save</string>
+    <string name="budget_expense_cancel">Cancel</string>
+    <string name="budget_expense_remaining">%1$s remaining</string>
 </resources>

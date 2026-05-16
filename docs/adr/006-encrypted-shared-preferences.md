@@ -17,7 +17,8 @@ Options considered:
 ## Decision
 
 Use **EncryptedSharedPreferences** from `androidx.security:security-crypto` for storing:
-- JWT token
+- JWT access token and refresh token
+- Token expiry (`expires_in` from login/refresh)
 - Server base URL
 - Username
 - Biometric preference flag
@@ -44,6 +45,7 @@ Key configuration:
 - If the Keystore is compromised (rooted device), encryption is ineffective
 
 ### Security Considerations
-- Token cleared immediately on 401 response (via `AuthInterceptor`)
-- `SessionManager.clearSession()` wipes all stored credentials on logout
+- Access token refreshed proactively; failed refresh or 401 after retry clears auth via `clearAuthTokens()`
+- `clearAuthTokens()` removes tokens and username but **keeps** server URL (and biometric flag) so logout/auth failure does not force re-entering the server address
+- `SessionManager.clearSession()` wipes all prefs (full reset)
 - Biometric unlock is an additional optional layer (via `BiometricPrompt`)

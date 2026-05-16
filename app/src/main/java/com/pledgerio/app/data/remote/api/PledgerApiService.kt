@@ -128,6 +128,9 @@ interface PledgerApiService {
         @Query("name") name: String? = null,
     ): Response<List<ExpenseDto>>
 
+    @PATCH("v2/api/budgets/expenses")
+    suspend fun saveExpense(@Body request: ExpenseRequest): Response<BudgetDto>
+
     @GET("v2/api/budgets/expenses/balance")
     suspend fun getExpenseBalance(
         @Query("year") year: Int,

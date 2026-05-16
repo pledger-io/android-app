@@ -20,7 +20,8 @@ Key implementation details:
 - `PledgerApiService` is a Retrofit interface with suspend functions for coroutine support
 - All business endpoints use the **`/v2/api/`** prefix (see backend OpenAPI contract)
 - `DynamicBaseUrlInterceptor` rewrites request host/port/scheme from `SessionManager.getBaseUrl()` so users can point at any self-hosted instance
-- `AuthInterceptor` attaches JWT bearer tokens and handles 401 responses on authenticated calls
+- `TokenRefresher` calls `POST /v2/api/security/oauth` before the access token expires (using a dedicated OkHttp client to avoid interceptor loops)
+- `AuthInterceptor` attaches JWT bearer tokens, triggers proactive refresh, retries once on **401**, then `SessionManager.clearAuthTokens()` (server base URL is **not** cleared)
 - Server validation during onboarding uses a direct OkHttp `GET {baseUrl}/health` call before login
 - `HttpLoggingInterceptor` provides debug-level request/response logging
 - DTOs use `@JsonClass(generateAdapter = true)` for compile-time Moshi adapter generation

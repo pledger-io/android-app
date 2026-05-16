@@ -10,6 +10,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.pledgerio.app.domain.model.BudgetListState
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -37,12 +39,31 @@ class BudgetsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(BudgetsUiState())
     val uiState: StateFlow<BudgetsUiState> = _uiState.asStateFlow()
 
+    private var loadJob: Job? = null
+
     init {
         loadBudgets()
     }
 
     fun refresh() {
         _uiState.update { it.copy(isRefreshing = true) }
+        loadBudgets()
+    }
+
+    fun applyBudgetListState(state: BudgetListState) {
+        _uiState.update {
+            it.copy(
+                isLoading = false,
+                isRefreshing = false,
+                budgets = state.budgets,
+                needsInitialSetup = state.needsInitialSetup,
+                error = null,
+            )
+        }
+    }
+
+    fun onScreenVisible() {
+        if (_uiState.value.isLoading || _uiState.value.isRefreshing) return
         loadBudgets()
     }
 
@@ -100,7 +121,8 @@ class BudgetsViewModel @Inject constructor(
 
     private fun loadBudgets() {
         val now = LocalDate.now()
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             budgetRepository.getBudgets(now.year, now.monthValue).collect { result ->
                 when (result) {
                     is Resource.Loading -> _uiState.update { it.copy(isLoading = true) }

@@ -9,6 +9,11 @@ import kotlinx.coroutines.flow.Flow
 interface BudgetRepository {
     fun getBudgets(year: Int, month: Int): Flow<Resource<BudgetListState>>
     suspend fun createInitialBudget(year: Int, month: Int, income: Double): Resource<Unit>
+    suspend fun saveExpenseGroup(
+        id: Long?,
+        name: String,
+        budgetAmount: Double,
+    ): Resource<BudgetListState>
     suspend fun searchExpenses(name: String): Resource<List<BudgetExpense>>
     suspend fun getBudget(id: Long): Resource<Budget>
     suspend fun createBudget(budget: Budget): Resource<Budget>

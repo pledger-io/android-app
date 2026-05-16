@@ -16,7 +16,8 @@ A native Android client for [Pledger.io](https://github.com/pledger-io) — a se
 | Async | Coroutines + Flow |
 | Navigation | Jetpack Navigation Compose |
 | Background work | WorkManager |
-| Auth | JWT in EncryptedSharedPreferences |
+| Auth | JWT + refresh token in EncryptedSharedPreferences; proactive refresh |
+| Build | AGP 8.13, Gradle 8.13, version catalog (`gradle/libs.versions.toml`) |
 | Min SDK | 26 (Android 8.0) |
 | Target / compile SDK | 36 (Android 16) |
 
@@ -67,12 +68,12 @@ app/src/main/java/com/pledgerio/app/
 
 ### Implemented
 
-- **Onboarding** — Configurable server URL (`DynamicBaseUrlInterceptor`), health check, JWT login
+- **Onboarding** — Configurable server URL (`DynamicBaseUrlInterceptor`), health check, JWT login; server URL kept after auth errors or logout
 - **Dashboard** — Accounts overview, income/expense summary, recent transactions; FAB menu to add transaction or account
 - **Transactions** — Paged list with month navigation, infinite scroll, type chips (income/expense), optional filters (category, expense/budget, contract) with inline autocomplete; pull-to-refresh; create transaction form with type-specific account inputs (creditor/debtor search vs owned-account dropdown); transaction detail with classification and account logos
-- **Accounts** — Grouped list with owned/counterparty filters, type-aware add menu, balances from `/v2/api/balance`; detail with logo, type explanation, transaction history, and delete; add/edit with catalog-driven fields (see [Account types](docs/ACCOUNTS.md))
+- **Accounts** — Grouped list with **All / Owned / Parties** filter chips (always visible, including empty states); type-aware add menu, balances from `/v2/api/balance`; detail with logo, type explanation, transaction history, and delete; add/edit with catalog-driven fields (see [Account types](docs/ACCOUNTS.md))
 - **Currencies** — Fetched from API, cached in Room, used for `formatCurrency()` across the app
-- **Budgets** — List and detail screens
+- **Budgets** — Initial budget setup on 404; monthly overview per expense group; manage groups (add/edit); detail screen (see [Budgets](docs/BUDGETS.md))
 - **Reports** — Report type selector UI (chart data integration in progress)
 - **Settings** — Storage, biometric toggle, language/theme placeholders, logout
 - **Offline** — Room cache with network fallback; periodic sync via WorkManager (accounts, currencies, budget alerts)
@@ -98,7 +99,9 @@ app/src/main/java/com/pledgerio/app/
 | `account/add?type={type}` | Create account (optional type preselect) |
 | `account/{id}` | Account detail |
 | `account/{id}/edit` | Edit account |
-| `budgets` / `budget/{id}` | Budget list & detail |
+| `budgets` | Budget overview (current month) |
+| `budget/expenses` | Manage expense groups |
+| `budget/{id}` | Expense group detail |
 | `reports` | Reports (bottom tab) |
 | `settings` | Settings |
 
@@ -106,6 +109,7 @@ app/src/main/java/com/pledgerio/app/
 
 - [Architecture Overview](docs/ARCHITECTURE.md) — Layers, data flow, API integration, UI patterns
 - [Account types](docs/ACCOUNTS.md) — Owned vs counterparty accounts, type codes, transaction mapping
+- [Budgets](docs/BUDGETS.md) — Initial setup, expense groups, API mapping
 - [Transaction form redesign](docs/TRANSACTION_FORM_REDESIGN.md) — Planned UX for creating transactions (type-first flow, amount hero, contextual account labels)
 - [Architecture Decision Records](docs/adr/README.md) — Rationale for major technical choices
 

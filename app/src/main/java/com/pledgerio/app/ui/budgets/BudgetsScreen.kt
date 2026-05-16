@@ -16,12 +16,17 @@ import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -45,9 +50,21 @@ import com.pledgerio.app.util.formatCurrency
 @Composable
 fun BudgetsScreen(
     onNavigateToDetail: (Long) -> Unit,
+    onNavigateToManageExpenses: () -> Unit,
     viewModel: BudgetsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.onScreenVisible()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     Scaffold(
         topBar = {
@@ -88,6 +105,8 @@ fun BudgetsScreen(
                         icon = Icons.Default.PieChart,
                         title = stringResource(R.string.budget_empty_title),
                         message = stringResource(R.string.budget_empty_message),
+                        actionLabel = stringResource(R.string.budget_manage_expenses),
+                        onAction = onNavigateToManageExpenses,
                     )
                 }
                 else -> {
@@ -154,6 +173,15 @@ fun BudgetsScreen(
                                 budget = budget,
                                 onClick = { onNavigateToDetail(budget.id) },
                             )
+                        }
+
+                        item {
+                            OutlinedButton(
+                                onClick = onNavigateToManageExpenses,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text(stringResource(R.string.budget_manage_expenses))
+                            }
                         }
 
                         item { Spacer(modifier = Modifier.height(80.dp)) }

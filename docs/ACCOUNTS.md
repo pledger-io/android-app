@@ -41,7 +41,8 @@ Additional types may appear per server configuration (e.g. `loan`, `mortgage`, `
 
 ## Managing accounts in the app
 
-- **Accounts tab** — **Owned** accounts load in full (with balances). **Parties** load in pages of 50 with search and infinite scroll, so large counterparty lists stay fast. **All** shows owned accounts plus a card to browse parties.
+- **Accounts tab** — **All / Owned / Parties** filter chips are always shown at the top (including when a view is empty), so you can switch back from Parties without being stuck on an empty screen.
+- **Owned** accounts load in full (with balances). **Parties** load in pages of 50 with search and infinite scroll, so large counterparty lists stay fast. **All** shows owned accounts plus a card to browse parties.
 - **Add (+)** — pick the account type first, then complete the form (fields adapt to the category).
 - **Account detail** — balance, type explanation, transactions; edit or delete the account.
 
