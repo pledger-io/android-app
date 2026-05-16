@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import java.time.LocalDate
+import kotlin.math.abs
 import javax.inject.Inject
 
 class BudgetRepositoryImpl @Inject constructor(
@@ -224,16 +225,19 @@ class BudgetRepositoryImpl @Inject constructor(
         balances: Map<Long, ExpenseComputedDto>,
     ): List<Budget> = expenses.map { expense ->
         val computed = balances[expense.id]
+        // The balance API reports outflows as negative amounts; the UI treats spent as
+        // a positive magnitude when computing remaining budget and progress.
+        val spent = computed?.spentAsPositive() ?: 0.0
         Budget(
             id = expense.id,
             name = expense.name,
             amount = expense.expected,
-            spent = computed?.spent ?: 0.0,
+            spent = spent,
             expenses = listOf(
                 BudgetExpense(
                     id = expense.id,
                     name = expense.name,
-                    amount = computed?.spent ?: 0.0,
+                    amount = spent,
                     expected = expense.expected,
                 ),
             ),
@@ -249,3 +253,6 @@ class BudgetRepositoryImpl @Inject constructor(
 }
 
 private fun LocalDate.toMonthKey(): String = "%04d-%02d".format(year, monthValue)
+
+/** Spent outflows from the API are negative; normalize to a positive amount for display. */
+private fun ExpenseComputedDto.spentAsPositive(): Double = abs(spent)

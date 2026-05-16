@@ -7,6 +7,7 @@ import com.pledgerio.app.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.BudgetDto
 import com.pledgerio.app.data.remote.dto.CreateBudgetRequest
 import com.pledgerio.app.data.remote.dto.DateRangeDto
+import com.pledgerio.app.data.remote.dto.ExpenseComputedDto
 import com.pledgerio.app.data.remote.dto.ExpenseDto
 import com.pledgerio.app.data.remote.dto.ExpenseRequest
 import com.pledgerio.app.domain.model.BudgetListState
@@ -126,6 +127,25 @@ class BudgetRepositoryImplTest {
 
         assertTrue(result is Resource.Success)
         assertEquals(500.0, (result as Resource.Success).data.budgets.first().amount, 0.001)
+    }
+
+    @Test
+    fun `getBudgets normalizes negative spent from balance API`() = runTest {
+        val budgetDto = BudgetDto(
+            expenses = listOf(ExpenseDto(id = 1, name = "Groceries", expected = 400.0)),
+        )
+        coEvery { apiService.getBudgets(any(), any(), any()) } returns Response.success(budgetDto)
+        coEvery { apiService.getExpenseBalance(any(), any(), any()) } returns Response.success(
+            listOf(ExpenseComputedDto(id = 1, spent = -150.0, left = 250.0)),
+        )
+
+        val results = repository.getBudgets(2026, 5).toList()
+        val success = results.filterIsInstance<Resource.Success<BudgetListState>>().last()
+        val budget = success.data.budgets.first()
+
+        assertEquals(150.0, budget.spent, 0.001)
+        assertEquals(250.0, budget.remaining, 0.001)
+        assertEquals(0.375f, budget.percentUsed, 0.001f)
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.pledgerio.app.data.local.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.pledgerio.app.domain.model.Budget
+import kotlin.math.abs
 
 @Entity(tableName = "budgets")
 data class BudgetEntity(
@@ -17,7 +18,7 @@ data class BudgetEntity(
         id = id,
         name = name,
         amount = amount,
-        spent = spent,
+        spent = abs(spent),
     )
 
     companion object {
