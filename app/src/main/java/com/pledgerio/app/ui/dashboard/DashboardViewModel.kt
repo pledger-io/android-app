@@ -55,6 +55,18 @@ class DashboardViewModel @Inject constructor(
         loadDashboard()
     }
 
+    /** Reload recent transactions when returning to the dashboard (e.g. after creating one). */
+    fun refreshRecentTransactions() {
+        viewModelScope.launch {
+            transactionRepository.getRecentTransactions(5).collect { result ->
+                when (result) {
+                    is Resource.Success -> applyRecentTransactions(result.data)
+                    else -> Unit
+                }
+            }
+        }
+    }
+
     private fun loadDashboard() {
         viewModelScope.launch {
             accountRepository.getAccounts().collect { result ->
@@ -92,25 +104,26 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             transactionRepository.getRecentTransactions(5).collect { result ->
                 when (result) {
-                    is Resource.Success -> {
-                        val transactions = result.data
-                        val income = transactions
-                            .filter { it.type == com.pledgerio.app.domain.model.TransactionType.DEBIT }
-                            .sumOf { it.amount }
-                        val expense = transactions
-                            .filter { it.type == com.pledgerio.app.domain.model.TransactionType.CREDIT }
-                            .sumOf { it.amount }
-                        _uiState.update {
-                            it.copy(
-                                recentTransactions = transactions,
-                                monthlyIncome = income,
-                                monthlyExpense = expense,
-                            )
-                        }
-                    }
-                    else -> {}
+                    is Resource.Success -> applyRecentTransactions(result.data)
+                    else -> Unit
                 }
             }
+        }
+    }
+
+    private fun applyRecentTransactions(transactions: List<Transaction>) {
+        val income = transactions
+            .filter { it.type == com.pledgerio.app.domain.model.TransactionType.DEBIT }
+            .sumOf { it.amount }
+        val expense = transactions
+            .filter { it.type == com.pledgerio.app.domain.model.TransactionType.CREDIT }
+            .sumOf { it.amount }
+        _uiState.update {
+            it.copy(
+                recentTransactions = transactions,
+                monthlyIncome = income,
+                monthlyExpense = expense,
+            )
         }
     }
 }

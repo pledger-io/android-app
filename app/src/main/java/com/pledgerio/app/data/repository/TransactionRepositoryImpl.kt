@@ -198,14 +198,22 @@ class TransactionRepositoryImpl @Inject constructor(
     override fun getRecentTransactions(limit: Int): Flow<Resource<List<Transaction>>> = flow {
         emit(Resource.Loading)
         try {
+            val today = LocalDate.now()
+            // The API treats endDate as exclusive (same as balance queries in
+            // AccountRepositoryImpl, which uses today.plusDays(1)). Using today here
+            // excludes every transaction dated today from the dashboard list.
             val response = apiService.getTransactions(
-                startDate = LocalDate.now().minusMonths(1).formatApi(),
-                endDate = LocalDate.now().formatApi(),
+                startDate = today.minusMonths(1).formatApi(),
+                endDate = today.plusDays(1).formatApi(),
                 offset = 0,
-                numberOfResults = limit,
+                numberOfResults = limit.coerceAtLeast(25),
             )
             if (response.isSuccessful) {
-                val transactions = response.body()?.content?.map { it.toDomain() } ?: emptyList()
+                val transactions = response.body()?.content
+                    ?.map { it.toDomain() }
+                    ?.sortedByDescending { it.date }
+                    ?.take(limit)
+                    ?: emptyList()
                 transactionDao.insertAll(transactions.map { TransactionEntity.fromDomain(it) })
                 emit(Resource.Success(transactions))
             } else {
