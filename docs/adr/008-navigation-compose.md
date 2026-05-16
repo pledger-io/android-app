@@ -46,7 +46,7 @@ Use **Jetpack Navigation Compose** with:
 | Onboarding → Main | `popUpTo(onboarding) { inclusive = true }` |
 | Logout | `popUpTo(0) { inclusive = true }` clears entire stack |
 | Add flows | `transaction/add`, `account/add`, `account/{id}/edit` |
-| Budget flows | `budgets` (tab), `budget/expenses` (manage groups), `budget/{id}` (detail) |
+| Budget flows | `budgets` (tab), `budget/{id}` (detail + edit group) |
 | FAB entry | Dashboard menu → add transaction or account; Transactions tab → add transaction; Accounts tab → add account; Budget expense groups screen → add group |
 
 Bottom bar visibility is tied to `mainScreens` in `PledgerApp` (dashboard, transactions, budgets, accounts, reports only).

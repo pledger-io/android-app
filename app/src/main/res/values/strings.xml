@@ -16,12 +16,6 @@
     <string name="budget_setup_submit">Create budget</string>
     <string name="budget_empty_title">No expense groups yet</string>
     <string name="budget_empty_message">Add expense groups (e.g. Groceries, Bills) to track spending against your budget.</string>
-    <string name="budget_manage_expenses">Manage expense groups</string>
-
-    <string name="budget_expense_manage_title">Expense groups</string>
-    <string name="budget_expense_manage_subtitle">Labels for budgeted spending</string>
-    <string name="budget_expense_empty_title">No expense groups</string>
-    <string name="budget_expense_empty_message">Create groups to organize expected spending. Link transactions to these labels when categorizing.</string>
     <string name="budget_expense_add">Add expense group</string>
     <string name="budget_expense_edit">Edit expense group</string>
     <string name="budget_expense_add_title">New expense group</string>

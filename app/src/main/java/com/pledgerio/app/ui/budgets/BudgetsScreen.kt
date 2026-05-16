@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -50,7 +52,6 @@ import com.pledgerio.app.util.formatCurrency
 @Composable
 fun BudgetsScreen(
     onNavigateToDetail: (Long) -> Unit,
-    onNavigateToManageExpenses: () -> Unit,
     viewModel: BudgetsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -66,13 +67,40 @@ fun BudgetsScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    if (uiState.formVisible) {
+        ExpenseGroupFormSheet(
+            isEditing = uiState.isEditingExpense,
+            name = uiState.formName,
+            amount = uiState.formAmount,
+            error = uiState.formError,
+            isSaving = uiState.isSavingExpense,
+            onNameChange = viewModel::onExpenseFormNameChange,
+            onAmountChange = viewModel::onExpenseFormAmountChange,
+            onDismiss = viewModel::dismissExpenseForm,
+            onSave = viewModel::saveExpenseForm,
+        )
+    }
+
     Scaffold(
         topBar = {
             PledgerTopBar(
                 title = "Budgets",
                 subtitle = "Plan and track your spending",
             )
-        }
+        },
+        floatingActionButton = {
+            if (uiState.canAddExpenseGroups) {
+                FloatingActionButton(
+                    onClick = viewModel::openCreateExpenseForm,
+                    containerColor = EmeraldGreen,
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = stringResource(R.string.budget_expense_add),
+                    )
+                }
+            }
+        },
     ) { paddingValues ->
         PullToRefreshBox(
             isRefreshing = uiState.isRefreshing,
@@ -105,8 +133,8 @@ fun BudgetsScreen(
                         icon = Icons.Default.PieChart,
                         title = stringResource(R.string.budget_empty_title),
                         message = stringResource(R.string.budget_empty_message),
-                        actionLabel = stringResource(R.string.budget_manage_expenses),
-                        onAction = onNavigateToManageExpenses,
+                        actionLabel = stringResource(R.string.budget_expense_add),
+                        onAction = viewModel::openCreateExpenseForm,
                     )
                 }
                 else -> {
@@ -173,15 +201,6 @@ fun BudgetsScreen(
                                 budget = budget,
                                 onClick = { onNavigateToDetail(budget.id) },
                             )
-                        }
-
-                        item {
-                            OutlinedButton(
-                                onClick = onNavigateToManageExpenses,
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Text(stringResource(R.string.budget_manage_expenses))
-                            }
                         }
 
                         item { Spacer(modifier = Modifier.height(80.dp)) }

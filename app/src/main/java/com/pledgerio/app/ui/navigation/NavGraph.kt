@@ -13,7 +13,6 @@ import com.pledgerio.app.ui.accounts.AccountFormScreen
 import com.pledgerio.app.ui.accounts.AccountsScreen
 import com.pledgerio.app.ui.accounts.AccountsViewModel
 import com.pledgerio.app.ui.budgets.BudgetDetailScreen
-import com.pledgerio.app.ui.budgets.BudgetExpensesScreen
 import com.pledgerio.app.ui.budgets.BudgetsScreen
 import com.pledgerio.app.ui.budgets.BudgetsViewModel
 import com.pledgerio.app.ui.dashboard.DashboardScreen
@@ -184,20 +183,7 @@ fun NavGraph(
                 onNavigateToDetail = { id ->
                     navController.navigate(Screen.BudgetDetail.createRoute(id))
                 },
-                onNavigateToManageExpenses = {
-                    navController.navigate(Screen.BudgetExpenses.route)
-                },
                 viewModel = budgetsViewModel,
-            )
-        }
-
-        composable(Screen.BudgetExpenses.route) {
-            val budgetsViewModel: BudgetsViewModel = hiltViewModel(
-                navController.getBackStackEntry(Screen.Budgets.route),
-            )
-            BudgetExpensesScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onBudgetListUpdated = budgetsViewModel::applyBudgetListState,
             )
         }
 
@@ -205,8 +191,12 @@ fun NavGraph(
             route = Screen.BudgetDetail.route,
             arguments = listOf(navArgument("budgetId") { type = NavType.LongType })
         ) {
+            val budgetsViewModel: BudgetsViewModel = hiltViewModel(
+                navController.getBackStackEntry(Screen.Budgets.route),
+            )
             BudgetDetailScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onBudgetListUpdated = budgetsViewModel::applyBudgetListState,
             )
         }
 

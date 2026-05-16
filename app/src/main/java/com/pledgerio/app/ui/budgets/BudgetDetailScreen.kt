@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,12 +21,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.R
+import com.pledgerio.app.domain.model.BudgetListState
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
@@ -39,9 +44,28 @@ import com.pledgerio.app.util.formatCurrency
 @Composable
 fun BudgetDetailScreen(
     onNavigateBack: () -> Unit,
+    onBudgetListUpdated: (BudgetListState) -> Unit = {},
     viewModel: BudgetDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.budgetListUpdates.collect(onBudgetListUpdated)
+    }
+
+    if (uiState.formVisible) {
+        ExpenseGroupFormSheet(
+            isEditing = true,
+            name = uiState.formName,
+            amount = uiState.formAmount,
+            error = uiState.formError,
+            isSaving = uiState.isSaving,
+            onNameChange = viewModel::onFormNameChange,
+            onAmountChange = viewModel::onFormAmountChange,
+            onDismiss = viewModel::dismissForm,
+            onSave = viewModel::saveForm,
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -50,6 +74,16 @@ fun BudgetDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    if (uiState.budget != null) {
+                        IconButton(onClick = viewModel::openEditForm) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = stringResource(R.string.budget_expense_edit),
+                            )
+                        }
                     }
                 },
             )

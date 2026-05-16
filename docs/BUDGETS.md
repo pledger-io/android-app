@@ -58,19 +58,13 @@ There is **no delete** endpoint for expense groups in the current API.
 1. Loads current month via `GET /v2/api/budgets`.
 2. **404** → inline **Start your first budget** form (year, month, net income) → `POST /v2/api/budgets`.
 3. **200** with groups → monthly overview + cards; tap a card for detail.
-4. **200** with no groups → empty state with **Manage expense groups**.
-5. **Manage expense groups** → `budget/expenses` screen.
-
-### Expense groups (`BudgetExpensesScreen`)
-
-- Lists groups with spent / budgeted progress.
-- **FAB** or empty-state action → bottom sheet: name + monthly budget.
-- Tap a row → edit monthly budget (name fixed).
-- Pull to refresh reloads the current month.
+4. **200** with no groups → empty state; **FAB** or empty-state action adds the first expense group.
+5. **FAB** (when a budget exists) → bottom sheet to add a new expense group (name + monthly budget).
 
 ### Detail (`BudgetDetailScreen`)
 
 - Progress for a single expense group (from cache by id).
+- **Edit** in the top bar → bottom sheet to update the monthly budget (name fixed).
 
 ### Background sync
 
@@ -85,7 +79,7 @@ There is **no delete** endpoint for expense groups in the current API.
 | Repository | `BudgetRepositoryImpl` |
 | Use cases | `CreateInitialBudgetUseCase`, `SaveBudgetExpenseUseCase`, `GetBudgetsUseCase` |
 | UI | `ui/budgets/*` |
-| Routes | `budgets`, `budget/{budgetId}`, `budget/expenses` |
+| Routes | `budgets`, `budget/{budgetId}` |
 
 ## Product reference
 

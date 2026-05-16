@@ -103,7 +103,7 @@ Owned account types come from `GET /v2/api/account-types` (excluding counterpart
 
 - **Initial setup:** `GET /v2/api/budgets` for the current month returns **404** when no budget exists → form → `POST /v2/api/budgets`.
 - **Overview:** Cards per expense group with spent/budgeted from `GET …/expenses/balance`.
-- **Manage groups:** `BudgetExpensesScreen` — `PATCH /v2/api/budgets/expenses` to create (no `id`) or update amount (`id` set).
+- **Add / edit groups:** `BudgetsScreen` (FAB) and `BudgetDetailScreen` (edit) — `PATCH /v2/api/budgets/expenses` to create (no `id`) or update amount (`id` set).
 - **DTO note:** `DateRangeDto.endDate` is nullable for the active month.
 
 See [Budgets](BUDGETS.md) for API and screen details.

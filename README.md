@@ -99,9 +99,8 @@ app/src/main/java/com/pledgerio/app/
 | `account/add?type={type}` | Create account (optional type preselect) |
 | `account/{id}` | Account detail |
 | `account/{id}/edit` | Edit account |
-| `budgets` | Budget overview (current month) |
-| `budget/expenses` | Manage expense groups |
-| `budget/{id}` | Expense group detail |
+| `budgets` | Budget overview (current month); add expense groups via FAB |
+| `budget/{id}` | Expense group detail; edit monthly budget |
 | `reports` | Reports (bottom tab) |
 | `settings` | Settings |
 

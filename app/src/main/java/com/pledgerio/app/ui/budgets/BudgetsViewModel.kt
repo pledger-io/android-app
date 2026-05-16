@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Budget
 import com.pledgerio.app.domain.usecase.CreateInitialBudgetUseCase
 import com.pledgerio.app.domain.repository.BudgetRepository
+import com.pledgerio.app.domain.usecase.SaveBudgetExpenseUseCase
 import com.pledgerio.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,12 +29,23 @@ data class BudgetsUiState(
     val setupMonth: Int = LocalDate.now().monthValue,
     val setupIncome: String = "",
     val setupError: String? = null,
-)
+    val formVisible: Boolean = false,
+    val editingExpenseId: Long? = null,
+    val formName: String = "",
+    val formAmount: String = "",
+    val formError: String? = null,
+    val isSavingExpense: Boolean = false,
+) {
+    val isEditingExpense: Boolean get() = editingExpenseId != null
+
+    val canAddExpenseGroups: Boolean get() = !needsInitialSetup && !isLoading
+}
 
 @HiltViewModel
 class BudgetsViewModel @Inject constructor(
     private val budgetRepository: BudgetRepository,
     private val createInitialBudgetUseCase: CreateInitialBudgetUseCase,
+    private val saveBudgetExpenseUseCase: SaveBudgetExpenseUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BudgetsUiState())
@@ -77,6 +89,78 @@ class BudgetsViewModel @Inject constructor(
 
     fun onSetupIncomeChange(income: String) {
         _uiState.update { it.copy(setupIncome = income, setupError = null) }
+    }
+
+    fun openCreateExpenseForm() {
+        _uiState.update {
+            it.copy(
+                formVisible = true,
+                editingExpenseId = null,
+                formName = "",
+                formAmount = "",
+                formError = null,
+            )
+        }
+    }
+
+    fun dismissExpenseForm() {
+        _uiState.update {
+            it.copy(
+                formVisible = false,
+                editingExpenseId = null,
+                formName = "",
+                formAmount = "",
+                formError = null,
+            )
+        }
+    }
+
+    fun onExpenseFormNameChange(value: String) {
+        _uiState.update { it.copy(formName = value, formError = null) }
+    }
+
+    fun onExpenseFormAmountChange(value: String) {
+        _uiState.update { it.copy(formAmount = value, formError = null) }
+    }
+
+    fun saveExpenseForm() {
+        val state = _uiState.value
+        val validationError = validateExpenseForm(state.formName, state.formAmount)
+        if (validationError != null) {
+            _uiState.update { it.copy(formError = validationError) }
+            return
+        }
+        val amount = state.formAmount.replace(',', '.').toDouble()
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSavingExpense = true, formError = null) }
+            when (
+                val result = saveBudgetExpenseUseCase(
+                    id = state.editingExpenseId,
+                    name = state.formName,
+                    budgetAmount = amount,
+                )
+            ) {
+                is Resource.Success -> {
+                    applyBudgetListState(result.data)
+                    _uiState.update {
+                        it.copy(
+                            isSavingExpense = false,
+                            formVisible = false,
+                            editingExpenseId = null,
+                            formName = "",
+                            formAmount = "",
+                        )
+                    }
+                }
+                is Resource.Error -> {
+                    _uiState.update {
+                        it.copy(isSavingExpense = false, formError = result.message)
+                    }
+                }
+                is Resource.Loading -> Unit
+            }
+        }
     }
 
     fun createInitialBudget() {
