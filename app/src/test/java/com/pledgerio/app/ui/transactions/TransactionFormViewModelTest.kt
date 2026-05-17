@@ -9,7 +9,9 @@ import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
+import com.pledgerio.app.domain.repository.TagRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
+import com.pledgerio.app.domain.model.Tag
 import com.pledgerio.app.ui.transactions.form.TransactionFormLabels
 import com.pledgerio.app.util.MainDispatcherRule
 import com.pledgerio.app.domain.model.TransactionTemplate
@@ -44,6 +46,7 @@ class TransactionFormViewModelTest {
     private val categoryRepository = mockk<CategoryRepository>(relaxed = true)
     private val budgetRepository = mockk<BudgetRepository>(relaxed = true)
     private val contractRepository = mockk<ContractRepository>(relaxed = true)
+    private val tagRepository = mockk<TagRepository>(relaxed = true)
     private val userPreferences = mockk<UserPreferences>(relaxed = true)
     private val transactionTemplateStore = mockk<TransactionTemplateStore>(relaxed = true)
     private val savedStateHandle = SavedStateHandle()
@@ -55,6 +58,10 @@ class TransactionFormViewModelTest {
         every { currencyRepository.getCurrencies() } returns flowOf(emptyList())
         coEvery { userPreferences.setLastTransactionType(any()) } returns Unit
         every { transactionTemplateStore.templates } returns flowOf(emptyList())
+        every { tagRepository.observeTags() } returns flowOf(
+            listOf(Tag("housing"), Tag("travel")),
+        )
+        every { tagRepository.observeMatching(any()) } returns flowOf(emptyList())
         coEvery { accountRepository.refreshOwnedAccounts() } returns Resource.Success(
             listOf(checking, savings),
         )
@@ -69,6 +76,7 @@ class TransactionFormViewModelTest {
             categoryRepository,
             budgetRepository,
             contractRepository,
+            tagRepository,
             userPreferences,
             transactionTemplateStore,
             savedStateHandle,
@@ -174,6 +182,7 @@ class TransactionFormViewModelTest {
             categoryRepository,
             budgetRepository,
             contractRepository,
+            tagRepository,
             userPreferences,
             transactionTemplateStore,
             savedStateHandle,
@@ -202,6 +211,32 @@ class TransactionFormViewModelTest {
         advanceUntilIdle()
 
         coVerify { userPreferences.setLastTransactionType(TransactionType.DEBIT) }
+    }
+
+    @Test
+    fun `addTag creates new tag via repository then adds chip`() = runTest {
+        coEvery { tagRepository.createTag("groceries") } returns Resource.Success(Tag("groceries"))
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.addTag("groceries")
+        advanceUntilIdle()
+
+        assertEquals(listOf("groceries"), viewModel.uiState.value.tags)
+        coVerify { tagRepository.createTag("groceries") }
+    }
+
+    @Test
+    fun `selectTagFromSuggestion skips create when tag is in catalog`() = runTest {
+        every { tagRepository.observeTags() } returns flowOf(listOf(Tag("travel")))
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.selectTagFromSuggestion("travel")
+        advanceUntilIdle()
+
+        assertEquals(listOf("travel"), viewModel.uiState.value.tags)
+        coVerify(exactly = 0) { tagRepository.createTag(any()) }
     }
 
     @Test

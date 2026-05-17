@@ -20,6 +20,7 @@ import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
+import com.pledgerio.app.domain.repository.TagRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
@@ -35,6 +36,7 @@ class SyncWorker @AssistedInject constructor(
     private val categoryRepository: CategoryRepository,
     private val contractRepository: ContractRepository,
     private val currencyRepository: CurrencyRepository,
+    private val tagRepository: TagRepository,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
@@ -44,6 +46,7 @@ class SyncWorker @AssistedInject constructor(
             currencyRepository.sync()
             accountRepository.refreshAccountTypes()
             categoryRepository.refreshCategories()
+            tagRepository.refreshTags()
             contractRepository.refreshContracts()
             budgetRepository.refreshExpenseGroups()
             accountRepository.refreshOwnedAccounts()

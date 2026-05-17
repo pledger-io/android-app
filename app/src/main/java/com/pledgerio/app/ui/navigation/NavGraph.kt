@@ -16,6 +16,7 @@ import com.pledgerio.app.ui.budgets.BudgetDetailScreen
 import com.pledgerio.app.ui.budgets.BudgetsScreen
 import com.pledgerio.app.ui.budgets.BudgetsViewModel
 import com.pledgerio.app.ui.categories.CategoriesScreen
+import com.pledgerio.app.ui.tags.TagsScreen
 import com.pledgerio.app.ui.dashboard.DashboardScreen
 import com.pledgerio.app.ui.onboarding.LoginScreen
 import com.pledgerio.app.ui.onboarding.ServerSetupScreen
@@ -211,6 +212,9 @@ fun NavGraph(
                 onNavigateToCategories = {
                     navController.navigate(Screen.Categories.route)
                 },
+                onNavigateToTags = {
+                    navController.navigate(Screen.Tags.route)
+                },
                 onLogout = {
                     navController.navigate(Screen.ServerSetup.route) {
                         popUpTo(0) { inclusive = true }
@@ -221,6 +225,10 @@ fun NavGraph(
 
         composable(Screen.Categories.route) {
             CategoriesScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Tags.route) {
+            TagsScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

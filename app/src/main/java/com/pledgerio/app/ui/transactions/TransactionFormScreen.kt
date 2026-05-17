@@ -311,9 +311,14 @@ fun TransactionFormScreen(
                             onContractClear = viewModel::clearContract,
                             tags = uiState.tags,
                             tagInput = uiState.tagInput,
+                            tagSuggestions = uiState.tagSuggestions,
+                            isSearchingTags = uiState.isSearchingTags,
+                            isAddingTag = uiState.isAddingTag,
+                            tagError = uiState.tagError,
                             onTagInputChange = viewModel::onTagInputChanged,
                             onAddTag = viewModel::addTag,
                             onRemoveTag = viewModel::removeTag,
+                            onSelectTagSuggestion = viewModel::selectTagFromSuggestion,
                         )
 
                         Spacer(modifier = Modifier.height(24.dp))
