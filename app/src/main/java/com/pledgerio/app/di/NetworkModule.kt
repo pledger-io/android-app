@@ -4,6 +4,7 @@ import android.content.Context
 import coil.ImageLoader
 import com.pledgerio.app.data.remote.api.AuthInterceptor
 import com.pledgerio.app.data.remote.api.DynamicBaseUrlInterceptor
+import com.pledgerio.app.data.remote.api.IssueLogInterceptor
 import com.pledgerio.app.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.api.TokenRefresher
 import com.pledgerio.app.util.SessionManager
@@ -58,10 +59,12 @@ object NetworkModule {
     fun provideOkHttpClient(
         authInterceptor: AuthInterceptor,
         dynamicBaseUrlInterceptor: DynamicBaseUrlInterceptor,
+        issueLogInterceptor: IssueLogInterceptor,
     ): OkHttpClient =
         OkHttpClient.Builder()
             .addInterceptor(dynamicBaseUrlInterceptor)
             .addInterceptor(authInterceptor)
+            .addInterceptor(issueLogInterceptor)
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })

@@ -75,7 +75,7 @@ app/src/main/java/com/pledgerio/app/
 - **Currencies** — Fetched from API, cached in Room, used for `formatCurrency()` across the app
 - **Budgets** — Initial budget setup on 404; monthly overview per expense group; manage groups (add/edit); detail screen (see [Budgets](docs/BUDGETS.md))
 - **Reports** — Report type selector UI (chart data integration in progress)
-- **Settings** — Storage, biometric toggle, language/theme preferences, finance experience mode (Guided/Power), logout
+- **Settings** — Storage, biometric toggle, language/theme preferences, finance experience mode (Guided/Power), in-app bug reports (logs + GitHub issue), logout
 - **Offline** — Room cache with network fallback; periodic sync via WorkManager (accounts, currencies, budget alerts)
 - **Account logos** — `iconFileCode` loaded from `GET /v2/api/files/{fileCode}` on account and transaction detail screens
 
@@ -152,6 +152,10 @@ Requires **JDK 21**.
 3. The **Release** workflow builds `assembleRelease` and uploads `pledger-io-<tag>-<version>.apk` to the release assets.
 
 To test the release build without publishing: **Actions → Release → Run workflow**. The APK is saved as a workflow artifact.
+
+### In-app bug reports
+
+Users can report problems from **Settings → About → Report a problem**. The app collects sanitized recent logs, prefills the org [bug report form](https://github.com/pledger-io/.github/issues/new?template=bug_report.yml) in the browser (summary, description, environment, logs), and the user taps **Submit** on GitHub — no app credentials required. Sign in to GitHub only if the repository requires it to open issues.
 
 **Optional production signing** — add these repository secrets; if omitted, CI signs the release APK with the debug keystore (fine for sideloading, not for Play Store):
 
