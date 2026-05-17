@@ -72,9 +72,14 @@ fun AccountDetailScreen(
 
     val shouldLoadMore by remember {
         derivedStateOf {
+            if (uiState.transactions.isEmpty()) return@derivedStateOf false
             val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             val totalItems = listState.layoutInfo.totalItemsCount
-            lastVisibleItem >= totalItems - 5 && !uiState.isLoadingMore && uiState.hasMore && !uiState.isLoading
+            totalItems > 0 &&
+                lastVisibleItem >= totalItems - 5 &&
+                !uiState.isLoadingMore &&
+                uiState.hasMore &&
+                !uiState.isLoading
         }
     }
 

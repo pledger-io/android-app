@@ -21,6 +21,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -54,7 +55,7 @@ class TransactionFormViewModelTest {
 
     private fun setupRepository() {
         every { currencyRepository.getCurrencies() } returns flowOf(emptyList())
-        every { userPreferences.financeExperienceMode } returns flowOf(FinanceExperienceMode.GUIDED)
+        every { userPreferences.financeExperienceMode } returns MutableStateFlow(FinanceExperienceMode.GUIDED)
         coEvery { userPreferences.setLastTransactionType(any()) } returns Unit
         every { transactionTemplateStore.templates } returns flowOf(emptyList())
         coEvery { accountRepository.refreshOwnedAccounts() } returns Resource.Success(
@@ -227,7 +228,7 @@ class TransactionFormViewModelTest {
 
     @Test
     fun `power mode expands optional sections and shows templates by default`() = runTest {
-        every { userPreferences.financeExperienceMode } returns flowOf(FinanceExperienceMode.POWER)
+        every { userPreferences.financeExperienceMode } returns MutableStateFlow(FinanceExperienceMode.POWER)
         val viewModel = createViewModel()
         advanceUntilIdle()
 

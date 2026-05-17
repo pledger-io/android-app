@@ -56,10 +56,16 @@ class TransactionRepositoryImpl @Inject constructor(
                 val transactions = body?.content?.map { it.toDomain() } ?: emptyList()
                 val info = body?.info
 
-                if (page == 0) {
+                val isUnfilteredGlobalFetch = page == 0 &&
+                    accountId == null &&
+                    type == null &&
+                    filters == TransactionFilters()
+                if (isUnfilteredGlobalFetch) {
                     transactionDao.deleteAll()
                 }
-                transactionDao.insertAll(transactions.map { TransactionEntity.fromDomain(it) })
+                if (transactions.isNotEmpty()) {
+                    transactionDao.insertAll(transactions.map { TransactionEntity.fromDomain(it) })
+                }
 
                 Resource.Success(
                     PagedResult(

@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Info
@@ -56,6 +57,7 @@ import com.pledgerio.app.ui.theme.ExpenseRed
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToCategories: () -> Unit,
     onLogout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -243,6 +245,17 @@ fun SettingsScreen(
                         subtitle = "Use fingerprint or face to unlock",
                         checked = uiState.biometricEnabled,
                         onCheckedChange = viewModel::toggleBiometric,
+                    )
+                }
+            }
+
+            item {
+                SettingsSection("Data") {
+                    SettingsItem(
+                        icon = Icons.Default.Category,
+                        title = "Categories",
+                        subtitle = "Manage transaction categories",
+                        onClick = onNavigateToCategories,
                     )
                 }
             }
