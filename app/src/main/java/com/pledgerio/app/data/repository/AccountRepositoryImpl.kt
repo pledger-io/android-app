@@ -143,9 +143,11 @@ class AccountRepositoryImpl @Inject constructor(
                     val body = response.body()
                     val items = body?.content?.map { it.toDomain() }?.distinctBy { it.id } ?: emptyList()
                     collected.addAll(items)
-                    val total = body?.info?.records ?: collected.size.toLong()
-                    if (items.isEmpty() || collected.size.toLong() >= total) break
-                    offset += pageSize
+                    val totalRecords = body?.info?.records ?: 0L
+                    if (items.isEmpty()) break
+                    if (totalRecords > 0 && collected.size.toLong() >= totalRecords) break
+                    if (totalRecords == 0L && items.size < pageSize) break
+                    offset = collected.size
                 }
                 accountDao.replaceByTypes(
                     types = counterpartyTypes,
