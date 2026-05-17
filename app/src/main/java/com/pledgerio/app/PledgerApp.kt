@@ -2,7 +2,9 @@ package com.pledgerio.app
 
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Configuration
+import com.pledgerio.app.util.BiometricLockManager
 import coil.ImageLoader
 import coil.Coil
 import com.pledgerio.app.util.AppLog
@@ -26,6 +28,9 @@ class PledgerApp : Application(), Configuration.Provider {
     @Inject
     lateinit var appLog: AppLog
 
+    @Inject
+    lateinit var biometricLockManager: BiometricLockManager
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -37,5 +42,7 @@ class PledgerApp : Application(), Configuration.Provider {
         CurrencyProvider.setInstance(currencyProvider)
         Coil.setImageLoader(imageLoader)
         SyncWorker.schedule(this)
+        ProcessLifecycleOwner.get().lifecycle.addObserver(biometricLockManager)
+        biometricLockManager.onColdStart()
     }
 }

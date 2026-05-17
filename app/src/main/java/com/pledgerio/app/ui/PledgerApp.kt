@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -29,7 +30,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.activity.compose.LocalActivity
 import androidx.compose.ui.res.stringResource
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -37,6 +40,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.ThemeMode
+import com.pledgerio.app.ui.components.BiometricLockScreen
 import com.pledgerio.app.ui.components.OfflineBanner
 import com.pledgerio.app.ui.navigation.DeepLink
 import com.pledgerio.app.ui.navigation.NavGraph
@@ -80,8 +84,12 @@ fun PledgerRoot(
     appViewModel: AppViewModel = hiltViewModel(),
 ) {
     val sessionManager = appViewModel.sessionManager
+    val biometricLockManager = appViewModel.biometricLockManager
+    val biometricAuthenticator = appViewModel.biometricAuthenticator
     val themeMode by appViewModel.themeMode.collectAsState()
     val isOnline by appViewModel.isOnline.collectAsState()
+    val requiresBiometricUnlock by biometricLockManager.requiresUnlock.collectAsState()
+    val activity = LocalActivity.current as? FragmentActivity
     val systemDark = isSystemInDarkTheme()
     val darkTheme = when (themeMode) {
         ThemeMode.SYSTEM -> systemDark
@@ -129,15 +137,35 @@ fun PledgerRoot(
         onDeepLinkHandled()
     }
 
+    val showBiometricLock = requiresBiometricUnlock &&
+        sessionManager.isBiometricEnabled() &&
+        sessionManager.isLoggedIn()
+
     PledgerTheme(darkTheme = darkTheme) {
-        PledgerAppContent(
-            navController = navController,
-            startDestination = startDestination,
-            showBottomBar = showBottomBar,
-            showOfflineBanner = showOfflineBanner,
-            navBackStackEntry = navBackStackEntry,
-            isOnline = isOnline,
-        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            PledgerAppContent(
+                navController = navController,
+                startDestination = startDestination,
+                showBottomBar = showBottomBar,
+                showOfflineBanner = showOfflineBanner,
+                navBackStackEntry = navBackStackEntry,
+                isOnline = isOnline,
+            )
+            if (showBiometricLock && activity != null) {
+                BiometricLockScreen(
+                    activity = activity,
+                    biometricAuthenticator = biometricAuthenticator,
+                    onUnlocked = biometricLockManager::onUnlocked,
+                    onSignOut = {
+                        appViewModel.signOutFromBiometricLock {
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    },
+                )
+            }
+        }
     }
 }
 

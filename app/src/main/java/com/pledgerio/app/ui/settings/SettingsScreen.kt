@@ -52,7 +52,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -61,7 +63,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.util.BiometricAvailability
 import com.pledgerio.app.BuildConfig
 import com.pledgerio.app.R
 import com.pledgerio.app.ui.components.PledgerTopBar
@@ -82,6 +86,7 @@ fun SettingsScreen(
     val issueReportState by issueReportViewModel.uiState.collectAsState()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(issueReportState.readyToOpen) {
@@ -284,14 +289,44 @@ fun SettingsScreen(
             }
 
             item {
+                val biometricSubtitle = when (uiState.biometricAvailability) {
+                    BiometricAvailability.NotEnrolled ->
+                        stringResource(R.string.settings_biometric_not_enrolled)
+                    BiometricAvailability.NotAvailable,
+                    BiometricAvailability.Unsupported,
+                    -> stringResource(R.string.settings_biometric_unavailable)
+                    BiometricAvailability.Available ->
+                        if (uiState.biometricEnabled) {
+                            stringResource(R.string.settings_biometric_enabled)
+                        } else {
+                            stringResource(R.string.settings_biometric_disabled)
+                        }
+                }
                 SettingsSection("Security") {
                     SettingsToggle(
                         icon = Icons.Default.Fingerprint,
                         title = "Biometric Login",
-                        subtitle = stringResource(R.string.settings_biometric_coming_soon),
-                        checked = false,
-                        enabled = false,
-                        onCheckedChange = {},
+                        subtitle = biometricSubtitle,
+                        checked = uiState.biometricEnabled,
+                        enabled = uiState.biometricAvailability.canEnable,
+                        onCheckedChange = { enabled ->
+                            if (!enabled) {
+                                viewModel.toggleBiometric(false)
+                                return@SettingsToggle
+                            }
+                            val activity = context as? FragmentActivity ?: return@SettingsToggle
+                            viewModel.enableBiometric(
+                                activity = activity,
+                                enableTitle = context.getString(R.string.settings_biometric_enable_title),
+                                enableSubtitle = context.getString(R.string.settings_biometric_enable_subtitle),
+                                cancelLabel = context.getString(R.string.cancel),
+                                onError = { message ->
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(message)
+                                    }
+                                },
+                            )
+                        },
                     )
                 }
             }

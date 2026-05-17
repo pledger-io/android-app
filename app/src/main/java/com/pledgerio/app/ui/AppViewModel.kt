@@ -3,6 +3,9 @@ package com.pledgerio.app.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.ThemeMode
+import com.pledgerio.app.domain.repository.AuthRepository
+import com.pledgerio.app.util.BiometricAuthenticator
+import com.pledgerio.app.util.BiometricLockManager
 import com.pledgerio.app.util.NetworkMonitor
 import com.pledgerio.app.util.SessionManager
 import com.pledgerio.app.util.UserPreferences
@@ -10,11 +13,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AppViewModel @Inject constructor(
     val sessionManager: SessionManager,
+    val biometricLockManager: BiometricLockManager,
+    val biometricAuthenticator: BiometricAuthenticator,
+    private val authRepository: AuthRepository,
     userPreferences: UserPreferences,
     networkMonitor: NetworkMonitor,
 ) : ViewModel() {
@@ -29,4 +36,12 @@ class AppViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = true,
     )
+
+    fun signOutFromBiometricLock(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            authRepository.logout()
+            biometricLockManager.onBiometricDisabled()
+            onComplete()
+        }
+    }
 }

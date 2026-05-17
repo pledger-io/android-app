@@ -7,9 +7,13 @@ import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.ThemeMode
 import com.pledgerio.app.domain.repository.AuthRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
+import com.pledgerio.app.util.BiometricAuthenticator
+import com.pledgerio.app.util.BiometricAvailability
+import com.pledgerio.app.util.BiometricLockManager
 import com.pledgerio.app.util.CurrencyProvider
 import com.pledgerio.app.util.SessionManager
 import com.pledgerio.app.util.UserPreferences
+import androidx.fragment.app.FragmentActivity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +27,7 @@ data class SettingsUiState(
     val serverUrl: String? = null,
     val username: String? = null,
     val biometricEnabled: Boolean = false,
+    val biometricAvailability: BiometricAvailability = BiometricAvailability.NotAvailable,
     val displayCurrencyCode: String = "EUR",
     val displayCurrencyLabel: String = "EUR",
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
@@ -40,6 +45,8 @@ class SettingsViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userPreferences: UserPreferences,
     private val currencyRepository: CurrencyRepository,
+    private val biometricAuthenticator: BiometricAuthenticator,
+    private val biometricLockManager: BiometricLockManager,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -47,6 +54,7 @@ class SettingsViewModel @Inject constructor(
             serverUrl = sessionManager.getBaseUrl(),
             username = sessionManager.getUsername(),
             biometricEnabled = sessionManager.isBiometricEnabled(),
+            biometricAvailability = biometricAuthenticator.getAvailability(),
         )
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -76,8 +84,32 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun toggleBiometric(enabled: Boolean) {
-        sessionManager.setBiometricEnabled(enabled)
-        _uiState.update { it.copy(biometricEnabled = enabled) }
+        if (enabled) return
+        sessionManager.setBiometricEnabled(false)
+        biometricLockManager.onBiometricDisabled()
+        _uiState.update { it.copy(biometricEnabled = false) }
+    }
+
+    fun enableBiometric(
+        activity: FragmentActivity,
+        enableTitle: String,
+        enableSubtitle: String,
+        cancelLabel: String,
+        onError: (String) -> Unit,
+    ) {
+        if (!_uiState.value.biometricAvailability.canEnable) return
+        biometricAuthenticator.authenticate(
+            activity = activity,
+            title = enableTitle,
+            subtitle = enableSubtitle,
+            negativeButtonText = cancelLabel,
+            onSuccess = {
+                sessionManager.setBiometricEnabled(true)
+                biometricLockManager.onUnlocked()
+                _uiState.update { it.copy(biometricEnabled = true) }
+            },
+            onError = onError,
+        )
     }
 
     fun openCurrencyPicker() {

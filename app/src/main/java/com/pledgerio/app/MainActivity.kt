@@ -3,7 +3,6 @@ package com.pledgerio.app
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
@@ -14,10 +13,11 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.pledgerio.app.ui.PledgerRoot
 import com.pledgerio.app.ui.navigation.DeepLink
 import com.pledgerio.app.ui.navigation.DeepLinkParser
+import androidx.fragment.app.FragmentActivity
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
     private var pendingDeepLink by mutableStateOf<DeepLink?>(null)
 
