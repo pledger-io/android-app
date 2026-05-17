@@ -316,22 +316,6 @@ class TransactionFormViewModel @Inject constructor(
         }
     }
 
-    private fun observeExperienceMode() {
-        viewModelScope.launch {
-            userPreferences.financeExperienceMode.collect { mode ->
-                _uiState.update { state ->
-                    val expandOptionalSections = !state.isEditing &&
-                        !state.moreOptionsManuallyToggled &&
-                        mode == FinanceExperienceMode.POWER
-                    state.copy(
-                        financeExperienceMode = mode,
-                        moreOptionsExpanded = expandOptionalSections || state.moreOptionsExpanded,
-                    )
-                }
-            }
-        }
-    }
-
     private fun observeTemplates() {
         viewModelScope.launch {
             transactionTemplateStore.templates.collect { templates ->
