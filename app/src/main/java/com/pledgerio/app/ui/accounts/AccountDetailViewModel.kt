@@ -9,10 +9,10 @@ import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.YearMonth
@@ -26,8 +26,8 @@ data class AccountDetailUiState(
     val error: String? = null,
     val account: Account? = null,
     val transactions: List<Transaction> = emptyList(),
-    val currentPage: Int = 0,
     val hasMore: Boolean = true,
+    val totalTransactionCount: Long = 0,
 )
 
 @HiltViewModel
@@ -43,7 +43,7 @@ class AccountDetailViewModel @Inject constructor(
     val uiState: StateFlow<AccountDetailUiState> = _uiState.asStateFlow()
 
     private var transactionsJob: Job? = null
-    private var loadingPage: Int? = null
+    private var loadingOffset: Int? = null
 
     companion object {
         private const val PAGE_SIZE = 25
@@ -51,13 +51,13 @@ class AccountDetailViewModel @Inject constructor(
 
     init {
         loadAccount()
-        loadTransactionsPage(0)
+        loadTransactionsPage(offset = 0)
     }
 
     fun loadNextPage() {
         val state = _uiState.value
         if (state.isLoadingMore || !state.hasMore) return
-        loadTransactionsPage(state.currentPage + 1)
+        loadTransactionsPage(offset = state.transactions.size)
     }
 
     fun deleteAccount() {
@@ -89,12 +89,12 @@ class AccountDetailViewModel @Inject constructor(
         }
     }
 
-    private fun loadTransactionsPage(page: Int) {
-        if (loadingPage == page) return
-        loadingPage = page
+    private fun loadTransactionsPage(offset: Int) {
+        if (loadingOffset == offset) return
+        loadingOffset = offset
         transactionsJob?.cancel()
         transactionsJob = viewModelScope.launch {
-            _uiState.update { it.copy(isLoadingMore = page > 0) }
+            _uiState.update { it.copy(isLoadingMore = offset > 0) }
 
             val now = YearMonth.now()
             val startDate = now.minusMonths(12).atDay(1)
@@ -104,25 +104,30 @@ class AccountDetailViewModel @Inject constructor(
                 startDate = startDate,
                 endDate = endDate,
                 accountId = accountId,
-                page = page,
                 pageSize = PAGE_SIZE,
+                offset = offset,
             )
             when (result) {
                 is Resource.Success -> {
+                    val previousSize = if (offset == 0) 0 else _uiState.value.transactions.size
                     val newItems = result.data.items
-                    val merged = if (page == 0) {
+                    val merged = if (offset == 0) {
                         newItems
                     } else {
                         _uiState.value.transactions + newItems
                     }
                     val allItems = merged.distinctBy { it.id }
-                    // Stop when this page is short — totalRecords may count all accounts, not this filter.
-                    val hasMore = newItems.size >= PAGE_SIZE
+                    val totalRecords = result.data.totalRecords
+                        .coerceAtLeast(allItems.size.toLong())
+                    val grew = allItems.size > previousSize
+                    val hasMore = allItems.size < totalRecords &&
+                        newItems.isNotEmpty() &&
+                        (grew || newItems.size >= PAGE_SIZE)
                     _uiState.update {
                         it.copy(
                             isLoadingMore = false,
                             transactions = allItems,
-                            currentPage = page,
+                            totalTransactionCount = totalRecords,
                             hasMore = hasMore,
                         )
                     }
@@ -132,7 +137,7 @@ class AccountDetailViewModel @Inject constructor(
                 }
                 is Resource.Loading -> {}
             }
-            loadingPage = null
+            loadingOffset = null
         }
     }
 }

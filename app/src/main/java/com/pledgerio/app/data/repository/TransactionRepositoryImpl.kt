@@ -33,8 +33,10 @@ class TransactionRepositoryImpl @Inject constructor(
         filters: TransactionFilters,
         page: Int,
         pageSize: Int,
+        offset: Int?,
     ): Resource<PagedResult<Transaction>> {
         return try {
+            val apiOffset = offset ?: (page * pageSize)
             val apiType = when (type) {
                 TransactionType.DEBIT -> "INCOME"
                 TransactionType.CREDIT -> "EXPENSE"
@@ -49,7 +51,7 @@ class TransactionRepositoryImpl @Inject constructor(
                 expenses = filters.expenseId?.let { listOf(it) },
                 categories = filters.categoryId?.let { listOf(it) },
                 contracts = filters.contractId?.let { listOf(it) },
-                offset = page * pageSize,
+                offset = apiOffset,
                 numberOfResults = pageSize,
             )
             if (response.isSuccessful) {

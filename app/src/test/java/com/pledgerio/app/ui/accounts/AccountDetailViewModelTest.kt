@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.time.LocalDate
@@ -37,6 +38,14 @@ class AccountDetailViewModelTest {
         currency = "EUR",
     )
 
+    private fun transaction(id: Long) = Transaction(
+        id = id,
+        description = "Tx $id",
+        amount = 1.0,
+        type = TransactionType.CREDIT,
+        date = LocalDate.now(),
+    )
+
     @Test
     fun `empty first page does not request further pages`() = runTest {
         coEvery { accountRepository.getAccount(accountId) } returns Resource.Success(account)
@@ -45,8 +54,8 @@ class AccountDetailViewModelTest {
                 startDate = any(),
                 endDate = any(),
                 accountId = accountId,
-                page = 0,
                 pageSize = any(),
+                offset = 0,
             )
         } returns Resource.Success(
             PagedResult(
@@ -71,37 +80,28 @@ class AccountDetailViewModelTest {
                 startDate = any(),
                 endDate = any(),
                 accountId = accountId,
-                page = 0,
                 pageSize = any(),
+                offset = 0,
             )
         }
     }
 
     @Test
-    fun `full first page allows loading next page`() = runTest {
-        val pageItems = (1..25).map { id ->
-            Transaction(
-                id = id.toLong(),
-                description = "Tx $id",
-                amount = 1.0,
-                type = TransactionType.CREDIT,
-                date = LocalDate.now(),
-            )
-        }
+    fun `partial first page still loads more when total exceeds loaded count`() = runTest {
         coEvery { accountRepository.getAccount(accountId) } returns Resource.Success(account)
         coEvery {
             transactionRepository.getTransactionsPage(
                 startDate = any(),
                 endDate = any(),
                 accountId = accountId,
-                page = 0,
                 pageSize = any(),
+                offset = 0,
             )
         } returns Resource.Success(
             PagedResult(
-                items = pageItems,
-                totalRecords = 999,
-                totalPages = 40,
+                items = listOf(transaction(1)),
+                totalRecords = 10,
+                totalPages = 1,
                 pageSize = 25,
             ),
         )
@@ -110,14 +110,14 @@ class AccountDetailViewModelTest {
                 startDate = any(),
                 endDate = any(),
                 accountId = accountId,
-                page = 1,
                 pageSize = any(),
+                offset = 1,
             )
         } returns Resource.Success(
             PagedResult(
-                items = emptyList(),
-                totalRecords = 999,
-                totalPages = 40,
+                items = (2L..10L).map { transaction(it) },
+                totalRecords = 10,
+                totalPages = 1,
                 pageSize = 25,
             ),
         )
@@ -129,17 +129,81 @@ class AccountDetailViewModelTest {
         )
         advanceUntilIdle()
 
-        assertEquals(25, viewModel.uiState.value.transactions.size)
+        assertTrue(viewModel.uiState.value.hasMore)
+        assertEquals(1, viewModel.uiState.value.transactions.size)
+
         viewModel.loadNextPage()
         advanceUntilIdle()
 
-        coVerify(exactly = 1) {
+        assertEquals(10, viewModel.uiState.value.transactions.size)
+        assertFalse(viewModel.uiState.value.hasMore)
+        coVerify {
             transactionRepository.getTransactionsPage(
                 startDate = any(),
                 endDate = any(),
                 accountId = accountId,
-                page = 1,
                 pageSize = any(),
+                offset = 1,
+            )
+        }
+    }
+
+    @Test
+    fun `full first page uses next offset based on loaded count`() = runTest {
+        val pageItems = (1L..25L).map { transaction(it) }
+        coEvery { accountRepository.getAccount(accountId) } returns Resource.Success(account)
+        coEvery {
+            transactionRepository.getTransactionsPage(
+                startDate = any(),
+                endDate = any(),
+                accountId = accountId,
+                pageSize = any(),
+                offset = 0,
+            )
+        } returns Resource.Success(
+            PagedResult(
+                items = pageItems,
+                totalRecords = 30,
+                totalPages = 2,
+                pageSize = 25,
+            ),
+        )
+        coEvery {
+            transactionRepository.getTransactionsPage(
+                startDate = any(),
+                endDate = any(),
+                accountId = accountId,
+                pageSize = any(),
+                offset = 25,
+            )
+        } returns Resource.Success(
+            PagedResult(
+                items = (26L..30L).map { transaction(it) },
+                totalRecords = 30,
+                totalPages = 2,
+                pageSize = 25,
+            ),
+        )
+
+        val viewModel = AccountDetailViewModel(
+            SavedStateHandle(mapOf("accountId" to accountId)),
+            accountRepository,
+            transactionRepository,
+        )
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.hasMore)
+        viewModel.loadNextPage()
+        advanceUntilIdle()
+
+        assertEquals(30, viewModel.uiState.value.transactions.size)
+        coVerify {
+            transactionRepository.getTransactionsPage(
+                startDate = any(),
+                endDate = any(),
+                accountId = accountId,
+                pageSize = any(),
+                offset = 25,
             )
         }
     }

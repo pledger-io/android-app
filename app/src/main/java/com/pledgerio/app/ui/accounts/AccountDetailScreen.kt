@@ -72,14 +72,18 @@ fun AccountDetailScreen(
 
     val shouldLoadMore by remember {
         derivedStateOf {
-            if (uiState.transactions.isEmpty()) return@derivedStateOf false
-            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            val totalItems = listState.layoutInfo.totalItemsCount
-            totalItems > 0 &&
-                lastVisibleItem >= totalItems - 5 &&
-                !uiState.isLoadingMore &&
-                uiState.hasMore &&
-                !uiState.isLoading
+            if (uiState.transactions.isEmpty() || !uiState.hasMore || uiState.isLoadingMore || uiState.isLoading) {
+                return@derivedStateOf false
+            }
+            val layoutInfo = listState.layoutInfo
+            val totalItems = layoutInfo.totalItemsCount
+            if (totalItems == 0) return@derivedStateOf false
+            val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val nearEndOfList = lastVisibleItem >= totalItems - 5
+            // Short lists may not scroll; still fetch the next page when more exist server-side.
+            val shortListWithMoreRemaining =
+                uiState.transactions.size < 25 && totalItems < 20 && uiState.hasMore
+            nearEndOfList || shortListWithMoreRemaining
         }
     }
 
@@ -255,6 +259,22 @@ fun AccountDetailScreen(
                                     strokeWidth = 2.dp,
                                     color = MaterialTheme.colorScheme.primary,
                                 )
+                            }
+                        }
+                    } else if (uiState.hasMore) {
+                        item(key = "load-more") {
+                            TextButton(
+                                onClick = { viewModel.loadNextPage() },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                val loaded = uiState.transactions.size
+                                val total = uiState.totalTransactionCount
+                                val label = if (total > loaded) {
+                                    "Load more ($loaded of $total)"
+                                } else {
+                                    "Load more"
+                                }
+                                Text(label)
                             }
                         }
                     }

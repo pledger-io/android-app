@@ -27,6 +27,8 @@ interface TransactionRepository {
         filters: TransactionFilters = TransactionFilters(),
         page: Int = 0,
         pageSize: Int = 25,
+        /** When set, used instead of [page] * [pageSize] (record skip count for the API). */
+        offset: Int? = null,
     ): Resource<PagedResult<Transaction>>
 
     suspend fun getTransaction(id: Long): Resource<Transaction>
