@@ -39,8 +39,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.AccountTypeGroup
 import com.pledgerio.app.domain.model.AccountTypeOption
 import com.pledgerio.app.ui.theme.EmeraldGreen
@@ -110,7 +112,7 @@ fun AccountAddFabMenu(
                             .padding(vertical = 8.dp),
                     ) {
                         if (ownedEntries.isNotEmpty()) {
-                            AddTypeSectionHeader("Your accounts")
+                            AddTypeSectionHeader(stringResource(R.string.account_section_your_accounts))
                             ownedEntries.forEach { entry ->
                                 AddPickerEntryRow(entry = entry, onAddAccount = {
                                     onExpandedChange(false)
@@ -119,7 +121,7 @@ fun AccountAddFabMenu(
                             }
                         }
                         if (counterpartyOptions.isNotEmpty()) {
-                            AddTypeSectionHeader(AccountTypeGroup.COUNTERPARTY.title)
+                            AddTypeSectionHeader(AccountTypeGroup.COUNTERPARTY.localizedTitle())
                             counterpartyOptions.forEach { option ->
                                 AddTypeRow(option = option, onAddAccount = {
                                     onExpandedChange(false)
@@ -137,7 +139,9 @@ fun AccountAddFabMenu(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = if (expanded) "Close" else "Add account",
+                    contentDescription = stringResource(
+                        if (expanded) R.string.content_description_close else R.string.content_description_add_account,
+                    ),
                     modifier = Modifier.rotate(fabRotation),
                 )
             }
@@ -185,15 +189,18 @@ private fun AddPickerEntryRow(
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = entry.label,
+                text = entry.label.resolve(),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Medium,
             )
             Text(
                 text = if (entry.jointTypeCode != null) {
-                    "${entry.description} · choose personal or joint on the next screen"
+                    stringResource(
+                        R.string.account_picker_joint_hint_fab,
+                        entry.description.resolve(),
+                    )
                 } else {
-                    entry.description
+                    entry.description.resolve()
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -230,14 +237,16 @@ private fun AddTypeRow(
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
+            val meta = com.pledgerio.app.domain.model.AccountTypeCatalog.metadataFor(option.code)
             Text(
-                text = option.displayName,
+                text = meta.localizedDisplayName(),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Medium,
             )
-            if (option.description.isNotBlank()) {
+            val description = option.description.takeIf { it.isNotBlank() } ?: meta.localizedDescription()
+            if (description.isNotBlank()) {
                 Text(
-                    text = option.description,
+                    text = description,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

@@ -21,7 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.FilterOption
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.transactions.FilterAutocompleteField
@@ -63,7 +65,7 @@ fun TransactionFormMoreOptions(
     showAutoClassifyAction: Boolean = false,
     canAutoClassify: Boolean = true,
     isAutoClassifying: Boolean = false,
-    autoClassifyStatus: String? = null,
+    autoClassifyStatus: AutoClassifyStatus? = null,
     onAutoClassify: () -> Unit = {},
     onSelectTagSuggestion: (String) -> Unit,
     onTagsFieldFocus: () -> Unit = {},
@@ -78,7 +80,7 @@ fun TransactionFormMoreOptions(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "More options",
+                text = stringResource(R.string.transaction_more_options),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
@@ -95,12 +97,14 @@ fun TransactionFormMoreOptions(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                     }
-                    Text("Auto classify")
+                    Text(stringResource(R.string.transaction_auto_classify))
                 }
             }
             Icon(
                 imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                contentDescription = if (expanded) "Collapse" else "Expand",
+                contentDescription = stringResource(
+                    if (expanded) R.string.content_description_collapse else R.string.content_description_expand,
+                ),
             )
         }
 
@@ -108,21 +112,21 @@ fun TransactionFormMoreOptions(
             PledgerCard {
                 Column {
                     Text(
-                        text = "Optional classification for reports and filters.",
+                        text = stringResource(R.string.transaction_more_options_hint),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = if (autoClassifyStatus == null) 12.dp else 4.dp),
                     )
                     if (autoClassifyStatus != null) {
                         Text(
-                            text = autoClassifyStatus,
+                            text = autoClassifyStatus.localize(),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(bottom = 12.dp),
                         )
                     }
                     FilterAutocompleteField(
-                        label = "Category",
+                        label = stringResource(R.string.transaction_category_label),
                         query = categoryQuery,
                         selected = categorySelected,
                         suggestions = categorySuggestions,
@@ -132,7 +136,7 @@ fun TransactionFormMoreOptions(
                         onClear = onCategoryClear,
                     )
                     FilterAutocompleteField(
-                        label = "Budget expense",
+                        label = stringResource(R.string.transaction_expense_label),
                         query = expenseQuery,
                         selected = expenseSelected,
                         suggestions = expenseSuggestions,
@@ -143,7 +147,7 @@ fun TransactionFormMoreOptions(
                         modifier = Modifier.padding(top = 12.dp),
                     )
                     FilterAutocompleteField(
-                        label = "Contract",
+                        label = stringResource(R.string.transaction_contract_label),
                         query = contractQuery,
                         selected = contractSelected,
                         suggestions = contractSuggestions,

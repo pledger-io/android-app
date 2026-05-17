@@ -42,16 +42,17 @@ import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.IncomeGreen
+import com.pledgerio.app.ui.util.localizedTitle
 import com.pledgerio.app.util.formatCurrency
 import java.time.YearMonth
 import kotlin.math.max
 
-enum class ReportType(val title: String) {
-    INCOME_EXPENSE("Income vs Expenses"),
-    CATEGORY("Category Breakdown"),
-    BUDGET("Budget Performance"),
-    NET_WORTH("Net Worth"),
-    BALANCE("Account Balance"),
+enum class ReportType {
+    INCOME_EXPENSE,
+    CATEGORY,
+    BUDGET,
+    NET_WORTH,
+    BALANCE,
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,8 +66,8 @@ fun ReportsScreen(
     Scaffold(
         topBar = {
             PledgerTopBar(
-                title = "Reports",
-                subtitle = "Insights into your money",
+                title = stringResource(R.string.reports_title),
+                subtitle = stringResource(R.string.reports_subtitle),
                 actions = {
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(
@@ -94,7 +95,7 @@ fun ReportsScreen(
                     FilterChip(
                         selected = uiState.selectedType == type,
                         onClick = { viewModel.selectReportType(type) },
-                        label = { Text(type.title) },
+                        label = { Text(type.localizedTitle()) },
                     )
                 }
             }
@@ -173,7 +174,7 @@ private fun IncomeExpenseCard(income: Double, expense: Double) {
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Column {
-                Text("Income", style = MaterialTheme.typography.labelSmall)
+                Text(stringResource(R.string.report_income), style = MaterialTheme.typography.labelSmall)
                 Text(
                     income.formatCurrency(),
                     style = MaterialTheme.typography.titleMedium,
@@ -182,7 +183,7 @@ private fun IncomeExpenseCard(income: Double, expense: Double) {
                 )
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text("Expenses", style = MaterialTheme.typography.labelSmall)
+                Text(stringResource(R.string.report_expenses), style = MaterialTheme.typography.labelSmall)
                 Text(
                     expense.formatCurrency(),
                     style = MaterialTheme.typography.titleMedium,

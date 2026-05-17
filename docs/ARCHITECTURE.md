@@ -253,7 +253,13 @@ User action → ViewModel → StateFlow<UiState> → Compose recomposition
 
 Navigation arguments via `SavedStateHandle`. No Android framework types inside ViewModels beyond `SavedStateHandle`.
 
-`UserPreferences` stores user-controlled UI defaults such as theme, display currency, last transaction type, and finance experience mode (`guided` / `power`) so novice-friendly behavior does not block power-user workflows.
+`UserPreferences` stores user-controlled UI defaults such as theme, display currency, app locale (`system` / `en` / `nl` / `de`), last transaction type, and finance experience mode (`guided` / `power`) so novice-friendly behavior does not block power-user workflows.
+
+#### Localization
+
+- User-visible copy lives in `res/values/strings.xml` (English) with `values-nl` and `values-de` translations.
+- `AppLocale` + `LocaleManager` apply per-app language via `AppCompatDelegate`; see [LOCALIZATION.md](LOCALIZATION.md) and [ADR-018](adr/018-app-localization.md).
+- Composables use `stringResource()`; enum labels use `ui/util/LocalizedLabels.kt`.
 
 ## Theming
 

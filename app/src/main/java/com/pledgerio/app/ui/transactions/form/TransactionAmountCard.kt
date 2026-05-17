@@ -25,8 +25,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pledgerio.app.R
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.theme.EmeraldGreen
 import com.pledgerio.app.util.formatDisplay
@@ -56,7 +58,7 @@ fun TransactionAmountCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Amount",
+                text = stringResource(R.string.transaction_amount_label),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -70,7 +72,7 @@ fun TransactionAmountCard(
         OutlinedTextField(
             value = amount,
             onValueChange = onAmountChange,
-            placeholder = { Text("0.00") },
+            placeholder = { Text(stringResource(R.string.transaction_amount_hint)) },
             singleLine = true,
             isError = amountError != null,
             supportingText = amountError?.let { { Text(it) } },
@@ -87,7 +89,7 @@ fun TransactionAmountCard(
         )
 
         Text(
-            text = "Date",
+            text = stringResource(R.string.transaction_date_label),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 12.dp),
@@ -100,12 +102,12 @@ fun TransactionAmountCard(
             FilterChip(
                 selected = isToday,
                 onClick = onTodayClick,
-                label = { Text("Today") },
+                label = { Text(stringResource(R.string.transaction_date_today)) },
             )
             FilterChip(
                 selected = isYesterday,
                 onClick = onYesterdayClick,
-                label = { Text("Yesterday") },
+                label = { Text(stringResource(R.string.transaction_date_yesterday)) },
             )
             FilterChip(
                 selected = !isToday && !isYesterday,

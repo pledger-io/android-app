@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pledger.io</string>
+    <string name="tab_dashboard">Dashboard</string>
+    <string name="tab_transactions">Transacties</string>
+    <string name="tab_budgets">Budgetten</string>
+    <string name="tab_accounts">Rekeningen</string>
+    <string name="tab_reports">Rapporten</string>
+    <string name="open_settings">Instellingen</string>
+    <string name="nav_back">Terug</string>
+
+    <string name="budget_setup_title">Start je eerste budget</string>
+    <string name="budget_setup_message">Kies wanneer je budget begint en vul je verwachte maandelijkse netto-inkomen in (het bedrag dat op je rekening wordt gestort).</string>
+    <string name="budget_setup_month">Startmaand</string>
+    <string name="budget_setup_year">Startjaar</string>
+    <string name="budget_setup_income">Maandelijks netto-inkomen</string>
+    <string name="budget_setup_income_hint">Na belasting, zoals ontvangen op je bankrekening</string>
+    <string name="budget_setup_submit">Budget aanmaken</string>
+    <string name="budget_empty_title">Nog geen uitgavengroepen</string>
+    <string name="budget_empty_message">Voeg uitgavengroepen toe (bijv. Boodschappen, Rekeningen) om je uitgaven ten opzichte van je budget te volgen.</string>
+    <string name="budget_expense_add">Uitgavengroep toevoegen</string>
+    <string name="budget_expense_edit">Uitgavengroep bewerken</string>
+    <string name="budget_expense_add_title">Nieuwe uitgavengroep</string>
+    <string name="budget_expense_edit_title">Uitgavengroep bewerken</string>
+    <string name="budget_expense_name">Naam</string>
+    <string name="budget_expense_amount">Maandelijks budget</string>
+    <string name="budget_expense_amount_hint">Maximaal bedrag voor deze groep per maand</string>
+    <string name="budget_expense_save">Opslaan</string>
+    <string name="budget_expense_cancel">Annuleren</string>
+    <string name="budget_expense_remaining">%1$s resterend</string>
+
+    <string name="offline_banner">Je bent offline. Gecachte gegevens worden getoond.</string>
+
+    <string name="reports_coming_soon_title">Rapporten komen binnenkort</string>
+    <string name="reports_coming_soon_message">Grafieken en inzichten verschijnen hier in een toekomstige update. Gebruik voorlopig Dashboard en Budgetten.</string>
+    <string name="error_title">Er is iets misgegaan</string>
+    <string name="error_retry">Opnieuw proberen</string>
+
+    <string name="last_updated_refreshing">Vernieuwen…</string>
+    <string name="last_updated_just_now">Zojuist bijgewerkt</string>
+    <string name="last_updated_minutes">%1$d min geleden bijgewerkt</string>
+    <string name="last_updated_hours">%1$d u geleden bijgewerkt</string>
+    <string name="last_updated_days">%1$d d geleden bijgewerkt</string>
+
+    <string name="empty_add_transaction">Transactie toevoegen</string>
+    <string name="empty_add_account">Rekening toevoegen</string>
+    <string name="empty_dashboard_transactions_title">Geen recente transacties</string>
+    <string name="empty_dashboard_transactions_message">Registreer je eerste transactie om hier activiteit te zien.</string>
+    <string name="empty_transactions_title">Geen transacties</string>
+    <string name="empty_transactions_message">Geen transacties gevonden voor deze maand.</string>
+    <string name="empty_transactions_filtered_message">Geen transacties komen overeen met je filters.</string>
+    <string name="empty_accounts_title">Nog geen rekeningen</string>
+    <string name="empty_accounts_message">Voeg een rekening toe om saldi bij te houden.</string>
+    <string name="empty_parties_title">Geen partijen gevonden</string>
+    <string name="empty_parties_message">Probeer een andere zoekopdracht of voeg een tegenpartijrekening toe.</string>
+
+    <string name="settings_change_server">Server-URL wijzigen</string>
+    <string name="settings_notifications_coming_soon">Komt in een toekomstige update</string>
+    <string name="settings_biometric_enabled">Ontgrendeling vereisen bij openen van de app</string>
+    <string name="settings_biometric_disabled">Uit</string>
+    <string name="settings_biometric_unavailable">Biometrie niet beschikbaar op dit apparaat</string>
+    <string name="settings_biometric_not_enrolled">Stel eerst vingerafdruk of gezichtsontgrendeling in via systeeminstellingen</string>
+    <string name="settings_biometric_enable_title">Biometrische login inschakelen</string>
+    <string name="settings_biometric_enable_subtitle">Bevestig je identiteit om dit in te schakelen</string>
+    <string name="biometric_unlock_title">Pledger ontgrendelen</string>
+    <string name="biometric_unlock_subtitle">Gebruik je vingerafdruk, gezicht of apparaat-PIN</string>
+    <string name="biometric_unlock_message">Authenticeer om toegang te krijgen tot je financiën.</string>
+    <string name="biometric_unlock_action">Ontgrendelen</string>
+    <string name="biometric_unlock_sign_out">Uitloggen</string>
+    <string name="cancel">Annuleren</string>
+
+    <string name="server_setup_change_title">Server wijzigen</string>
+    <string name="server_setup_change_message">Bij het wisselen van server worden gecachte gegevens gewist. Je moet opnieuw inloggen.</string>
+    <string name="server_setup_save">Opslaan en inloggen</string>
+
+    <string name="budget_view_overspent_transactions">Transacties bekijken</string>
+
+    <string name="search_title">Zoeken</string>
+    <string name="search_hint">Zoek transacties, rekeningen, categorieën…</string>
+    <string name="search_prompt">Typ om in je gegevens te zoeken.</string>
+    <string name="search_no_results">Geen resultaten gevonden.</string>
+    <string name="search_section_transactions">Transacties</string>
+    <string name="search_section_accounts">Rekeningen</string>
+    <string name="search_section_categories">Categorieën</string>
+    <string name="reports_no_data">Geen gegevens voor deze periode.</string>
+
+    <string name="report_issue_title">Probleem melden</string>
+    <string name="report_issue_hint">Recente app-logboeken worden meegestuurd bij verzenden. Voeg geen wachtwoorden of persoonlijke gegevens toe in de beschrijving.</string>
+    <string name="report_issue_summary_label">Samenvatting</string>
+    <string name="report_issue_description_label">Wat is er gebeurd?</string>
+    <string name="report_issue_submit">Verzenden</string>
+    <string name="report_issue_submitting">Verzenden…</string>
+    <string name="report_issue_cancel">Annuleren</string>
+    <string name="report_issue_settings_title">Probleem melden</string>
+    <string name="report_issue_settings_subtitle">Logboeken bijvoegen en een GitHub-bugrapport openen</string>
+    <string name="report_issue_open_github">GitHub wordt geopend — controleer het formulier en tik op Verzenden.</string>
+    <string name="report_issue_open_github_with_clipboard">GitHub wordt geopend — volledige logboeken staan op je klembord indien nodig.</string>
+
+    <!-- Language -->
+    <string name="language_system">Systeemstandaard</string>
+    <string name="language_english">Engels</string>
+    <string name="language_dutch">Nederlands</string>
+    <string name="language_german">Duits</string>
+    <string name="settings_language">Taal</string>
+
+    <!-- Theme -->
+    <string name="theme_system">Systeemstandaard</string>
+    <string name="theme_light">Licht</string>
+    <string name="theme_dark">Donker</string>
+    <string name="settings_theme">Thema</string>
+
+    <!-- Finance experience -->
+    <string name="experience_guided_name">Begeleid</string>
+    <string name="experience_guided_description">Eenvoudigere standaardinstellingen voor nieuwe gebruikers</string>
+    <string name="experience_power_name">Gevorderd</string>
+    <string name="experience_power_description">Geavanceerde opties blijven zichtbaar voor snellere invoer</string>
+    <string name="settings_experience">Financiële ervaring</string>
+    <string name="experience_mode_guided_title">Begeleide modus actief</string>
+    <string name="experience_mode_guided_body">Vereenvoudigde standaardinstellingen zijn ingeschakeld om de drempel te verlagen.</string>
+    <string name="experience_mode_power_title">Gevorderde modus actief</string>
+    <string name="experience_mode_power_body">Geavanceerde bedieningselementen zijn ingeschakeld voor snellere transactie-invoer.</string>
+    <string name="dashboard_subtitle_guided">Je financiën in één oogopslag · Begeleide modus</string>
+    <string name="dashboard_subtitle_default">Je financiën in één oogopslag</string>
+    <string name="transaction_form_guided_hint">Categorieën, tags of contracten nodig? Open Meer opties.</string>
+
+    <!-- Screen titles -->
+    <string name="dashboard_title">Pledger.io</string>
+    <string name="accounts_title">Rekeningen</string>
+    <string name="accounts_subtitle">Saldi en tegenpartijen</string>
+    <string name="budgets_title">Budgetten</string>
+    <string name="budgets_subtitle">Plan en volg je uitgaven</string>
+    <string name="transactions_title">Transacties</string>
+    <string name="transactions_subtitle">Inkomsten, uitgaven en overboekingen</string>
+    <string name="reports_title">Rapporten</string>
+    <string name="reports_subtitle">Inzicht in je geld</string>
+    <string name="settings_title">Instellingen</string>
+    <string name="settings_subtitle">Server, beveiliging &amp; voorkeuren</string>
+    <string name="categories_title">Categorieën beheren</string>
+    <string name="tags_title">Tags beheren</string>
+
+    <!-- Settings sections -->
+    <string name="settings_section_server">Server</string>
+    <string name="settings_section_security">Beveiliging</string>
+    <string name="settings_section_data">Gegevens</string>
+    <string name="settings_section_preferences">Voorkeuren</string>
+    <string name="settings_section_about">Over</string>
+    <string name="settings_biometric_login">Biometrische login</string>
+    <string name="settings_categories">Categorieën</string>
+    <string name="settings_categories_subtitle">Transactiecategorieën beheren</string>
+    <string name="settings_tags">Tags</string>
+    <string name="settings_tags_subtitle">Transactietags beheren</string>
+    <string name="settings_display_currency">Weergavevaluta</string>
+    <string name="settings_notifications">Meldingen</string>
+    <string name="settings_version">Versie</string>
+    <string name="settings_sign_out">Uitloggen</string>
+    <string name="settings_sign_out_confirm_title">Uitloggen</string>
+    <string name="settings_sign_out_confirm_message">Weet je zeker dat je wilt uitloggen?</string>
+    <string name="settings_loading_currencies">Valuta\'s laden…</string>
+    <string name="settings_experience_format">%1$s — %2$s</string>
+
+    <!-- Reports -->
+    <string name="report_type_income_expense">Inkomsten vs uitgaven</string>
+    <string name="report_type_category">Uitsplitsing per categorie</string>
+    <string name="report_type_budget">Budgetprestaties</string>
+    <string name="report_type_net_worth">Nettovermogen</string>
+    <string name="report_type_balance">Rekeningsaldo</string>
+    <string name="report_income">Inkomsten</string>
+    <string name="report_expenses">Uitgaven</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_recent_transactions">Recente transacties</string>
+    <string name="dashboard_view_all">Alles bekijken</string>
+    <string name="dashboard_net_worth">Nettovermogen</string>
+    <string name="dashboard_income">Inkomsten</string>
+    <string name="dashboard_expenses">Uitgaven</string>
+    <string name="fab_new_transaction">Nieuwe transactie</string>
+    <string name="fab_new_transaction_subtitle">Inkomsten, uitgaven of overboeking registreren</string>
+    <string name="fab_new_account">Nieuwe rekening</string>
+    <string name="fab_new_account_subtitle">Bankrekening of portemonnee toevoegen</string>
+
+    <!-- Accounts -->
+    <string name="accounts_filter_all">Alle</string>
+    <string name="accounts_filter_owned">Eigen (%1$d)</string>
+    <string name="accounts_search_parties">Partijen zoeken…</string>
+    <string name="accounts_filter_parties">Partijen</string>
+    <string name="accounts_filter_parties_count">Partijen (%1$d)</string>
+    <string name="accounts_subtitle_all">%1$d eigen · %2$d partijen</string>
+    <string name="accounts_subtitle_owned">%1$d portemonnees die je beheert</string>
+    <string name="accounts_subtitle_search_results">Zoekresultaten</string>
+    <string name="accounts_subtitle_showing_parties">%1$d van %2$d getoond</string>
+    <string name="accounts_subtitle_parties_count">%1$d partijen</string>
+    <string name="accounts_subtitle_creditors_debtors">Crediteuren &amp; debiteuren</string>
+    <string name="accounts_summary_owned_accounts">eigen rekeningen</string>
+    <string name="accounts_summary_in_view">in deze weergave</string>
+    <string name="accounts_empty_in_view">Geen rekeningen in deze weergave.</string>
+    <string name="accounts_total_balance">Totaalsaldo</string>
+    <string name="accounts_count">%1$d rekeningen</string>
+    <string name="accounts_counterparties_title">Tegenpartijen</string>
+    <string name="accounts_counterparties_showing">%1$d van %2$d getoond</string>
+    <string name="accounts_counterparties_loaded">%1$d partijen</string>
+    <string name="accounts_counterparties_hint">Zoek of scroll om meer te laden. Saldi worden geladen wanneer je een rekening opent.</string>
+    <string name="accounts_counterparties_browse">%1$d crediteuren &amp; debiteuren — zoek en scroll om te bladeren</string>
+    <string name="account_form_new_title">Nieuwe rekening</string>
+    <string name="account_form_edit_title">Rekening bewerken</string>
+    <string name="account_form_create">Rekening aanmaken</string>
+    <string name="account_form_save_changes">Wijzigingen opslaan</string>
+    <string name="account_error_name_required">Voer een naam in</string>
+    <string name="account_ownership_personal">Persoonlijk</string>
+    <string name="account_ownership_joint">Gezamenlijk</string>
+    <string name="account_ownership_checking">Betaalrekening</string>
+    <string name="account_ownership_savings">Spaarrekening</string>
+    <string name="account_section_your_accounts">Jouw rekeningen</string>
+    <string name="account_picker_joint_hint_form">%1$s · persoonlijk of gezamenlijk hieronder</string>
+    <string name="account_picker_joint_hint_fab">%1$s · kies persoonlijk of gezamenlijk op het volgende scherm</string>
+    <string name="account_picker_checking_label">Betaalrekening</string>
+    <string name="account_picker_checking_description">Lopende rekening voor dagelijkse uitgaven</string>
+    <string name="account_picker_savings_label">Sparen</string>
+    <string name="account_picker_savings_description">Geld gereserveerd voor doelen en reserves</string>
+    <string name="account_detail_fallback_title">Rekening</string>
+    <string name="account_current_balance">Huidig saldo</string>
+    <string name="account_detail_type">Type</string>
+    <string name="account_detail_currency">Valuta</string>
+    <string name="account_detail_opening_balance">Beginsaldo</string>
+    <string name="account_detail_transactions">Transacties</string>
+    <string name="account_load_more">Meer laden</string>
+    <string name="account_load_more_progress">Meer laden (%1$d van %2$d)</string>
+    <string name="account_delete_confirm_message">“%1$s” wordt uit Pledger verwijderd. Dit kan niet ongedaan worden gemaakt als de server verwijdering toestaat.</string>
+    <string name="content_description_delete_account">Rekening verwijderen</string>
+    <string name="content_description_edit_account">Rekening bewerken</string>
+    <string name="content_description_browse_parties">Partijen bladeren</string>
+    <string name="content_description_add_account">Rekening toevoegen</string>
+    <string name="content_description_close">Sluiten</string>
+    <string name="account_group_everyday_title">Dagelijks bankieren</string>
+    <string name="account_group_everyday_description">Betaalrekeningen en contant geld voor dagelijkse uitgaven</string>
+    <string name="account_group_savings_title">Sparen</string>
+    <string name="account_group_savings_description">Geld gereserveerd voor doelen en reserves</string>
+    <string name="account_group_credit_title">Krediet</string>
+    <string name="account_group_credit_description">Kaarten en doorlopend krediet</string>
+    <string name="account_group_liabilities_title">Leningen &amp; schulden</string>
+    <string name="account_group_liabilities_description">Geld dat je schuldig bent — hypotheken, leningen en schulden</string>
+    <string name="account_group_counterparty_title">Tegenpartijen</string>
+    <string name="account_group_counterparty_description">Partijen waarmee je geld betaalt of ontvangt in transacties</string>
+    <string name="account_group_other_title">Overig</string>
+    <string name="account_group_other_description">Extra rekeningtypes van je server</string>
+    <string name="account_type_checking_name">Betaalrekening</string>
+    <string name="account_type_checking_description">Je hoofdbankrekening voor dagelijkse betalingen en incasso\'s.</string>
+    <string name="account_type_joint_checking_name">Gezamenlijke betaalrekening</string>
+    <string name="account_type_joint_checking_description">Een gedeelde lopende rekening voor huishoudelijke uitgaven.</string>
+    <string name="account_type_cash_name">Contant</string>
+    <string name="account_type_cash_description">Fysiek contant geld bij je, buiten de bank.</string>
+    <string name="account_type_savings_name">Sparen</string>
+    <string name="account_type_savings_description">Geld gereserveerd voor doelen, noodgevallen of toekomstige aankopen.</string>
+    <string name="account_type_joint_savings_name">Gezamenlijk sparen</string>
+    <string name="account_type_joint_savings_description">Gedeeld spaargeld met partner of huishouden.</string>
+    <string name="account_type_credit_card_name">Creditcard</string>
+    <string name="account_type_credit_card_description">Doorlopend krediet — uitgaven verhogen wat je de uitgever schuldig bent.</string>
+    <string name="account_type_loan_name">Lening</string>
+    <string name="account_type_loan_description">Een leningsaldo dat je in de loop van de tijd terugbetaalt.</string>
+    <string name="account_type_mortgage_name">Hypotheek</string>
+    <string name="account_type_mortgage_description">Vastgoedfinanciering — hoofdsom en rente aan de kredietverstrekker.</string>
+    <string name="account_type_debt_name">Schuld</string>
+    <string name="account_type_debt_description">Algemene schuld of verplichting die je afbouwt.</string>
+    <string name="account_type_liability_name">Passiva</string>
+    <string name="account_type_liability_description">Geld dat je een kredietverstrekker of instelling schuldig bent.</string>
+    <string name="account_type_investment_name">Belegging</string>
+    <string name="account_type_investment_description">Broker- of beleggingsrekening.</string>
+    <string name="account_type_creditor_name">Crediteur</string>
+    <string name="account_type_creditor_description">Iemand aan wie je betaalt — winkels, nutsbedrijven, verhuurders, abonnementen.</string>
+    <string name="account_type_debtor_name">Debiteur</string>
+    <string name="account_type_debtor_description">Iemand die jou betaalt — werkgever, klanten, terugbetalingen, giften.</string>
+    <string name="account_type_unknown_description">Rekeningtype “%1$s” van je Pledger-server.</string>
+
+    <!-- Budget -->
+    <string name="budget_progress">Budgetvoortgang</string>
+    <string name="budget_spent">Uitgegeven</string>
+    <string name="budget_budgeted">Gebudgetteerd</string>
+
+    <!-- Onboarding -->
+    <string name="login_welcome">Welkom terug</string>
+    <string name="login_subtitle">Log in op je Pledger-server</string>
+    <string name="login_username">Gebruikersnaam</string>
+    <string name="login_password">Wachtwoord</string>
+    <string name="login_sign_in">Inloggen</string>
+    <string name="login_change_server">Server wijzigen</string>
+    <string name="server_setup_url_label">Server-URL</string>
+    <string name="server_setup_url_hint">https://my-pledger.example.com</string>
+    <string name="server_setup_connect">Verbinden</string>
+
+    <!-- Common actions -->
+    <string name="action_save">Opslaan</string>
+    <string name="action_delete">Verwijderen</string>
+    <string name="action_edit">Bewerken</string>
+    <string name="action_ok">OK</string>
+    <string name="action_new">Nieuw</string>
+    <string name="label_name">Naam</string>
+    <string name="label_description_optional">Beschrijving (optioneel)</string>
+
+    <!-- Transaction form -->
+    <string name="transaction_description_label">Waar was dit voor?</string>
+    <string name="transaction_description_hint">Boodschappen, salaris, huur…</string>
+    <string name="transaction_tags_label">Tags</string>
+    <string name="transaction_tags_hint">Tags zoeken of toevoegen…</string>
+    <string name="transaction_save_template">Huidige opslaan</string>
+    <string name="transaction_template_dialog_title">Opslaan als sjabloon</string>
+    <string name="transaction_template_name">Sjabloonnaam</string>
+    <string name="transaction_template_name_hint">Maandelijkse huur</string>
+    <string name="transaction_account_choose">Rekening kiezen</string>
+    <string name="transaction_account_none">Geen rekeningen beschikbaar</string>
+    <string name="transaction_account_search_all">Alle rekeningen doorzoeken…</string>
+    <string name="transaction_amount_hint">0.00</string>
+    <string name="transaction_date_today">Vandaag</string>
+    <string name="transaction_date_yesterday">Gisteren</string>
+
+    <!-- Categories / tags -->
+    <string name="categories_new">Nieuwe categorie</string>
+    <string name="categories_search">Categorieën zoeken…</string>
+    <string name="categories_name_hint">Boodschappen, vervoer, nutsvoorzieningen…</string>
+    <string name="categories_description_hint">Helpt teamleden te begrijpen wanneer ze deze gebruiken</string>
+    <string name="categories_delete_title">Categorie verwijderen?</string>
+    <string name="categories_delete_message">Hiermee wordt \"%1$s\" uit je categorielijst verwijderd.</string>
+    <string name="tags_new">Nieuwe tag</string>
+    <string name="tags_search">Tags zoeken…</string>
+    <string name="tags_name_hint">vakantie, zakelijk, terugkerend…</string>
+    <string name="tags_delete_title">Tag verwijderen?</string>
+    <string name="tags_delete_message">Hiermee wordt \"%1$s\" uit je taglijst verwijderd.</string>
+    <string name="account_delete_title">Rekening verwijderen?</string>
+    <string name="account_delete_message">Dit kan niet ongedaan worden gemaakt.</string>
+
+    <!-- Account form -->
+    <string name="account_name_label">Rekeningnaam *</string>
+    <string name="account_description_label">Beschrijving</string>
+    <string name="account_iban_label">IBAN</string>
+    <string name="account_bic_label">BIC</string>
+    <string name="account_opening_balance_label">Beginsaldo</string>
+    <string name="account_type_label">Rekeningtype *</string>
+    <string name="account_currency_label">Valuta *</string>
+
+    <string name="transaction_form_guided_banner_title">Begeleide modus</string>
+    <string name="transaction_form_guided_banner_hint">Optionele velden blijven ingeklapt tot je Meer opties opent.</string>
+    <string name="transaction_form_power_banner_title">Power-modus</string>
+    <string name="transaction_form_power_banner_hint">Sjablonen en geavanceerde velden staan klaar voor snellere invoer.</string>
+
+    <string name="transaction_form_new_title">Nieuwe transactie</string>
+    <string name="transaction_form_edit_title">Transactie bewerken</string>
+    <string name="transaction_form_create">Transactie aanmaken</string>
+    <string name="transaction_form_save_changes">Wijzigingen opslaan</string>
+    <string name="transaction_form_saving">Opslaan…</string>
+    <string name="transaction_type_income">Inkomsten</string>
+    <string name="transaction_type_expense">Uitgaven</string>
+    <string name="transaction_type_transfer">Overboeking</string>
+    <string name="transaction_type_subtitle_income">Geld dat je hebt ontvangen registreren</string>
+    <string name="transaction_type_subtitle_expense">Geld dat je hebt uitgegeven registreren</string>
+    <string name="transaction_type_subtitle_transfer">Geld verplaatsen tussen je rekeningen</string>
+    <string name="transaction_source_received_from">Ontvangen van</string>
+    <string name="transaction_source_paid_from">Betaald vanaf</string>
+    <string name="transaction_source_from">Van</string>
+    <string name="transaction_target_deposited_to">Gestort op</string>
+    <string name="transaction_target_payee">Naar (begunstigde)</string>
+    <string name="transaction_target_to">Naar</string>
+    <string name="transaction_flow_help_income">Geld wordt geregistreerd van een partij naar een van je rekeningen.</string>
+    <string name="transaction_flow_help_expense">Geld verlaat je rekening en wordt geregistreerd bij een begunstigde.</string>
+    <string name="transaction_flow_help_transfer">Geld wordt verplaatst tussen twee rekeningen die je bezit.</string>
+    <string name="transaction_amount_label">Bedrag</string>
+    <string name="transaction_date_label">Datum</string>
+    <string name="transaction_more_options">Meer opties</string>
+    <string name="transaction_more_options_hint">Optionele classificatie voor rapporten en filters.</string>
+    <string name="transaction_auto_classify">Automatisch classificeren</string>
+    <string name="transaction_category_label">Categorie</string>
+    <string name="transaction_expense_label">Budgetuitgave</string>
+    <string name="transaction_contract_label">Contract</string>
+    <string name="transaction_add_party">Nieuwe partij toevoegen</string>
+    <string name="transaction_templates">Sjablonen</string>
+    <string name="transaction_templates_scroll_hint">Meer sjablonen, horizontaal scrollen</string>
+    <string name="transaction_split_title">Transactie splitsen</string>
+    <string name="transaction_split_subtitle">Verdeel het bedrag over meerdere omschrijvingen (alleen bestaande transacties).</string>
+    <string name="transaction_split_empty_hint">Voeg regels toe die optellen tot %1$s.</string>
+    <string name="transaction_split_part_label">Deel</string>
+    <string name="transaction_split_total">Splitsing totaal</string>
+    <string name="transaction_split_remaining">Resterend</string>
+    <string name="transaction_split_add_line">Splitsingsregel toevoegen</string>
+    <string name="transaction_split_error_line_description">Elke splitsingsregel heeft een omschrijving nodig</string>
+    <string name="transaction_split_error_line_amount">Voer een geldig bedrag in voor elke splitsingsregel</string>
+    <string name="transaction_split_error_total_mismatch">Splitsingsbedragen moeten optellen tot het transactietotaal</string>
+    <string name="transaction_error_amount">Voer een bedrag groter dan nul in</string>
+    <string name="transaction_error_choose_field">Kies %1$s</string>
+    <string name="transaction_error_description">Voeg een korte omschrijving toe</string>
+    <string name="transaction_auto_classify_need_input">Voeg een omschrijving of bedrag toe zodat automatische classificatie kan draaien.</string>
+    <string name="transaction_auto_classify_none">Er zijn geen classificatiesuggesties teruggekomen.</string>
+    <string name="transaction_auto_classify_applied">Suggesties toegepast voor %1$s.</string>
+    <string name="transaction_auto_classify_unresolved">Suggesties ontvangen, maar %1$s kon niet worden gekoppeld.</string>
+    <string name="transaction_auto_classify_partial">%1$s toegepast en %2$s kon niet worden gekoppeld.</string>
+    <string name="transaction_auto_classify_failed">Deze transactie kon niet worden geclassificeerd.</string>
+    <string name="transaction_classify_part_category">categorie</string>
+    <string name="transaction_classify_part_expense_group">uitgavengroep</string>
+    <string name="transaction_classify_part_tags">tags</string>
+    <string name="transaction_tags_creating">Tag aanmaken…</string>
+    <string name="transaction_tags_searching">Zoeken…</string>
+    <string name="transaction_tags_empty_catalog">Nog geen tags — typ een naam en tik op Gereed</string>
+    <string name="transaction_tags_no_match">Geen overeenkomende tags</string>
+    <string name="transaction_tags_create">\"%1$s\" aanmaken</string>
+    <string name="transaction_tags_remove">%1$s verwijderen</string>
+    <string name="transaction_tags_clear_search">Zoekopdracht wissen</string>
+    <string name="transaction_owned_account_search_label">Rekeningen zoeken</string>
+    <string name="transaction_owned_account_no_accounts">Geen rekeningen beschikbaar</string>
+    <string name="transaction_owned_account_no_matches">Geen resultaten</string>
+    <string name="transaction_template_default_name">Nieuw sjabloon</string>
+    <string name="filter_autocomplete_no_results">Geen resultaten</string>
+    <string name="content_description_clear">Wissen</string>
+
+    <string name="settings_not_configured">Niet geconfigureerd</string>
+</resources>

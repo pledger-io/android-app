@@ -98,11 +98,11 @@ fun DashboardScreen(
     Scaffold(
         topBar = {
             PledgerTopBar(
-                title = "Pledger.io",
+                title = stringResource(R.string.dashboard_title),
                 subtitle = if (uiState.financeExperienceMode == FinanceExperienceMode.GUIDED) {
-                    "Your finances at a glance · Guided mode"
+                    stringResource(R.string.dashboard_subtitle_guided)
                 } else {
-                    "Your finances at a glance"
+                    stringResource(R.string.dashboard_subtitle_default)
                 },
                 branded = true,
                 actions = {
@@ -183,12 +183,12 @@ fun DashboardScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Text(
-                                    text = "Recent Transactions",
+                                    text = stringResource(R.string.dashboard_recent_transactions),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold,
                                 )
                                 TextButton(onClick = onNavigateToTransactions) {
-                                    Text("View all")
+                                    Text(stringResource(R.string.dashboard_view_all))
                                 }
                             }
                         }
@@ -240,8 +240,8 @@ fun DashboardScreen(
 private fun ExperienceModeCard() {
     val accent = MaterialTheme.colorScheme.primary
     val icon = Icons.Default.School
-    val title = "Guided mode active"
-    val body = "Simplified defaults are enabled to reduce setup friction."
+    val title = stringResource(R.string.experience_mode_guided_title)
+    val body = stringResource(R.string.experience_mode_guided_body)
     PledgerCard {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -310,7 +310,7 @@ private fun IncomeExpenseRow(income: Double, expense: Double, currency: String) 
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Income", style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.dashboard_income), style = MaterialTheme.typography.labelMedium)
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -338,7 +338,7 @@ private fun IncomeExpenseRow(income: Double, expense: Double, currency: String) 
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Expenses", style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.dashboard_expenses), style = MaterialTheme.typography.labelMedium)
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(

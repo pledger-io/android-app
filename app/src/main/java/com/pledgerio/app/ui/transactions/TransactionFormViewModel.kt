@@ -20,7 +20,7 @@ import com.pledgerio.app.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.repository.TagRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
-import com.pledgerio.app.ui.transactions.form.TransactionFormLabels
+import com.pledgerio.app.ui.transactions.form.splitValidationIssue
 import com.pledgerio.app.util.Resource
 import com.pledgerio.app.util.TransactionTemplateStore
 import com.pledgerio.app.util.UserPreferences
@@ -124,28 +124,13 @@ data class TransactionFormUiState(
     val financeExperienceMode: FinanceExperienceMode = FinanceExperienceMode.GUIDED,
     val moreOptionsManuallyToggled: Boolean = false,
     val isAutoClassifying: Boolean = false,
-    val autoClassifyStatus: String? = null,
+    val autoClassifyStatus: com.pledgerio.app.ui.transactions.form.AutoClassifyStatus? = null,
 ) {
     val splitTotal: Double
         get() = splitLines.sumOf { it.amount.toDoubleOrNull() ?: 0.0 }
 
     val splitRemaining: Double
         get() = (amount.toDoubleOrNull() ?: 0.0) - splitTotal
-
-    val splitValidationError: String?
-        get() {
-            if (splitLines.isEmpty()) return null
-            if (splitLines.any { it.description.isBlank() }) {
-                return "Each split line needs a description"
-            }
-            if (splitLines.any { it.amount.toDoubleOrNull() == null }) {
-                return "Enter a valid amount for each split line"
-            }
-            if (abs(splitRemaining) > 0.01) {
-                return "Split amounts must add up to the transaction total"
-            }
-            return null
-        }
 
     val hasSplitChanges: Boolean
         get() = splitLines.toDomainSplits() != originalSplitSnapshot
@@ -155,43 +140,10 @@ data class TransactionFormUiState(
     val targetInputKind: AccountInputKind
         get() = inputKindForTarget(type)
 
-    val sourceLabel: String get() = TransactionFormLabels.sourceLabel(type)
-    val targetLabel: String get() = TransactionFormLabels.targetLabel(type)
-    val flowHelperText: String get() = TransactionFormLabels.flowHelperText(type)
-    val typeSubtitle: String get() = TransactionFormLabels.typeSubtitle(type)
-    val screenTitle: String get() = if (isEditing) "Edit transaction" else "New transaction"
-    val submitLabel: String get() = if (isEditing) "Save changes" else "Create transaction"
     val showTemplatesSection: Boolean
         get() = !isEditing && financeExperienceMode == FinanceExperienceMode.POWER
     val canAutoClassify: Boolean
         get() = !isEditing && (description.isNotBlank() || amount.toDoubleOrNull() != null)
-    val experienceModeTitle: String
-        get() = if (financeExperienceMode == FinanceExperienceMode.GUIDED) {
-            "Guided mode"
-        } else {
-            "Power mode"
-        }
-    val experienceModeHint: String
-        get() = if (financeExperienceMode == FinanceExperienceMode.GUIDED) {
-            "Focus on amount and accounts first. Open More options only when needed."
-        } else {
-            "Templates and advanced fields are ready for faster repetitive entry."
-        }
-
-    val fieldErrors: TransactionFormFieldErrors
-        get() = if (!validationAttempted) {
-            TransactionFormFieldErrors()
-        } else {
-            TransactionFormFieldErrors(
-                amount = when {
-                    amount.toDoubleOrNull()?.let { it > 0 } != true -> "Enter an amount greater than zero"
-                    else -> null
-                },
-                source = if (sourceAccountId == null) "Choose ${sourceLabel.lowercase()}" else null,
-                target = if (targetAccountId == null) "Choose ${targetLabel.lowercase()}" else null,
-                description = if (description.isBlank()) "Add a short description" else null,
-            )
-        }
 
     val isValid: Boolean
         get() = description.isNotBlank()
@@ -201,25 +153,12 @@ data class TransactionFormUiState(
 
     val canSubmit: Boolean
         get() = isValid &&
-            splitValidationError == null &&
+            splitValidationIssue() == null &&
             when {
                 sourceInputKind == AccountInputKind.OWNED_DROPDOWN && ownedAccounts.isEmpty() -> false
                 targetInputKind == AccountInputKind.OWNED_DROPDOWN && ownedAccounts.isEmpty() -> false
                 else -> true
             }
-
-    val validationSummary: String?
-        get() {
-            if (!validationAttempted || canSubmit) return null
-            val messages = listOfNotNull(
-                fieldErrors.amount,
-                fieldErrors.source,
-                fieldErrors.target,
-                fieldErrors.description,
-                splitValidationError,
-            )
-            return messages.firstOrNull()
-        }
 
     companion object {
         fun inputKindForSource(type: TransactionType): AccountInputKind = when (type) {
@@ -608,9 +547,9 @@ class TransactionFormViewModel @Inject constructor(
         }
     }
 
-    fun showSaveTemplateDialog() {
+    fun showSaveTemplateDialog(defaultNameIfBlank: String) {
         val state = _uiState.value
-        val defaultName = state.description.trim().ifBlank { "New template" }
+        val defaultName = state.description.trim().ifBlank { defaultNameIfBlank }
         _uiState.update {
             it.copy(
                 showSaveTemplateDialog = true,
@@ -817,7 +756,7 @@ class TransactionFormViewModel @Inject constructor(
         val description = state.description.trim().ifBlank { null }
         if (description == null && amount == null) {
             _uiState.update {
-                it.copy(autoClassifyStatus = "Add a description or amount so auto classification can run.")
+                it.copy(autoClassifyStatus = com.pledgerio.app.ui.transactions.form.AutoClassifyStatus.NeedInput)
             }
             return
         }
@@ -859,23 +798,36 @@ class TransactionFormViewModel @Inject constructor(
                         ?.let { resolveExpenseOptionByName(it) }
 
                     val appliedParts = buildList {
-                        if (categoryOption != null) add("category")
-                        if (expenseOption != null) add("expense group")
-                        if (suggestedTags.isNotEmpty()) add("tags")
+                        if (categoryOption != null) {
+                            add(com.pledgerio.app.ui.transactions.form.ClassifyPart.CATEGORY)
+                        }
+                        if (expenseOption != null) {
+                            add(com.pledgerio.app.ui.transactions.form.ClassifyPart.EXPENSE_GROUP)
+                        }
+                        if (suggestedTags.isNotEmpty()) {
+                            add(com.pledgerio.app.ui.transactions.form.ClassifyPart.TAGS)
+                        }
                     }
                     val unresolvedParts = buildList {
-                        if (suggestedCategory.isNotBlank() && categoryOption == null) add("category")
-                        if (suggestedExpense.isNotBlank() && expenseOption == null) add("expense group")
+                        if (suggestedCategory.isNotBlank() && categoryOption == null) {
+                            add(com.pledgerio.app.ui.transactions.form.ClassifyPart.CATEGORY)
+                        }
+                        if (suggestedExpense.isNotBlank() && expenseOption == null) {
+                            add(com.pledgerio.app.ui.transactions.form.ClassifyPart.EXPENSE_GROUP)
+                        }
                     }
                     val status = when {
                         appliedParts.isEmpty() && unresolvedParts.isEmpty() ->
-                            "No classification suggestions were returned."
+                            com.pledgerio.app.ui.transactions.form.AutoClassifyStatus.NoSuggestions
                         appliedParts.isNotEmpty() && unresolvedParts.isEmpty() ->
-                            "Applied suggestions for ${appliedParts.joinToString()}."
+                            com.pledgerio.app.ui.transactions.form.AutoClassifyStatus.Applied(appliedParts)
                         appliedParts.isEmpty() ->
-                            "Suggestions returned, but couldn't match ${unresolvedParts.joinToString()}."
+                            com.pledgerio.app.ui.transactions.form.AutoClassifyStatus.Unresolved(unresolvedParts)
                         else ->
-                            "Applied ${appliedParts.joinToString()} and couldn't match ${unresolvedParts.joinToString()}."
+                            com.pledgerio.app.ui.transactions.form.AutoClassifyStatus.Partial(
+                                applied = appliedParts,
+                                unresolved = unresolvedParts,
+                            )
                     }
 
                     _uiState.update { current ->
@@ -931,7 +883,9 @@ class TransactionFormViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isAutoClassifying = false,
-                            autoClassifyStatus = result.message ?: "Couldn't classify this transaction.",
+                            autoClassifyStatus = com.pledgerio.app.ui.transactions.form.AutoClassifyStatus.Error(
+                                result.message ?: "",
+                            ),
                         )
                     }
                 }

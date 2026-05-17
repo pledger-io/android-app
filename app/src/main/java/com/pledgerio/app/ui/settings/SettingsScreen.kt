@@ -63,8 +63,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
+import androidx.activity.compose.LocalActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.domain.model.AppLocale
+import com.pledgerio.app.ui.util.localizedDescription
+import com.pledgerio.app.ui.util.localizedName
 import com.pledgerio.app.util.BiometricAvailability
 import com.pledgerio.app.BuildConfig
 import com.pledgerio.app.R
@@ -186,7 +190,7 @@ fun SettingsScreen(
     if (uiState.showThemePicker) {
         AlertDialog(
             onDismissRequest = viewModel::dismissThemePicker,
-            title = { Text("Theme") },
+            title = { Text(stringResource(R.string.settings_theme)) },
             text = {
                 Column {
                     ThemeMode.entries.forEach { mode ->
@@ -202,7 +206,7 @@ fun SettingsScreen(
                                 onClick = { viewModel.selectTheme(mode) },
                             )
                             Text(
-                                text = mode.displayName,
+                                text = mode.localizedName(),
                                 style = MaterialTheme.typography.bodyLarge,
                             )
                         }
@@ -211,7 +215,50 @@ fun SettingsScreen(
             },
             confirmButton = {
                 TextButton(onClick = viewModel::dismissThemePicker) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
+    }
+
+    if (uiState.showLanguagePicker) {
+        val activity = LocalActivity.current as? AppCompatActivity
+        AlertDialog(
+            onDismissRequest = viewModel::dismissLanguagePicker,
+            title = { Text(stringResource(R.string.settings_language)) },
+            text = {
+                Column {
+                    AppLocale.entries.forEach { locale ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.selectAppLocale(locale) {
+                                        activity?.recreate()
+                                    }
+                                }
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(
+                                selected = uiState.appLocale == locale,
+                                onClick = {
+                                    viewModel.selectAppLocale(locale) {
+                                        activity?.recreate()
+                                    }
+                                },
+                            )
+                            Text(
+                                text = locale.localizedName(),
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::dismissLanguagePicker) {
+                    Text(stringResource(R.string.cancel))
                 }
             },
         )
@@ -220,7 +267,7 @@ fun SettingsScreen(
     if (uiState.showExperiencePicker) {
         AlertDialog(
             onDismissRequest = viewModel::dismissExperiencePicker,
-            title = { Text("Finance experience") },
+            title = { Text(stringResource(R.string.settings_experience)) },
             text = {
                 Column {
                     FinanceExperienceMode.entries.forEach { mode ->
@@ -237,11 +284,11 @@ fun SettingsScreen(
                             )
                             Column {
                                 Text(
-                                    text = mode.displayName,
+                                    text = mode.localizedName(),
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
                                 Text(
-                                    text = mode.description,
+                                    text = mode.localizedDescription(),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -252,7 +299,7 @@ fun SettingsScreen(
             },
             confirmButton = {
                 TextButton(onClick = viewModel::dismissExperiencePicker) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             },
         )
@@ -261,8 +308,8 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             PledgerTopBar(
-                title = "Settings",
-                subtitle = "Server, security & preferences",
+                title = stringResource(R.string.settings_title),
+                subtitle = stringResource(R.string.settings_subtitle),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -278,11 +325,12 @@ fun SettingsScreen(
                 .padding(paddingValues),
         ) {
             item {
-                SettingsSection("Server") {
+                SettingsSection(stringResource(R.string.settings_section_server)) {
                     SettingsItem(
                         icon = Icons.Default.Storage,
                         title = stringResource(R.string.settings_change_server),
-                        subtitle = uiState.serverUrl ?: "Not configured",
+                        subtitle = uiState.serverUrl
+                            ?: stringResource(R.string.settings_not_configured),
                         onClick = onNavigateToChangeServer,
                     )
                 }
@@ -302,10 +350,10 @@ fun SettingsScreen(
                             stringResource(R.string.settings_biometric_disabled)
                         }
                 }
-                SettingsSection("Security") {
+                SettingsSection(stringResource(R.string.settings_section_security)) {
                     SettingsToggle(
                         icon = Icons.Default.Fingerprint,
-                        title = "Biometric Login",
+                        title = stringResource(R.string.settings_biometric_login),
                         subtitle = biometricSubtitle,
                         checked = uiState.biometricEnabled,
                         enabled = uiState.biometricAvailability.canEnable,
@@ -314,7 +362,7 @@ fun SettingsScreen(
                                 viewModel.toggleBiometric(false)
                                 return@SettingsToggle
                             }
-                            val activity = context as? FragmentActivity ?: return@SettingsToggle
+                            val activity = context as? AppCompatActivity ?: return@SettingsToggle
                             viewModel.enableBiometric(
                                 activity = activity,
                                 enableTitle = context.getString(R.string.settings_biometric_enable_title),
@@ -332,42 +380,49 @@ fun SettingsScreen(
             }
 
             item {
-                SettingsSection("Data") {
+                SettingsSection(stringResource(R.string.settings_section_data)) {
                     SettingsItem(
                         icon = Icons.Default.Category,
-                        title = "Categories",
-                        subtitle = "Manage transaction categories",
+                        title = stringResource(R.string.settings_categories),
+                        subtitle = stringResource(R.string.settings_categories_subtitle),
                         onClick = onNavigateToCategories,
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SettingsItem(
                         icon = Icons.Default.Tag,
-                        title = "Tags",
-                        subtitle = "Manage transaction tags",
+                        title = stringResource(R.string.settings_tags),
+                        subtitle = stringResource(R.string.settings_tags_subtitle),
                         onClick = onNavigateToTags,
                     )
                 }
             }
 
             item {
-                SettingsSection("Preferences") {
+                SettingsSection(stringResource(R.string.settings_section_preferences)) {
                     SettingsItem(
                         icon = Icons.Default.Language,
-                        title = "Display currency",
+                        title = stringResource(R.string.settings_language),
+                        subtitle = uiState.appLocale.localizedName(),
+                        onClick = viewModel::openLanguagePicker,
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    SettingsItem(
+                        icon = Icons.Default.Language,
+                        title = stringResource(R.string.settings_display_currency),
                         subtitle = uiState.displayCurrencyLabel,
                         onClick = viewModel::openCurrencyPicker,
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SettingsItem(
                         icon = Icons.Default.DarkMode,
-                        title = "Theme",
-                        subtitle = uiState.themeMode.displayName,
+                        title = stringResource(R.string.settings_theme),
+                        subtitle = uiState.themeMode.localizedName(),
                         onClick = viewModel::openThemePicker,
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SettingsItem(
                         icon = Icons.Default.Notifications,
-                        title = "Notifications",
+                        title = stringResource(R.string.settings_notifications),
                         subtitle = stringResource(R.string.settings_notifications_coming_soon),
                         onClick = {},
                         enabled = false,
@@ -375,15 +430,19 @@ fun SettingsScreen(
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SettingsItem(
                         icon = Icons.Default.Speed,
-                        title = "Finance experience",
-                        subtitle = "${uiState.financeExperienceMode.displayName} — ${uiState.financeExperienceMode.description}",
+                        title = stringResource(R.string.settings_experience),
+                        subtitle = stringResource(
+                            R.string.settings_experience_format,
+                            uiState.financeExperienceMode.localizedName(),
+                            uiState.financeExperienceMode.localizedDescription(),
+                        ),
                         onClick = viewModel::openExperiencePicker,
                     )
                 }
             }
 
             item {
-                SettingsSection("About") {
+                SettingsSection(stringResource(R.string.settings_section_about)) {
                     SettingsItem(
                         icon = Icons.Default.BugReport,
                         title = stringResource(R.string.report_issue_settings_title),
@@ -393,7 +452,7 @@ fun SettingsScreen(
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SettingsItem(
                         icon = Icons.Default.Info,
-                        title = "Version",
+                        title = stringResource(R.string.settings_version),
                         subtitle = BuildConfig.VERSION_NAME,
                         onClick = { },
                     )
@@ -417,7 +476,7 @@ fun SettingsScreen(
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
-                        "Sign Out",
+                        stringResource(R.string.settings_sign_out),
                         style = MaterialTheme.typography.bodyLarge,
                         color = ExpenseRed,
                         fontWeight = FontWeight.Medium,

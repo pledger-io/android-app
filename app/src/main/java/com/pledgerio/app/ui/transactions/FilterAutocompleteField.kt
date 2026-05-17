@@ -29,7 +29,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.FilterOption
 
 @Composable
@@ -79,7 +81,10 @@ fun FilterAutocompleteField(
                     }
                     if (selected != null || query.isNotEmpty()) {
                         IconButton(onClick = onClear) {
-                            Icon(Icons.Default.Clear, contentDescription = "Clear")
+                            Icon(
+                                Icons.Default.Clear,
+                                contentDescription = stringResource(R.string.content_description_clear),
+                            )
                         }
                     }
                 }
@@ -109,7 +114,7 @@ fun FilterAutocompleteField(
                     when {
                         isLoading && suggestions.isEmpty() -> {
                             Text(
-                                text = "Searching…",
+                                text = stringResource(R.string.transaction_tags_searching),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -117,7 +122,7 @@ fun FilterAutocompleteField(
                         }
                         !isLoading && suggestions.isEmpty() -> {
                             Text(
-                                text = "No results",
+                                text = stringResource(R.string.filter_autocomplete_no_results),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),

@@ -10,8 +10,8 @@ enum class AccountTypeFamily {
 
 /** One row in the add-account menu or the form type dropdown (checking/savings are merged). */
 data class AccountTypePickerEntry(
-    val label: String,
-    val description: String,
+    val label: AccountPickerLabel,
+    val description: AccountPickerDescription,
     val iconTypeCode: String,
     val soloTypeCode: String,
     val jointTypeCode: String?,
@@ -46,8 +46,8 @@ object AccountTypePicker {
             val soloCode = checkingSolo?.code ?: checkingJoint!!.code
             entries.add(
                 AccountTypePickerEntry(
-                    label = "Checking",
-                    description = "Current account for everyday spending",
+                    label = AccountPickerLabel.Checking,
+                    description = AccountPickerDescription.Checking,
                     iconTypeCode = soloCode,
                     soloTypeCode = soloCode,
                     jointTypeCode = checkingJoint?.code,
@@ -63,8 +63,8 @@ object AccountTypePicker {
             val soloCode = savingsSolo?.code ?: savingsJoint!!.code
             entries.add(
                 AccountTypePickerEntry(
-                    label = "Savings",
-                    description = "Money set aside for goals and reserves",
+                    label = AccountPickerLabel.Savings,
+                    description = AccountPickerDescription.Savings,
                     iconTypeCode = soloCode,
                     soloTypeCode = soloCode,
                     jointTypeCode = savingsJoint?.code,
@@ -78,10 +78,12 @@ object AccountTypePicker {
             .forEach { option ->
                 entries.add(
                     AccountTypePickerEntry(
-                        label = option.displayName,
-                        description = option.description.ifBlank {
-                            AccountTypeCatalog.metadataFor(option.code).description
-                        },
+                        label = AccountPickerLabel.Custom(option.displayName),
+                        description = AccountPickerDescription.Custom(
+                            option.description.ifBlank {
+                                AccountTypeCatalog.metadataFor(option.code).description
+                            },
+                        ),
                         iconTypeCode = option.code,
                         soloTypeCode = option.code,
                         jointTypeCode = null,

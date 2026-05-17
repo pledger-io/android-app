@@ -20,12 +20,12 @@ class AccountTypePickerTest {
       ownedOptions("default" to "Checking", "joined" to "Joint checking", "cash" to "Cash"),
     )
 
-    val checking = entries.single { it.label == "Checking" }
+    val checking = entries.single { it.label is AccountPickerLabel.Checking }
     assertEquals("default", checking.soloTypeCode)
     assertEquals("joined", checking.jointTypeCode)
     assertEquals(AccountTypeFamily.CHECKING, checking.family)
     assertEquals(2, entries.size)
-    assertTrue(entries.any { it.label == "Cash" })
+    assertTrue(entries.any { (it.label as? AccountPickerLabel.Custom)?.value == "Cash" })
   }
 
   @Test
@@ -34,7 +34,7 @@ class AccountTypePickerTest {
       ownedOptions("savings" to "Savings", "joined_savings" to "Joint savings"),
     )
 
-    val savings = entries.single { it.label == "Savings" }
+    val savings = entries.single { it.label is AccountPickerLabel.Savings }
     assertEquals("savings", savings.soloTypeCode)
     assertEquals("joined_savings", savings.jointTypeCode)
     assertEquals(AccountTypeFamily.SAVINGS, savings.family)
@@ -47,7 +47,7 @@ class AccountTypePickerTest {
     )
 
     assertEquals(2, entries.size)
-    val card = entries.single { it.label == "Credit card" }
+    val card = entries.single { (it.label as AccountPickerLabel.Custom).value == "Credit card" }
     assertNull(card.jointTypeCode)
     assertNull(card.family)
     assertEquals("credit_card", card.soloTypeCode)

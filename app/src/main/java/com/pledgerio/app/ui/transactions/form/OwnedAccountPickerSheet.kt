@@ -25,7 +25,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.ui.components.AccountIcon
 import com.pledgerio.app.util.formatCurrency
@@ -70,7 +72,7 @@ fun OwnedAccountPickerSheet(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                label = { Text("Search accounts") },
+                label = { Text(stringResource(R.string.transaction_owned_account_search_label)) },
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -78,7 +80,11 @@ fun OwnedAccountPickerSheet(
             )
             if (filtered.isEmpty()) {
                 Text(
-                    text = if (accounts.isEmpty()) "No accounts available" else "No matches",
+                    text = if (accounts.isEmpty()) {
+                        stringResource(R.string.transaction_owned_account_no_accounts)
+                    } else {
+                        stringResource(R.string.transaction_owned_account_no_matches)
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 16.dp),

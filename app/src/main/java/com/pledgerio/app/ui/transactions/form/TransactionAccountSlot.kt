@@ -22,7 +22,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.FilterOption
 import com.pledgerio.app.ui.components.AccountIcon
@@ -70,7 +72,11 @@ fun TransactionAccountSlot(
                     onQueryChange = onQueryChange,
                     onSelected = onAutocompleteSelected,
                     onClear = onAutocompleteClear,
-                    addNewLabel = if (onAddNewParty != null) "Add new party" else null,
+                    addNewLabel = if (onAddNewParty != null) {
+                        stringResource(R.string.transaction_add_party)
+                    } else {
+                        null
+                    },
                     onAddNew = onAddNewParty,
                 )
             }
@@ -117,7 +123,7 @@ private fun OwnedAccountPicker(
             value = selected?.name ?: "",
             onValueChange = {},
             readOnly = true,
-            placeholder = { Text("Choose account") },
+            placeholder = { Text(stringResource(R.string.transaction_account_choose)) },
             isError = isError,
             leadingIcon = selected?.let { account ->
                 {
@@ -139,7 +145,7 @@ private fun OwnedAccountPicker(
         ) {
             if (accounts.isEmpty()) {
                 DropdownMenuItem(
-                    text = { Text("No accounts available") },
+                    text = { Text(stringResource(R.string.transaction_account_none)) },
                     onClick = { expanded = false },
                     enabled = false,
                 )
@@ -173,7 +179,7 @@ private fun OwnedAccountPicker(
                 if (showSearchEntry) {
                     HorizontalDivider()
                     DropdownMenuItem(
-                        text = { Text("Search all accounts…") },
+                        text = { Text(stringResource(R.string.transaction_account_search_all)) },
                         onClick = {
                             expanded = false
                             onOpenSearch()

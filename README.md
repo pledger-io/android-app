@@ -75,7 +75,7 @@ app/src/main/java/com/pledgerio/app/
 - **Currencies** — Fetched from API, cached in Room, used for `formatCurrency()` across the app
 - **Budgets** — Initial budget setup on 404; monthly overview per expense group; manage groups (add/edit); detail screen (see [Budgets](docs/BUDGETS.md))
 - **Reports** — Report type selector UI (chart data integration in progress)
-- **Settings** — Storage, biometric toggle, language/theme preferences, finance experience mode (Guided/Power), in-app bug reports (logs + GitHub issue), logout
+- **Settings** — Storage, biometric unlock, **language** (English / Dutch / German / system), theme, display currency, finance experience mode (Guided/Power), in-app bug reports (logs + GitHub issue), logout
 - **Offline** — Room cache with network fallback; periodic sync via WorkManager (accounts, currencies, budget alerts)
 - **Account logos** — `iconFileCode` loaded from `GET /v2/api/files/{fileCode}` on account and transaction detail screens
 
@@ -111,6 +111,7 @@ app/src/main/java/com/pledgerio/app/
 - [Budgets](docs/BUDGETS.md) — Initial setup, expense groups, API mapping
 - [Transaction form redesign](docs/TRANSACTION_FORM_REDESIGN.md) — Planned UX for creating transactions (type-first flow, amount hero, contextual account labels)
 - [Usability modes](docs/USABILITY_MODES.md) — Guided mode for novices and Power mode for advanced users
+- [Localization](docs/LOCALIZATION.md) — English, Dutch, and German (extensible)
 - [Architecture Decision Records](docs/adr/README.md) — Rationale for major technical choices
 
 Backend API reference: [pledger-io/rest-application](https://github.com/pledger-io/rest-application) (`/v2/api/…` contract).

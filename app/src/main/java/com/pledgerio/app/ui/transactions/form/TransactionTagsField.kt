@@ -38,7 +38,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.pledgerio.app.R
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -64,8 +66,8 @@ fun TransactionTagsField(
         OutlinedTextField(
             value = input,
             onValueChange = onInputChange,
-            label = { Text("Tags") },
-            placeholder = { Text("Search or add tags…") },
+            label = { Text(stringResource(R.string.transaction_tags_label)) },
+            placeholder = { Text(stringResource(R.string.transaction_tags_hint)) },
             singleLine = true,
             enabled = !isAdding,
             isError = error != null,
@@ -92,7 +94,10 @@ fun TransactionTagsField(
                     }
                     if (input.isNotEmpty() && !isAdding) {
                         IconButton(onClick = { onInputChange("") }) {
-                            Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                            Icon(
+                                Icons.Default.Clear,
+                                contentDescription = stringResource(R.string.transaction_tags_clear_search),
+                            )
                         }
                     }
                 }
@@ -125,7 +130,11 @@ fun TransactionTagsField(
                     when {
                         busy && suggestions.isEmpty() -> {
                             Text(
-                                text = if (isAdding) "Creating tag…" else "Searching…",
+                                text = if (isAdding) {
+                                    stringResource(R.string.transaction_tags_creating)
+                                } else {
+                                    stringResource(R.string.transaction_tags_searching)
+                                },
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -134,9 +143,9 @@ fun TransactionTagsField(
                         !busy && suggestions.isEmpty() -> {
                             Text(
                                 text = if (input.isBlank()) {
-                                    "No tags yet — type a name and tap Done"
+                                    stringResource(R.string.transaction_tags_empty_catalog)
                                 } else {
-                                    "No matching tags"
+                                    stringResource(R.string.transaction_tags_no_match)
                                 },
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -145,7 +154,7 @@ fun TransactionTagsField(
                             if (input.isNotBlank()) {
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                                 Text(
-                                    text = "Create \"$input\"",
+                                    text = stringResource(R.string.transaction_tags_create, input),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier
@@ -174,7 +183,7 @@ fun TransactionTagsField(
                             ) {
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                                 Text(
-                                    text = "Create \"$input\"",
+                                    text = stringResource(R.string.transaction_tags_create, input),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier
@@ -204,7 +213,7 @@ fun TransactionTagsField(
                         trailingIcon = {
                             Icon(
                                 Icons.Default.Close,
-                                contentDescription = "Remove $tag",
+                                contentDescription = stringResource(R.string.transaction_tags_remove, tag),
                                 modifier = Modifier.padding(start = 2.dp),
                             )
                         },

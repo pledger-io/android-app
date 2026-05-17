@@ -95,4 +95,319 @@
     <string name="report_issue_settings_subtitle">Attach logs and open a GitHub bug report</string>
     <string name="report_issue_open_github">Opening GitHub — review the form and tap Submit.</string>
     <string name="report_issue_open_github_with_clipboard">Opening GitHub — full logs are on your clipboard if needed.</string>
+
+    <!-- Language -->
+    <string name="language_system">System default</string>
+    <string name="language_english">English</string>
+    <string name="language_dutch">Dutch</string>
+    <string name="language_german">German</string>
+    <string name="settings_language">Language</string>
+
+    <!-- Theme -->
+    <string name="theme_system">System default</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="settings_theme">Theme</string>
+
+    <!-- Finance experience -->
+    <string name="experience_guided_name">Guided</string>
+    <string name="experience_guided_description">Simpler defaults for new users</string>
+    <string name="experience_power_name">Power</string>
+    <string name="experience_power_description">Advanced options stay visible for faster entry</string>
+    <string name="settings_experience">Finance experience</string>
+    <string name="experience_mode_guided_title">Guided mode active</string>
+    <string name="experience_mode_guided_body">Simplified defaults are enabled to reduce setup friction.</string>
+    <string name="experience_mode_power_title">Power mode active</string>
+    <string name="experience_mode_power_body">Advanced controls are enabled for faster transaction entry.</string>
+    <string name="dashboard_subtitle_guided">Your finances at a glance · Guided mode</string>
+    <string name="dashboard_subtitle_default">Your finances at a glance</string>
+    <string name="transaction_form_guided_hint">Need categories, tags, or contracts? Open More options.</string>
+    <string name="transaction_form_guided_banner_title">Guided mode</string>
+    <string name="transaction_form_guided_banner_hint">Optional fields stay collapsed until you open More options.</string>
+    <string name="transaction_form_power_banner_title">Power mode</string>
+    <string name="transaction_form_power_banner_hint">Templates and advanced fields are ready for faster repetitive entry.</string>
+    <string name="settings_not_configured">Not configured</string>
+
+    <!-- Screen titles -->
+    <string name="dashboard_title">Pledger.io</string>
+    <string name="accounts_title">Accounts</string>
+    <string name="accounts_subtitle">Balances and counterparties</string>
+    <string name="budgets_title">Budgets</string>
+    <string name="budgets_subtitle">Plan and track your spending</string>
+    <string name="transactions_title">Transactions</string>
+    <string name="transactions_subtitle">Income, expenses and transfers</string>
+    <string name="reports_title">Reports</string>
+    <string name="reports_subtitle">Insights into your money</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_subtitle">Server, security &amp; preferences</string>
+    <string name="categories_title">Manage categories</string>
+    <string name="tags_title">Manage tags</string>
+
+    <!-- Settings sections -->
+    <string name="settings_section_server">Server</string>
+    <string name="settings_section_security">Security</string>
+    <string name="settings_section_data">Data</string>
+    <string name="settings_section_preferences">Preferences</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_biometric_login">Biometric login</string>
+    <string name="settings_categories">Categories</string>
+    <string name="settings_categories_subtitle">Manage transaction categories</string>
+    <string name="settings_tags">Tags</string>
+    <string name="settings_tags_subtitle">Manage transaction tags</string>
+    <string name="settings_display_currency">Display currency</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_sign_out">Sign out</string>
+    <string name="settings_sign_out_confirm_title">Sign out</string>
+    <string name="settings_sign_out_confirm_message">Are you sure you want to sign out?</string>
+    <string name="settings_loading_currencies">Loading currencies…</string>
+    <string name="settings_experience_format">%1$s — %2$s</string>
+
+    <!-- Reports -->
+    <string name="report_type_income_expense">Income vs expenses</string>
+    <string name="report_type_category">Category breakdown</string>
+    <string name="report_type_budget">Budget performance</string>
+    <string name="report_type_net_worth">Net worth</string>
+    <string name="report_type_balance">Account balance</string>
+    <string name="report_income">Income</string>
+    <string name="report_expenses">Expenses</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_recent_transactions">Recent transactions</string>
+    <string name="dashboard_view_all">View all</string>
+    <string name="dashboard_net_worth">Net worth</string>
+    <string name="dashboard_income">Income</string>
+    <string name="dashboard_expenses">Expenses</string>
+    <string name="fab_new_transaction">New transaction</string>
+    <string name="fab_new_transaction_subtitle">Record income, expense or transfer</string>
+    <string name="fab_new_account">New account</string>
+    <string name="fab_new_account_subtitle">Add a bank account or wallet</string>
+
+    <!-- Accounts -->
+    <string name="accounts_filter_all">All</string>
+    <string name="accounts_filter_owned">Owned (%1$d)</string>
+    <string name="accounts_filter_parties">Parties</string>
+    <string name="accounts_filter_parties_count">Parties (%1$d)</string>
+    <string name="accounts_search_parties">Search parties…</string>
+    <string name="accounts_subtitle_all">%1$d owned · %2$d parties</string>
+    <string name="accounts_subtitle_owned">%1$d wallets you hold</string>
+    <string name="accounts_subtitle_search_results">Search results</string>
+    <string name="accounts_subtitle_showing_parties">Showing %1$d of %2$d</string>
+    <string name="accounts_subtitle_parties_count">%1$d parties</string>
+    <string name="accounts_subtitle_creditors_debtors">Creditors &amp; debtors</string>
+    <string name="accounts_summary_owned_accounts">owned accounts</string>
+    <string name="accounts_summary_in_view">in this view</string>
+    <string name="accounts_empty_in_view">No accounts in this view.</string>
+    <string name="accounts_total_balance">Total balance</string>
+    <string name="accounts_count">%1$d accounts</string>
+    <string name="accounts_counterparties_title">Counterparties</string>
+    <string name="accounts_counterparties_showing">Showing %1$d of %2$d</string>
+    <string name="accounts_counterparties_loaded">%1$d parties</string>
+    <string name="accounts_counterparties_hint">Search or scroll to load more. Balances are loaded when you open an account.</string>
+    <string name="accounts_counterparties_browse">%1$d creditors &amp; debtors — search and scroll to browse</string>
+    <string name="account_form_new_title">New account</string>
+    <string name="account_form_edit_title">Edit account</string>
+    <string name="account_form_create">Create account</string>
+    <string name="account_form_save_changes">Save changes</string>
+    <string name="account_error_name_required">Please provide a name</string>
+    <string name="account_ownership_personal">Personal</string>
+    <string name="account_ownership_joint">Joint</string>
+    <string name="account_ownership_checking">Checking account</string>
+    <string name="account_ownership_savings">Savings account</string>
+    <string name="account_section_your_accounts">Your accounts</string>
+    <string name="account_picker_joint_hint_form">%1$s · personal or joint below</string>
+    <string name="account_picker_joint_hint_fab">%1$s · choose personal or joint on the next screen</string>
+    <string name="account_picker_checking_label">Checking</string>
+    <string name="account_picker_checking_description">Current account for everyday spending</string>
+    <string name="account_picker_savings_label">Savings</string>
+    <string name="account_picker_savings_description">Money set aside for goals and reserves</string>
+    <string name="account_detail_fallback_title">Account</string>
+    <string name="account_current_balance">Current balance</string>
+    <string name="account_detail_type">Type</string>
+    <string name="account_detail_currency">Currency</string>
+    <string name="account_detail_opening_balance">Opening balance</string>
+    <string name="account_detail_transactions">Transactions</string>
+    <string name="account_load_more">Load more</string>
+    <string name="account_load_more_progress">Load more (%1$d of %2$d)</string>
+    <string name="account_delete_confirm_message">“%1$s” will be removed from Pledger. This cannot be undone if the server allows deletion.</string>
+    <string name="content_description_delete_account">Delete account</string>
+    <string name="content_description_edit_account">Edit account</string>
+    <string name="content_description_browse_parties">Browse parties</string>
+    <string name="content_description_add_account">Add account</string>
+    <string name="content_description_close">Close</string>
+    <string name="account_group_everyday_title">Everyday banking</string>
+    <string name="account_group_everyday_description">Current accounts and cash for daily spending</string>
+    <string name="account_group_savings_title">Savings</string>
+    <string name="account_group_savings_description">Money set aside for goals and reserves</string>
+    <string name="account_group_credit_title">Credit</string>
+    <string name="account_group_credit_description">Cards and revolving credit lines</string>
+    <string name="account_group_liabilities_title">Loans &amp; liabilities</string>
+    <string name="account_group_liabilities_description">Money you owe — mortgages, loans, and debt</string>
+    <string name="account_group_counterparty_title">Counterparties</string>
+    <string name="account_group_counterparty_description">Parties you pay or receive money from in transactions</string>
+    <string name="account_group_other_title">Other</string>
+    <string name="account_group_other_description">Additional account types from your server</string>
+    <string name="account_type_checking_name">Checking</string>
+    <string name="account_type_checking_description">Your main bank account for everyday payments and direct debits.</string>
+    <string name="account_type_joint_checking_name">Joint checking</string>
+    <string name="account_type_joint_checking_description">A shared current account for household spending.</string>
+    <string name="account_type_cash_name">Cash</string>
+    <string name="account_type_cash_description">Physical cash kept on hand, outside the bank.</string>
+    <string name="account_type_savings_name">Savings</string>
+    <string name="account_type_savings_description">Funds reserved for goals, emergencies, or future purchases.</string>
+    <string name="account_type_joint_savings_name">Joint savings</string>
+    <string name="account_type_joint_savings_description">Shared savings held with a partner or household.</string>
+    <string name="account_type_credit_card_name">Credit card</string>
+    <string name="account_type_credit_card_description">Revolving credit — spending increases what you owe the issuer.</string>
+    <string name="account_type_loan_name">Loan</string>
+    <string name="account_type_loan_description">A loan balance you repay over time.</string>
+    <string name="account_type_mortgage_name">Mortgage</string>
+    <string name="account_type_mortgage_description">Property financing — principal and interest owed to the lender.</string>
+    <string name="account_type_debt_name">Debt</string>
+    <string name="account_type_debt_description">General debt or liability you are paying down.</string>
+    <string name="account_type_liability_name">Liability</string>
+    <string name="account_type_liability_description">Money you owe to a lender or institution.</string>
+    <string name="account_type_investment_name">Investment</string>
+    <string name="account_type_investment_description">Brokerage or investment account holdings.</string>
+    <string name="account_type_creditor_name">Creditor</string>
+    <string name="account_type_creditor_description">Someone you pay — shops, utilities, landlords, subscriptions.</string>
+    <string name="account_type_debtor_name">Debtor</string>
+    <string name="account_type_debtor_description">Someone who pays you — employer, clients, refunds, gifts.</string>
+    <string name="account_type_unknown_description">Account type “%1$s” from your Pledger server.</string>
+
+    <!-- Budget -->
+    <string name="budget_progress">Budget progress</string>
+    <string name="budget_spent">Spent</string>
+    <string name="budget_budgeted">Budgeted</string>
+
+    <!-- Onboarding -->
+    <string name="login_welcome">Welcome back</string>
+    <string name="login_subtitle">Sign in to your Pledger server</string>
+    <string name="login_username">Username</string>
+    <string name="login_password">Password</string>
+    <string name="login_sign_in">Sign in</string>
+    <string name="login_change_server">Change server</string>
+    <string name="server_setup_url_label">Server URL</string>
+    <string name="server_setup_url_hint">https://my-pledger.example.com</string>
+    <string name="server_setup_connect">Connect</string>
+
+    <!-- Common actions -->
+    <string name="action_save">Save</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_ok">OK</string>
+    <string name="action_new">New</string>
+    <string name="label_name">Name</string>
+    <string name="label_description_optional">Description (optional)</string>
+
+    <!-- Transaction form -->
+    <string name="transaction_description_label">What was this for?</string>
+    <string name="transaction_description_hint">Groceries, salary, rent…</string>
+    <string name="transaction_tags_label">Tags</string>
+    <string name="transaction_tags_hint">Search or add tags…</string>
+    <string name="transaction_save_template">Save current</string>
+    <string name="transaction_template_dialog_title">Save as template</string>
+    <string name="transaction_template_name">Template name</string>
+    <string name="transaction_template_name_hint">Monthly rent</string>
+    <string name="transaction_account_choose">Choose account</string>
+    <string name="transaction_account_none">No accounts available</string>
+    <string name="transaction_account_search_all">Search all accounts…</string>
+    <string name="transaction_amount_hint">0.00</string>
+    <string name="transaction_date_today">Today</string>
+    <string name="transaction_date_yesterday">Yesterday</string>
+
+    <!-- Categories / tags -->
+    <string name="categories_new">New category</string>
+    <string name="categories_search">Search categories…</string>
+    <string name="categories_name_hint">Groceries, transport, utilities…</string>
+    <string name="categories_description_hint">Helps teammates understand when to use it</string>
+    <string name="categories_delete_title">Delete category?</string>
+    <string name="categories_delete_message">This removes \"%1$s\" from your category list.</string>
+    <string name="tags_new">New tag</string>
+    <string name="tags_search">Search tags…</string>
+    <string name="tags_name_hint">vacation, business, recurring…</string>
+    <string name="tags_delete_title">Delete tag?</string>
+    <string name="tags_delete_message">This removes \"%1$s\" from your tag list.</string>
+    <string name="account_delete_title">Delete account?</string>
+    <string name="account_delete_message">This cannot be undone.</string>
+
+    <!-- Account form -->
+    <string name="account_name_label">Account name *</string>
+    <string name="account_description_label">Description</string>
+    <string name="account_iban_label">IBAN</string>
+    <string name="account_bic_label">BIC</string>
+    <string name="account_opening_balance_label">Opening balance</string>
+    <string name="account_type_label">Account type *</string>
+    <string name="account_currency_label">Currency *</string>
+
+    <!-- Transaction form -->
+    <string name="transaction_form_new_title">New transaction</string>
+    <string name="transaction_form_edit_title">Edit transaction</string>
+    <string name="transaction_form_create">Create transaction</string>
+    <string name="transaction_form_save_changes">Save changes</string>
+    <string name="transaction_form_saving">Saving…</string>
+    <string name="transaction_type_income">Income</string>
+    <string name="transaction_type_expense">Expense</string>
+    <string name="transaction_type_transfer">Transfer</string>
+    <string name="transaction_type_subtitle_income">Record money you received</string>
+    <string name="transaction_type_subtitle_expense">Record money you spent</string>
+    <string name="transaction_type_subtitle_transfer">Move money between your accounts</string>
+    <string name="transaction_source_received_from">Received from</string>
+    <string name="transaction_source_paid_from">Paid from</string>
+    <string name="transaction_source_from">From</string>
+    <string name="transaction_target_deposited_to">Deposited to</string>
+    <string name="transaction_target_payee">To (payee)</string>
+    <string name="transaction_target_to">To</string>
+    <string name="transaction_flow_help_income">Money is recorded from a party into one of your accounts.</string>
+    <string name="transaction_flow_help_expense">Money leaves your account and is recorded against a payee.</string>
+    <string name="transaction_flow_help_transfer">Money moves between two accounts you own.</string>
+    <string name="transaction_amount_label">Amount</string>
+    <string name="transaction_date_label">Date</string>
+    <string name="transaction_more_options">More options</string>
+    <string name="transaction_more_options_hint">Optional classification for reports and filters.</string>
+    <string name="transaction_auto_classify">Auto classify</string>
+    <string name="transaction_category_label">Category</string>
+    <string name="transaction_expense_label">Budget expense</string>
+    <string name="transaction_contract_label">Contract</string>
+    <string name="transaction_add_party">Add new party</string>
+    <string name="transaction_templates">Templates</string>
+    <string name="transaction_templates_scroll_hint">More templates, scroll horizontally</string>
+    <string name="transaction_split_title">Split transaction</string>
+    <string name="transaction_split_subtitle">Divide the amount across multiple descriptions (existing transactions only).</string>
+    <string name="transaction_split_empty_hint">Add lines that sum to %1$s.</string>
+    <string name="transaction_split_part_label">Part</string>
+    <string name="transaction_split_total">Split total</string>
+    <string name="transaction_split_remaining">Remaining</string>
+    <string name="transaction_split_add_line">Add split line</string>
+    <string name="transaction_split_error_line_description">Each split line needs a description</string>
+    <string name="transaction_split_error_line_amount">Enter a valid amount for each split line</string>
+    <string name="transaction_split_error_total_mismatch">Split amounts must add up to the transaction total</string>
+    <string name="transaction_error_amount">Enter an amount greater than zero</string>
+    <string name="transaction_error_choose_field">Choose %1$s</string>
+    <string name="transaction_error_description">Add a short description</string>
+    <string name="transaction_auto_classify_need_input">Add a description or amount so auto classification can run.</string>
+    <string name="transaction_auto_classify_none">No classification suggestions were returned.</string>
+    <string name="transaction_auto_classify_applied">Applied suggestions for %1$s.</string>
+    <string name="transaction_auto_classify_unresolved">Suggestions returned, but couldn\'t match %1$s.</string>
+    <string name="transaction_auto_classify_partial">Applied %1$s and couldn\'t match %2$s.</string>
+    <string name="transaction_auto_classify_failed">Couldn\'t classify this transaction.</string>
+    <string name="transaction_classify_part_category">category</string>
+    <string name="transaction_classify_part_expense_group">expense group</string>
+    <string name="transaction_classify_part_tags">tags</string>
+    <string name="transaction_tags_creating">Creating tag…</string>
+    <string name="transaction_tags_searching">Searching…</string>
+    <string name="transaction_tags_empty_catalog">No tags yet — type a name and tap Done</string>
+    <string name="transaction_tags_no_match">No matching tags</string>
+    <string name="transaction_tags_create">Create \"%1$s\"</string>
+    <string name="transaction_tags_remove">Remove %1$s</string>
+    <string name="transaction_tags_clear_search">Clear search</string>
+    <string name="transaction_owned_account_search_label">Search accounts</string>
+    <string name="transaction_owned_account_no_accounts">No accounts available</string>
+    <string name="transaction_owned_account_no_matches">No matches</string>
+    <string name="transaction_template_default_name">New template</string>
+    <string name="filter_autocomplete_no_results">No results</string>
+    <string name="content_description_clear">Clear</string>
+    <string name="content_description_collapse">Collapse</string>
+    <string name="content_description_expand">Expand</string>
+    <string name="content_description_remove_line">Remove line</string>
 </resources>

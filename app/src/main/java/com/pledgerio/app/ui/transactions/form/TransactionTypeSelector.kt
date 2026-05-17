@@ -27,7 +27,9 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.ui.theme.EmeraldGreen
 import com.pledgerio.app.ui.theme.ExpenseRed
@@ -46,7 +48,7 @@ fun TransactionTypeSelector(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             TypeSegment(
-                label = "Income",
+                label = stringResource(R.string.transaction_type_income),
                 icon = Icons.Default.TrendingUp,
                 selected = selected == TransactionType.DEBIT,
                 accent = IncomeGreen,
@@ -54,7 +56,7 @@ fun TransactionTypeSelector(
                 modifier = Modifier.weight(1f),
             )
             TypeSegment(
-                label = "Expense",
+                label = stringResource(R.string.transaction_type_expense),
                 icon = Icons.Default.TrendingDown,
                 selected = selected == TransactionType.CREDIT,
                 accent = ExpenseRed,
@@ -62,7 +64,7 @@ fun TransactionTypeSelector(
                 modifier = Modifier.weight(1f),
             )
             TypeSegment(
-                label = "Transfer",
+                label = stringResource(R.string.transaction_type_transfer),
                 icon = Icons.Default.SwapHoriz,
                 selected = selected == TransactionType.TRANSFER,
                 accent = EmeraldGreen,

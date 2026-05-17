@@ -1,6 +1,8 @@
 package com.pledgerio.app.ui.accounts
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
+import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.AccountTypeOption
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
@@ -25,8 +27,13 @@ class AccountFormViewModelTest {
   @get:Rule
   val mainDispatcherRule = MainDispatcherRule()
 
+  private val context = mockk<Context>(relaxed = true)
   private val accountRepository = mockk<AccountRepository>()
   private val currencyRepository = mockk<CurrencyRepository>()
+
+  init {
+    every { context.getString(R.string.account_error_name_required) } returns "Please provide a name"
+  }
 
   private val ownedTypes = listOf(
     AccountTypeOption("default", "Checking"),
@@ -41,6 +48,7 @@ class AccountFormViewModelTest {
       ownedTypes + AccountTypeOption("creditor", "Creditor", isCounterparty = true),
     )
     return AccountFormViewModel(
+      context,
       SavedStateHandle(mapOf("type" to preselectedType)),
       accountRepository,
       currencyRepository,
@@ -75,7 +83,7 @@ class AccountFormViewModelTest {
     advanceUntilIdle()
 
     val entries = viewModel.uiState.value.ownedPickerEntries
-    val checking = entries.single { it.label == "Checking" }
+    val checking = entries.single { it.label is AccountPickerLabel.Checking }
     assertEquals("default", checking.soloTypeCode)
     assertEquals("joined", checking.jointTypeCode)
   }

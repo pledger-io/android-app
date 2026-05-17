@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.activity.compose.LocalActivity
 import androidx.compose.ui.res.stringResource
-import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -89,7 +88,7 @@ fun PledgerRoot(
     val themeMode by appViewModel.themeMode.collectAsState()
     val isOnline by appViewModel.isOnline.collectAsState()
     val requiresBiometricUnlock by biometricLockManager.requiresUnlock.collectAsState()
-    val activity = LocalActivity.current as? FragmentActivity
+    val activity = LocalActivity.current as? androidx.appcompat.app.AppCompatActivity
     val systemDark = isSystemInDarkTheme()
     val darkTheme = when (themeMode) {
         ThemeMode.SYSTEM -> systemDark

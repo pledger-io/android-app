@@ -108,6 +108,7 @@ fun AccountsScreen(
         }
     }
 
+    val accountsSubtitle = accountsListSubtitle(uiState)
     val hasOwned = uiState.ownedAccounts.isNotEmpty()
     val hasPartiesData = uiState.counterpartyTotal > 0 || uiState.counterpartyAccounts.isNotEmpty()
     val showEmpty = !uiState.isLoading &&
@@ -122,25 +123,8 @@ fun AccountsScreen(
     Scaffold(
         topBar = {
             PledgerTopBar(
-                title = "Accounts",
-                subtitle = when (uiState.filter) {
-                    AccountListFilter.ALL -> buildString {
-                        append("${uiState.ownedCount} owned")
-                        if (uiState.counterpartyTotal > 0) {
-                            append(" · ${uiState.counterpartyTotal} parties")
-                        }
-                    }
-                    AccountListFilter.OWNED -> "${uiState.ownedCount} wallets you hold"
-                    AccountListFilter.COUNTERPARTY -> when {
-                        uiState.counterpartySearchQuery.isNotBlank() -> "Search results"
-                        uiState.counterpartyTotal > 0 -> {
-                            val loaded = uiState.counterpartyLoadedCount
-                            val total = uiState.counterpartyTotal
-                            if (loaded < total) "Showing $loaded of $total" else "$total parties"
-                        }
-                        else -> "Creditors & debtors"
-                    }
-                },
+                title = stringResource(R.string.accounts_title),
+                subtitle = accountsSubtitle,
                 actions = {
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(
@@ -241,8 +225,10 @@ fun AccountsScreen(
                                                 currency = uiState.filteredAccounts.firstOrNull()?.currency
                                                     ?: "EUR",
                                                 subtitle = when (uiState.filter) {
-                                                    AccountListFilter.ALL -> "owned accounts"
-                                                    else -> "in this view"
+                                                    AccountListFilter.ALL -> stringResource(
+                                                        R.string.accounts_summary_owned_accounts,
+                                                    )
+                                                    else -> stringResource(R.string.accounts_summary_in_view)
                                                 },
                                             )
                                         }
@@ -301,7 +287,7 @@ fun AccountsScreen(
                             ) {
                                 item {
                                     Text(
-                                        text = "No accounts in this view.",
+                                        text = stringResource(R.string.accounts_empty_in_view),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.padding(vertical = 24.dp),
@@ -360,6 +346,33 @@ fun AccountsScreen(
 }
 
 @Composable
+private fun accountsListSubtitle(uiState: AccountsUiState): String = when (uiState.filter) {
+    AccountListFilter.ALL -> stringResource(
+        R.string.accounts_subtitle_all,
+        uiState.ownedCount,
+        uiState.counterpartyTotal,
+    )
+    AccountListFilter.OWNED -> stringResource(
+        R.string.accounts_subtitle_owned,
+        uiState.ownedCount,
+    )
+    AccountListFilter.COUNTERPARTY -> when {
+        uiState.counterpartySearchQuery.isNotBlank() ->
+            stringResource(R.string.accounts_subtitle_search_results)
+        uiState.counterpartyTotal > 0 -> {
+            val loaded = uiState.counterpartyLoadedCount
+            val total = uiState.counterpartyTotal
+            if (loaded < total) {
+                stringResource(R.string.accounts_subtitle_showing_parties, loaded, total)
+            } else {
+                stringResource(R.string.accounts_subtitle_parties_count, total)
+            }
+        }
+        else -> stringResource(R.string.accounts_subtitle_creditors_debtors)
+    }
+}
+
+@Composable
 private fun AccountFilterChipsRow(
     filter: AccountListFilter,
     ownedCount: Int,
@@ -374,18 +387,24 @@ private fun AccountFilterChipsRow(
         FilterChip(
             selected = filter == AccountListFilter.ALL,
             onClick = { onFilterSelected(AccountListFilter.ALL) },
-            label = { Text("All") },
+            label = { Text(stringResource(R.string.accounts_filter_all)) },
         )
         FilterChip(
             selected = filter == AccountListFilter.OWNED,
             onClick = { onFilterSelected(AccountListFilter.OWNED) },
-            label = { Text("Owned ($ownedCount)") },
+            label = { Text(stringResource(R.string.accounts_filter_owned, ownedCount)) },
         )
         FilterChip(
             selected = filter == AccountListFilter.COUNTERPARTY,
             onClick = { onFilterSelected(AccountListFilter.COUNTERPARTY) },
             label = {
-                Text(if (counterpartyTotal > 0) "Parties ($counterpartyTotal)" else "Parties")
+                Text(
+                    if (counterpartyTotal > 0) {
+                        stringResource(R.string.accounts_filter_parties_count, counterpartyTotal)
+                    } else {
+                        stringResource(R.string.accounts_filter_parties)
+                    },
+                )
             },
         )
     }
@@ -401,14 +420,17 @@ private fun CounterpartySearchField(
         value = query,
         onValueChange = onQueryChange,
         modifier = modifier.fillMaxWidth(),
-        placeholder = { Text("Search parties…") },
+        placeholder = { Text(stringResource(R.string.accounts_search_parties)) },
         leadingIcon = {
             Icon(Icons.Default.Search, contentDescription = null)
         },
         trailingIcon = {
             if (query.isNotEmpty()) {
                 IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                    Icon(
+                        Icons.Default.Clear,
+                        contentDescription = stringResource(R.string.transaction_tags_clear_search),
+                    )
                 }
             }
         },
@@ -421,21 +443,21 @@ private fun CounterpartiesSummaryCard(loaded: Int, total: Long) {
     PledgerCard {
         Column {
             Text(
-                text = "Counterparties",
+                text = stringResource(R.string.accounts_counterparties_title),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 text = if (total > 0 && loaded < total) {
-                    "Showing $loaded of $total"
+                    stringResource(R.string.accounts_counterparties_showing, loaded, total)
                 } else {
-                    "$loaded parties"
+                    stringResource(R.string.accounts_counterparties_loaded, loaded)
                 },
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                text = "Search or scroll to load more. Balances are loaded when you open an account.",
+                text = stringResource(R.string.accounts_counterparties_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp),
@@ -458,19 +480,19 @@ private fun CounterpartiesBrowseCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Counterparties",
+                    text = stringResource(R.string.accounts_counterparties_title),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = "$total creditors & debtors — search and scroll to browse",
+                    text = stringResource(R.string.accounts_counterparties_browse, total),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = "Browse parties",
+                contentDescription = stringResource(R.string.content_description_browse_parties),
                 tint = EmeraldGreen,
             )
         }
@@ -482,7 +504,7 @@ private fun AccountsSummaryCard(
     accountCount: Int,
     totalBalance: Double,
     currency: String,
-    subtitle: String = "in this view",
+    subtitle: String,
 ) {
     PledgerCard {
         Row(
@@ -492,7 +514,7 @@ private fun AccountsSummaryCard(
         ) {
             Column {
                 Text(
-                    text = "Total balance",
+                    text = stringResource(R.string.accounts_total_balance),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -505,7 +527,7 @@ private fun AccountsSummaryCard(
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "$accountCount accounts",
+                    text = stringResource(R.string.accounts_count, accountCount),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Medium,
                 )
@@ -535,12 +557,12 @@ private fun AccountSectionHeader(section: AccountSection) {
             Spacer(modifier = Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = section.group.title,
+                    text = section.group.localizedTitle(),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = section.group.description,
+                    text = section.group.localizedDescription(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -580,7 +602,7 @@ private fun AccountCard(
                     fontWeight = FontWeight.Medium,
                 )
                 Text(
-                    text = meta.displayName,
+                    text = meta.localizedDisplayName(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

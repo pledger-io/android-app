@@ -22,7 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.pledgerio.app.R
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.transactions.TransactionSplitLineUi
 import com.pledgerio.app.util.formatCurrency
@@ -53,19 +55,21 @@ fun TransactionSplitEditor(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Split transaction",
+                    text = stringResource(R.string.transaction_split_title),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = "Divide the amount across multiple descriptions (existing transactions only).",
+                    text = stringResource(R.string.transaction_split_subtitle),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Icon(
                 imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                contentDescription = if (expanded) "Collapse" else "Expand",
+                contentDescription = stringResource(
+                    if (expanded) R.string.content_description_collapse else R.string.content_description_expand,
+                ),
             )
         }
 
@@ -74,7 +78,10 @@ fun TransactionSplitEditor(
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (lines.isEmpty()) {
                         Text(
-                            text = "Add lines that sum to ${transactionAmount.formatCurrency(currency)}.",
+                            text = stringResource(
+                                R.string.transaction_split_empty_hint,
+                                transactionAmount.formatCurrency(currency),
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -88,19 +95,24 @@ fun TransactionSplitEditor(
                                 OutlinedTextField(
                                     value = line.description,
                                     onValueChange = { onLineDescriptionChange(line.id, it) },
-                                    label = { Text("Part") },
+                                    label = { Text(stringResource(R.string.transaction_split_part_label)) },
                                     singleLine = true,
                                     modifier = Modifier.weight(1f),
                                 )
                                 OutlinedTextField(
                                     value = line.amount,
                                     onValueChange = { onLineAmountChange(line.id, it) },
-                                    label = { Text("Amount") },
+                                    label = { Text(stringResource(R.string.transaction_amount_label)) },
                                     singleLine = true,
                                     modifier = Modifier.weight(0.55f),
                                 )
                                 IconButton(onClick = { onRemoveLine(line.id) }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Remove line")
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = stringResource(
+                                            R.string.content_description_remove_line,
+                                        ),
+                                    )
                                 }
                             }
                         }
@@ -109,7 +121,7 @@ fun TransactionSplitEditor(
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
                             Text(
-                                text = "Split total",
+                                text = stringResource(R.string.transaction_split_total),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -124,7 +136,7 @@ fun TransactionSplitEditor(
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
                             Text(
-                                text = "Remaining",
+                                text = stringResource(R.string.transaction_split_remaining),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -154,7 +166,10 @@ fun TransactionSplitEditor(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null)
-                        Text("Add split line", modifier = Modifier.padding(start = 8.dp))
+                        Text(
+                            stringResource(R.string.transaction_split_add_line),
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
                     }
                 }
             }

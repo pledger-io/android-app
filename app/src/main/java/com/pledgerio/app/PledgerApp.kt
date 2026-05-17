@@ -5,6 +5,10 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Configuration
 import com.pledgerio.app.util.BiometricLockManager
+import com.pledgerio.app.util.LocaleManager
+import com.pledgerio.app.util.UserPreferences
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import coil.ImageLoader
 import coil.Coil
 import com.pledgerio.app.util.AppLog
@@ -31,6 +35,9 @@ class PledgerApp : Application(), Configuration.Provider {
     @Inject
     lateinit var biometricLockManager: BiometricLockManager
 
+    @Inject
+    lateinit var userPreferences: UserPreferences
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -38,6 +45,9 @@ class PledgerApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        runBlocking(Dispatchers.IO) {
+            LocaleManager.apply(userPreferences.appLocaleOnce())
+        }
         appLog.install()
         CurrencyProvider.setInstance(currencyProvider)
         Coil.setImageLoader(imageLoader)

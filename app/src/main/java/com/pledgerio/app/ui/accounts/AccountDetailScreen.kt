@@ -37,9 +37,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.AccountTypeCatalog
 import com.pledgerio.app.ui.components.AccountIcon
 import com.pledgerio.app.ui.components.ErrorScreen
@@ -96,19 +98,28 @@ fun AccountDetailScreen(
     Scaffold(
         topBar = {
             PledgerTopBar(
-                title = uiState.account?.name ?: "Account",
+                title = uiState.account?.name ?: stringResource(R.string.account_detail_fallback_title),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.nav_back),
+                        )
                     }
                 },
                 actions = {
                     uiState.account?.let { account ->
                         IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete account")
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = stringResource(R.string.content_description_delete_account),
+                            )
                         }
                         IconButton(onClick = { onNavigateToEdit(account.id) }) {
-                            Icon(Icons.Default.Edit, contentDescription = "Edit account")
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = stringResource(R.string.content_description_edit_account),
+                            )
                         }
                     }
                 },
@@ -129,19 +140,16 @@ fun AccountDetailScreen(
                 if (showDeleteDialog) {
                     AlertDialog(
                         onDismissRequest = { if (!uiState.isDeleting) showDeleteDialog = false },
-                        title = { Text("Delete account?") },
+                        title = { Text(stringResource(R.string.account_delete_title)) },
                         text = {
-                            Text(
-                                "“${account.name}” will be removed from Pledger. " +
-                                    "This cannot be undone if the server allows deletion.",
-                            )
+                            Text(stringResource(R.string.account_delete_confirm_message, account.name))
                         },
                         confirmButton = {
                             TextButton(
                                 onClick = viewModel::deleteAccount,
                                 enabled = !uiState.isDeleting,
                             ) {
-                                Text("Delete", color = ExpenseRed)
+                                Text(stringResource(R.string.action_delete), color = ExpenseRed)
                             }
                         },
                         dismissButton = {
@@ -149,7 +157,7 @@ fun AccountDetailScreen(
                                 onClick = { showDeleteDialog = false },
                                 enabled = !uiState.isDeleting,
                             ) {
-                                Text("Cancel")
+                                Text(stringResource(R.string.cancel))
                             }
                         },
                     )
@@ -178,7 +186,7 @@ fun AccountDetailScreen(
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "Current Balance",
+                                        text = stringResource(R.string.account_current_balance),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -196,18 +204,29 @@ fun AccountDetailScreen(
 
                     item {
                         PledgerCard {
-                            DetailInfoRow("Type", typeMeta.displayName)
+                            DetailInfoRow(
+                                stringResource(R.string.account_detail_type),
+                                typeMeta.localizedDisplayName(),
+                            )
                             Text(
-                                text = typeMeta.description,
+                                text = typeMeta.localizedDescription(),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(bottom = 8.dp),
                             )
-                            DetailInfoRow("Currency", account.currency)
-                            account.iban?.let { DetailInfoRow("IBAN", "${it.take(8)}****") }
+                            DetailInfoRow(
+                                stringResource(R.string.account_detail_currency),
+                                account.currency,
+                            )
+                            account.iban?.let {
+                                DetailInfoRow(
+                                    stringResource(R.string.account_iban_label),
+                                    "${it.take(8)}****",
+                                )
+                            }
                             if (typeMeta.showOpeningBalance) {
                                 DetailInfoRow(
-                                    "Opening Balance",
+                                    stringResource(R.string.account_detail_opening_balance),
                                     account.openingBalance.formatCurrency(account.currency),
                                 )
                             }
@@ -217,7 +236,7 @@ fun AccountDetailScreen(
                     if (uiState.transactions.isNotEmpty()) {
                         item {
                             Text(
-                                text = "Transactions",
+                                text = stringResource(R.string.account_detail_transactions),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.padding(vertical = 8.dp),
@@ -271,9 +290,9 @@ fun AccountDetailScreen(
                                 val loaded = uiState.transactions.size
                                 val total = uiState.totalTransactionCount
                                 val label = if (total > loaded) {
-                                    "Load more ($loaded of $total)"
+                                    stringResource(R.string.account_load_more_progress, loaded, total)
                                 } else {
-                                    "Load more"
+                                    stringResource(R.string.account_load_more)
                                 }
                                 Text(label)
                             }

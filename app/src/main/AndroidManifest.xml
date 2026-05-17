@@ -19,6 +19,7 @@
         android:supportsRtl="true"
         android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/Theme.PledgerIO"
+        android:localeConfig="@xml/locales_config"
         tools:targetApi="36">
 
         <activity

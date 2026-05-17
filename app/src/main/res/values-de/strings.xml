@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pledger.io</string>
+    <string name="tab_dashboard">Dashboard</string>
+    <string name="tab_transactions">Transaktionen</string>
+    <string name="tab_budgets">Budgets</string>
+    <string name="tab_accounts">Konten</string>
+    <string name="tab_reports">Berichte</string>
+    <string name="open_settings">Einstellungen</string>
+    <string name="nav_back">Zurück</string>
+
+    <string name="budget_setup_title">Erstelle dein erstes Budget</string>
+    <string name="budget_setup_message">Wähle, wann dein Budget beginnt, und gib dein erwartetes monatliches Nettoeinkommen ein (der Betrag, der auf dein Konto eingeht).</string>
+    <string name="budget_setup_month">Startmonat</string>
+    <string name="budget_setup_year">Startjahr</string>
+    <string name="budget_setup_income">Monatliches Nettoeinkommen</string>
+    <string name="budget_setup_income_hint">Nach Steuern, wie auf deinem Bankkonto eingehend</string>
+    <string name="budget_setup_submit">Budget erstellen</string>
+    <string name="budget_empty_title">Noch keine Ausgabengruppen</string>
+    <string name="budget_empty_message">Füge Ausgabengruppen hinzu (z. B. Lebensmittel, Rechnungen), um deine Ausgaben im Vergleich zu deinem Budget zu verfolgen.</string>
+    <string name="budget_expense_add">Ausgabengruppe hinzufügen</string>
+    <string name="budget_expense_edit">Ausgabengruppe bearbeiten</string>
+    <string name="budget_expense_add_title">Neue Ausgabengruppe</string>
+    <string name="budget_expense_edit_title">Ausgabengruppe bearbeiten</string>
+    <string name="budget_expense_name">Name</string>
+    <string name="budget_expense_amount">Monatsbudget</string>
+    <string name="budget_expense_amount_hint">Höchstbetrag für diese Gruppe pro Monat</string>
+    <string name="budget_expense_save">Speichern</string>
+    <string name="budget_expense_cancel">Abbrechen</string>
+    <string name="budget_expense_remaining">%1$s verbleibend</string>
+
+    <string name="offline_banner">Du bist offline. Zwischengespeicherte Daten werden angezeigt.</string>
+
+    <string name="reports_coming_soon_title">Berichte demnächst verfügbar</string>
+    <string name="reports_coming_soon_message">Diagramme und Einblicke erscheinen hier in einem zukünftigen Update. Nutze vorerst Dashboard und Budgets.</string>
+    <string name="error_title">Etwas ist schiefgelaufen</string>
+    <string name="error_retry">Erneut versuchen</string>
+
+    <string name="last_updated_refreshing">Aktualisieren…</string>
+    <string name="last_updated_just_now">Gerade aktualisiert</string>
+    <string name="last_updated_minutes">Vor %1$d Min. aktualisiert</string>
+    <string name="last_updated_hours">Vor %1$d Std. aktualisiert</string>
+    <string name="last_updated_days">Vor %1$d T. aktualisiert</string>
+
+    <string name="empty_add_transaction">Transaktion hinzufügen</string>
+    <string name="empty_add_account">Konto hinzufügen</string>
+    <string name="empty_dashboard_transactions_title">Keine aktuellen Transaktionen</string>
+    <string name="empty_dashboard_transactions_message">Erfasse deine erste Transaktion, um hier Aktivität zu sehen.</string>
+    <string name="empty_transactions_title">Keine Transaktionen</string>
+    <string name="empty_transactions_message">Keine Transaktionen für diesen Monat gefunden.</string>
+    <string name="empty_transactions_filtered_message">Keine Transaktionen entsprechen deinen Filtern.</string>
+    <string name="empty_accounts_title">Noch keine Konten</string>
+    <string name="empty_accounts_message">Füge ein Konto hinzu, um Salden zu verfolgen.</string>
+    <string name="empty_parties_title">Keine Parteien gefunden</string>
+    <string name="empty_parties_message">Versuche eine andere Suche oder füge ein Gegenkonto hinzu.</string>
+
+    <string name="settings_change_server">Server-URL ändern</string>
+    <string name="settings_notifications_coming_soon">Kommt in einem zukünftigen Update</string>
+    <string name="settings_biometric_enabled">Entsperrung beim Öffnen der App erforderlich</string>
+    <string name="settings_biometric_disabled">Aus</string>
+    <string name="settings_biometric_unavailable">Biometrie auf diesem Gerät nicht verfügbar</string>
+    <string name="settings_biometric_not_enrolled">Richte zuerst Fingerabdruck oder Gesichtsentsperrung in den Systemeinstellungen ein</string>
+    <string name="settings_biometric_enable_title">Biometrische Anmeldung aktivieren</string>
+    <string name="settings_biometric_enable_subtitle">Bestätige deine Identität, um dies zu aktivieren</string>
+    <string name="biometric_unlock_title">Pledger entsperren</string>
+    <string name="biometric_unlock_subtitle">Nutze Fingerabdruck, Gesicht oder Geräte-PIN</string>
+    <string name="biometric_unlock_message">Authentifiziere dich, um auf deine Finanzen zuzugreifen.</string>
+    <string name="biometric_unlock_action">Entsperren</string>
+    <string name="biometric_unlock_sign_out">Abmelden</string>
+    <string name="cancel">Abbrechen</string>
+
+    <string name="server_setup_change_title">Server wechseln</string>
+    <string name="server_setup_change_message">Beim Serverwechsel werden zwischengespeicherte Daten gelöscht. Du musst dich erneut anmelden.</string>
+    <string name="server_setup_save">Speichern und anmelden</string>
+
+    <string name="budget_view_overspent_transactions">Transaktionen anzeigen</string>
+
+    <string name="search_title">Suchen</string>
+    <string name="search_hint">Transaktionen, Konten, Kategorien suchen…</string>
+    <string name="search_prompt">Tippe, um in deinen Daten zu suchen.</string>
+    <string name="search_no_results">Keine Ergebnisse gefunden.</string>
+    <string name="search_section_transactions">Transaktionen</string>
+    <string name="search_section_accounts">Konten</string>
+    <string name="search_section_categories">Kategorien</string>
+    <string name="reports_no_data">Keine Daten für diesen Zeitraum.</string>
+
+    <string name="report_issue_title">Problem melden</string>
+    <string name="report_issue_hint">Aktuelle App-Protokolle werden beim Absenden angehängt. Füge keine Passwörter oder persönlichen Daten in die Beschreibung ein.</string>
+    <string name="report_issue_summary_label">Zusammenfassung</string>
+    <string name="report_issue_description_label">Was ist passiert?</string>
+    <string name="report_issue_submit">Absenden</string>
+    <string name="report_issue_submitting">Wird gesendet…</string>
+    <string name="report_issue_cancel">Abbrechen</string>
+    <string name="report_issue_settings_title">Problem melden</string>
+    <string name="report_issue_settings_subtitle">Protokolle anhängen und einen GitHub-Fehlerbericht öffnen</string>
+    <string name="report_issue_open_github">GitHub wird geöffnet — prüfe das Formular und tippe auf Absenden.</string>
+    <string name="report_issue_open_github_with_clipboard">GitHub wird geöffnet — vollständige Protokolle sind bei Bedarf in deiner Zwischenablage.</string>
+
+    <!-- Language -->
+    <string name="language_system">Systemstandard</string>
+    <string name="language_english">Englisch</string>
+    <string name="language_dutch">Niederländisch</string>
+    <string name="language_german">Deutsch</string>
+    <string name="settings_language">Sprache</string>
+
+    <!-- Theme -->
+    <string name="theme_system">Systemstandard</string>
+    <string name="theme_light">Hell</string>
+    <string name="theme_dark">Dunkel</string>
+    <string name="settings_theme">Design</string>
+
+    <!-- Finance experience -->
+    <string name="experience_guided_name">Geführt</string>
+    <string name="experience_guided_description">Einfachere Standardeinstellungen für neue Nutzer</string>
+    <string name="experience_power_name">Profi</string>
+    <string name="experience_power_description">Erweiterte Optionen bleiben sichtbar für schnellere Eingabe</string>
+    <string name="settings_experience">Finanzerfahrung</string>
+    <string name="experience_mode_guided_title">Geführter Modus aktiv</string>
+    <string name="experience_mode_guided_body">Vereinfachte Standardeinstellungen sind aktiviert, um die Einstiegshürde zu senken.</string>
+    <string name="experience_mode_power_title">Profi-Modus aktiv</string>
+    <string name="experience_mode_power_body">Erweiterte Steuerelemente sind für schnellere Transaktionseingabe aktiviert.</string>
+    <string name="dashboard_subtitle_guided">Deine Finanzen auf einen Blick · Geführter Modus</string>
+    <string name="dashboard_subtitle_default">Deine Finanzen auf einen Blick</string>
+    <string name="transaction_form_guided_hint">Kategorien, Tags oder Verträge nötig? Öffne Weitere Optionen.</string>
+
+    <!-- Screen titles -->
+    <string name="dashboard_title">Pledger.io</string>
+    <string name="accounts_title">Konten</string>
+    <string name="accounts_subtitle">Salden und Gegenparteien</string>
+    <string name="budgets_title">Budgets</string>
+    <string name="budgets_subtitle">Ausgaben planen und verfolgen</string>
+    <string name="transactions_title">Transaktionen</string>
+    <string name="transactions_subtitle">Einnahmen, Ausgaben und Überweisungen</string>
+    <string name="reports_title">Berichte</string>
+    <string name="reports_subtitle">Einblicke in dein Geld</string>
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_subtitle">Server, Sicherheit &amp; Einstellungen</string>
+    <string name="categories_title">Kategorien verwalten</string>
+    <string name="tags_title">Tags verwalten</string>
+
+    <!-- Settings sections -->
+    <string name="settings_section_server">Server</string>
+    <string name="settings_section_security">Sicherheit</string>
+    <string name="settings_section_data">Daten</string>
+    <string name="settings_section_preferences">Einstellungen</string>
+    <string name="settings_section_about">Über</string>
+    <string name="settings_biometric_login">Biometrische Anmeldung</string>
+    <string name="settings_categories">Kategorien</string>
+    <string name="settings_categories_subtitle">Transaktionskategorien verwalten</string>
+    <string name="settings_tags">Tags</string>
+    <string name="settings_tags_subtitle">Transaktions-Tags verwalten</string>
+    <string name="settings_display_currency">Anzeigewährung</string>
+    <string name="settings_notifications">Benachrichtigungen</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_sign_out">Abmelden</string>
+    <string name="settings_sign_out_confirm_title">Abmelden</string>
+    <string name="settings_sign_out_confirm_message">Möchtest du dich wirklich abmelden?</string>
+    <string name="settings_loading_currencies">Währungen werden geladen…</string>
+    <string name="settings_experience_format">%1$s — %2$s</string>
+
+    <!-- Reports -->
+    <string name="report_type_income_expense">Einnahmen vs. Ausgaben</string>
+    <string name="report_type_category">Aufschlüsselung nach Kategorie</string>
+    <string name="report_type_budget">Budgetleistung</string>
+    <string name="report_type_net_worth">Nettovermögen</string>
+    <string name="report_type_balance">Kontostand</string>
+    <string name="report_income">Einnahmen</string>
+    <string name="report_expenses">Ausgaben</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_recent_transactions">Aktuelle Transaktionen</string>
+    <string name="dashboard_view_all">Alle anzeigen</string>
+    <string name="dashboard_net_worth">Nettovermögen</string>
+    <string name="dashboard_income">Einnahmen</string>
+    <string name="dashboard_expenses">Ausgaben</string>
+    <string name="fab_new_transaction">Neue Transaktion</string>
+    <string name="fab_new_transaction_subtitle">Einnahme, Ausgabe oder Überweisung erfassen</string>
+    <string name="fab_new_account">Neues Konto</string>
+    <string name="fab_new_account_subtitle">Bankkonto oder Wallet hinzufügen</string>
+
+    <!-- Accounts -->
+    <string name="accounts_filter_all">Alle</string>
+    <string name="accounts_filter_owned">Eigene (%1$d)</string>
+    <string name="accounts_search_parties">Parteien suchen…</string>
+    <string name="accounts_filter_parties">Parteien</string>
+    <string name="accounts_filter_parties_count">Parteien (%1$d)</string>
+    <string name="accounts_subtitle_all">%1$d eigene · %2$d Parteien</string>
+    <string name="accounts_subtitle_owned">%1$d Konten, die du verwaltest</string>
+    <string name="accounts_subtitle_search_results">Suchergebnisse</string>
+    <string name="accounts_subtitle_showing_parties">%1$d von %2$d angezeigt</string>
+    <string name="accounts_subtitle_parties_count">%1$d Parteien</string>
+    <string name="accounts_subtitle_creditors_debtors">Gläubiger &amp; Schuldner</string>
+    <string name="accounts_summary_owned_accounts">eigene Konten</string>
+    <string name="accounts_summary_in_view">in dieser Ansicht</string>
+    <string name="accounts_empty_in_view">Keine Konten in dieser Ansicht.</string>
+    <string name="accounts_total_balance">Gesamtsaldo</string>
+    <string name="accounts_count">%1$d Konten</string>
+    <string name="accounts_counterparties_title">Gegenparteien</string>
+    <string name="accounts_counterparties_showing">%1$d von %2$d angezeigt</string>
+    <string name="accounts_counterparties_loaded">%1$d Parteien</string>
+    <string name="accounts_counterparties_hint">Suchen oder scrollen, um mehr zu laden. Salden werden geladen, wenn du ein Konto öffnest.</string>
+    <string name="accounts_counterparties_browse">%1$d Gläubiger &amp; Schuldner — suchen und scrollen zum Durchsuchen</string>
+    <string name="account_form_new_title">Neues Konto</string>
+    <string name="account_form_edit_title">Konto bearbeiten</string>
+    <string name="account_form_create">Konto erstellen</string>
+    <string name="account_form_save_changes">Änderungen speichern</string>
+    <string name="account_error_name_required">Bitte einen Namen angeben</string>
+    <string name="account_ownership_personal">Persönlich</string>
+    <string name="account_ownership_joint">Gemeinsam</string>
+    <string name="account_ownership_checking">Girokonto</string>
+    <string name="account_ownership_savings">Sparkonto</string>
+    <string name="account_section_your_accounts">Deine Konten</string>
+    <string name="account_picker_joint_hint_form">%1$s · persönlich oder gemeinsam unten</string>
+    <string name="account_picker_joint_hint_fab">%1$s · persönlich oder gemeinsam auf dem nächsten Bildschirm wählen</string>
+    <string name="account_picker_checking_label">Girokonto</string>
+    <string name="account_picker_checking_description">Girokonto für den täglichen Bedarf</string>
+    <string name="account_picker_savings_label">Sparen</string>
+    <string name="account_picker_savings_description">Geld für Ziele und Rücklagen</string>
+    <string name="account_detail_fallback_title">Konto</string>
+    <string name="account_current_balance">Aktueller Saldo</string>
+    <string name="account_detail_type">Typ</string>
+    <string name="account_detail_currency">Währung</string>
+    <string name="account_detail_opening_balance">Anfangssaldo</string>
+    <string name="account_detail_transactions">Transaktionen</string>
+    <string name="account_load_more">Mehr laden</string>
+    <string name="account_load_more_progress">Mehr laden (%1$d von %2$d)</string>
+    <string name="account_delete_confirm_message">„%1$s“ wird aus Pledger entfernt. Dies kann nicht rückgängig gemacht werden, wenn der Server die Löschung erlaubt.</string>
+    <string name="content_description_delete_account">Konto löschen</string>
+    <string name="content_description_edit_account">Konto bearbeiten</string>
+    <string name="content_description_browse_parties">Parteien durchsuchen</string>
+    <string name="content_description_add_account">Konto hinzufügen</string>
+    <string name="content_description_close">Schließen</string>
+    <string name="account_group_everyday_title">Alltagsbanking</string>
+    <string name="account_group_everyday_description">Girokonten und Bargeld für den täglichen Bedarf</string>
+    <string name="account_group_savings_title">Sparen</string>
+    <string name="account_group_savings_description">Geld für Ziele und Rücklagen</string>
+    <string name="account_group_credit_title">Kredit</string>
+    <string name="account_group_credit_description">Karten und revolving Kreditlinien</string>
+    <string name="account_group_liabilities_title">Kredite &amp; Verbindlichkeiten</string>
+    <string name="account_group_liabilities_description">Geld, das du schuldest — Hypotheken, Kredite und Schulden</string>
+    <string name="account_group_counterparty_title">Gegenparteien</string>
+    <string name="account_group_counterparty_description">Parteien, an die du zahlst oder von denen du Geld erhältst</string>
+    <string name="account_group_other_title">Sonstiges</string>
+    <string name="account_group_other_description">Weitere Kontotypen von deinem Server</string>
+    <string name="account_type_checking_name">Girokonto</string>
+    <string name="account_type_checking_description">Dein Hauptbankkonto für Zahlungen und Lastschriften.</string>
+    <string name="account_type_joint_checking_name">Gemeinsames Girokonto</string>
+    <string name="account_type_joint_checking_description">Ein gemeinsames Girokonto für Haushaltsausgaben.</string>
+    <string name="account_type_cash_name">Bargeld</string>
+    <string name="account_type_cash_description">Physisches Bargeld außerhalb der Bank.</string>
+    <string name="account_type_savings_name">Sparen</string>
+    <string name="account_type_savings_description">Geld für Ziele, Notfälle oder künftige Anschaffungen.</string>
+    <string name="account_type_joint_savings_name">Gemeinsames Sparen</string>
+    <string name="account_type_joint_savings_description">Gemeinsames Sparkonto mit Partner oder Haushalt.</string>
+    <string name="account_type_credit_card_name">Kreditkarte</string>
+    <string name="account_type_credit_card_description">Revolving-Kredit — Ausgaben erhöhen deine Schuld beim Anbieter.</string>
+    <string name="account_type_loan_name">Kredit</string>
+    <string name="account_type_loan_description">Ein Kreditsaldo, den du über Zeit zurückzahlst.</string>
+    <string name="account_type_mortgage_name">Hypothek</string>
+    <string name="account_type_mortgage_description">Immobilienfinanzierung — Tilgung und Zinsen an den Kreditgeber.</string>
+    <string name="account_type_debt_name">Schuld</string>
+    <string name="account_type_debt_description">Allgemeine Schuld oder Verbindlichkeit, die du abbauzt.</string>
+    <string name="account_type_liability_name">Verbindlichkeit</string>
+    <string name="account_type_liability_description">Geld, das du einem Kreditgeber oder Institut schuldest.</string>
+    <string name="account_type_investment_name">Anlage</string>
+    <string name="account_type_investment_description">Broker- oder Anlagekonto.</string>
+    <string name="account_type_creditor_name">Gläubiger</string>
+    <string name="account_type_creditor_description">Jemand, den du bezahlst — Geschäfte, Versorger, Vermieter, Abos.</string>
+    <string name="account_type_debtor_name">Schuldner</string>
+    <string name="account_type_debtor_description">Jemand, der dich bezahlt — Arbeitgeber, Kunden, Erstattungen, Geschenke.</string>
+    <string name="account_type_unknown_description">Kontotyp „%1$s“ von deinem Pledger-Server.</string>
+
+    <!-- Budget -->
+    <string name="budget_progress">Budgetfortschritt</string>
+    <string name="budget_spent">Ausgegeben</string>
+    <string name="budget_budgeted">Budgetiert</string>
+
+    <!-- Onboarding -->
+    <string name="login_welcome">Willkommen zurück</string>
+    <string name="login_subtitle">Melde dich bei deinem Pledger-Server an</string>
+    <string name="login_username">Benutzername</string>
+    <string name="login_password">Passwort</string>
+    <string name="login_sign_in">Anmelden</string>
+    <string name="login_change_server">Server wechseln</string>
+    <string name="server_setup_url_label">Server-URL</string>
+    <string name="server_setup_url_hint">https://my-pledger.example.com</string>
+    <string name="server_setup_connect">Verbinden</string>
+
+    <!-- Common actions -->
+    <string name="action_save">Speichern</string>
+    <string name="action_delete">Löschen</string>
+    <string name="action_edit">Bearbeiten</string>
+    <string name="action_ok">OK</string>
+    <string name="action_new">Neu</string>
+    <string name="label_name">Name</string>
+    <string name="label_description_optional">Beschreibung (optional)</string>
+
+    <!-- Transaction form -->
+    <string name="transaction_description_label">Wofür war das?</string>
+    <string name="transaction_description_hint">Lebensmittel, Gehalt, Miete…</string>
+    <string name="transaction_tags_label">Tags</string>
+    <string name="transaction_tags_hint">Tags suchen oder hinzufügen…</string>
+    <string name="transaction_save_template">Aktuelle speichern</string>
+    <string name="transaction_template_dialog_title">Als Vorlage speichern</string>
+    <string name="transaction_template_name">Vorlagenname</string>
+    <string name="transaction_template_name_hint">Monatliche Miete</string>
+    <string name="transaction_account_choose">Konto wählen</string>
+    <string name="transaction_account_none">Keine Konten verfügbar</string>
+    <string name="transaction_account_search_all">Alle Konten durchsuchen…</string>
+    <string name="transaction_amount_hint">0.00</string>
+    <string name="transaction_date_today">Heute</string>
+    <string name="transaction_date_yesterday">Gestern</string>
+
+    <!-- Categories / tags -->
+    <string name="categories_new">Neue Kategorie</string>
+    <string name="categories_search">Kategorien suchen…</string>
+    <string name="categories_name_hint">Lebensmittel, Transport, Nebenkosten…</string>
+    <string name="categories_description_hint">Hilft Teammitgliedern zu verstehen, wann sie diese nutzen</string>
+    <string name="categories_delete_title">Kategorie löschen?</string>
+    <string name="categories_delete_message">Dies entfernt \"%1$s\" aus deiner Kategorieliste.</string>
+    <string name="tags_new">Neuer Tag</string>
+    <string name="tags_search">Tags suchen…</string>
+    <string name="tags_name_hint">Urlaub, geschäftlich, wiederkehrend…</string>
+    <string name="tags_delete_title">Tag löschen?</string>
+    <string name="tags_delete_message">Dies entfernt \"%1$s\" aus deiner Tag-Liste.</string>
+    <string name="account_delete_title">Konto löschen?</string>
+    <string name="account_delete_message">Dies kann nicht rückgängig gemacht werden.</string>
+
+    <!-- Account form -->
+    <string name="account_name_label">Kontoname *</string>
+    <string name="account_description_label">Beschreibung</string>
+    <string name="account_iban_label">IBAN</string>
+    <string name="account_bic_label">BIC</string>
+    <string name="account_opening_balance_label">Anfangssaldo</string>
+    <string name="account_type_label">Kontotyp *</string>
+    <string name="account_currency_label">Währung *</string>
+
+    <string name="transaction_form_guided_banner_title">Geführter Modus</string>
+    <string name="transaction_form_guided_banner_hint">Optionale Felder bleiben eingeklappt, bis du „Weitere Optionen“ öffnest.</string>
+    <string name="transaction_form_power_banner_title">Power-Modus</string>
+    <string name="transaction_form_power_banner_hint">Vorlagen und erweiterte Felder sind für schnellere Eingabe bereit.</string>
+
+    <string name="transaction_form_new_title">Neue Transaktion</string>
+    <string name="transaction_form_edit_title">Transaktion bearbeiten</string>
+    <string name="transaction_form_create">Transaktion erstellen</string>
+    <string name="transaction_form_save_changes">Änderungen speichern</string>
+    <string name="transaction_form_saving">Speichern…</string>
+    <string name="transaction_type_income">Einnahme</string>
+    <string name="transaction_type_expense">Ausgabe</string>
+    <string name="transaction_type_transfer">Überweisung</string>
+    <string name="transaction_type_subtitle_income">Geld erfassen, das du erhalten hast</string>
+    <string name="transaction_type_subtitle_expense">Geld erfassen, das du ausgegeben hast</string>
+    <string name="transaction_type_subtitle_transfer">Geld zwischen deinen Konten verschieben</string>
+    <string name="transaction_source_received_from">Erhalten von</string>
+    <string name="transaction_source_paid_from">Bezahlt von</string>
+    <string name="transaction_source_from">Von</string>
+    <string name="transaction_target_deposited_to">Eingezahlt auf</string>
+    <string name="transaction_target_payee">An (Empfänger)</string>
+    <string name="transaction_target_to">An</string>
+    <string name="transaction_flow_help_income">Geld wird von einer Partei auf eines deiner Konten gebucht.</string>
+    <string name="transaction_flow_help_expense">Geld verlässt dein Konto und wird einem Empfänger zugeordnet.</string>
+    <string name="transaction_flow_help_transfer">Geld wird zwischen zwei eigenen Konten verschoben.</string>
+    <string name="transaction_amount_label">Betrag</string>
+    <string name="transaction_date_label">Datum</string>
+    <string name="transaction_more_options">Weitere Optionen</string>
+    <string name="transaction_more_options_hint">Optionale Klassifizierung für Berichte und Filter.</string>
+    <string name="transaction_auto_classify">Automatisch klassifizieren</string>
+    <string name="transaction_category_label">Kategorie</string>
+    <string name="transaction_expense_label">Budgetausgabe</string>
+    <string name="transaction_contract_label">Vertrag</string>
+    <string name="transaction_add_party">Neue Partei hinzufügen</string>
+    <string name="transaction_templates">Vorlagen</string>
+    <string name="transaction_templates_scroll_hint">Weitere Vorlagen, horizontal scrollen</string>
+    <string name="transaction_split_title">Transaktion aufteilen</string>
+    <string name="transaction_split_subtitle">Betrag auf mehrere Beschreibungen aufteilen (nur bestehende Transaktionen).</string>
+    <string name="transaction_split_empty_hint">Zeilen hinzufügen, die sich zu %1$s summieren.</string>
+    <string name="transaction_split_part_label">Teil</string>
+    <string name="transaction_split_total">Aufteilung gesamt</string>
+    <string name="transaction_split_remaining">Verbleibend</string>
+    <string name="transaction_split_add_line">Aufteilungszeile hinzufügen</string>
+    <string name="transaction_split_error_line_description">Jede Aufteilungszeile braucht eine Beschreibung</string>
+    <string name="transaction_split_error_line_amount">Gültigen Betrag für jede Aufteilungszeile eingeben</string>
+    <string name="transaction_split_error_total_mismatch">Aufteilungsbeträge müssen dem Transaktionsgesamtbetrag entsprechen</string>
+    <string name="transaction_error_amount">Betrag größer als null eingeben</string>
+    <string name="transaction_error_choose_field">%1$s wählen</string>
+    <string name="transaction_error_description">Kurze Beschreibung hinzufügen</string>
+    <string name="transaction_auto_classify_need_input">Beschreibung oder Betrag hinzufügen, damit die automatische Klassifizierung laufen kann.</string>
+    <string name="transaction_auto_classify_none">Es wurden keine Klassifizierungsvorschläge zurückgegeben.</string>
+    <string name="transaction_auto_classify_applied">Vorschläge angewendet für %1$s.</string>
+    <string name="transaction_auto_classify_unresolved">Vorschläge erhalten, aber %1$s konnte nicht zugeordnet werden.</string>
+    <string name="transaction_auto_classify_partial">%1$s angewendet und %2$s konnte nicht zugeordnet werden.</string>
+    <string name="transaction_auto_classify_failed">Diese Transaktion konnte nicht klassifiziert werden.</string>
+    <string name="transaction_classify_part_category">Kategorie</string>
+    <string name="transaction_classify_part_expense_group">Ausgabengruppe</string>
+    <string name="transaction_classify_part_tags">Tags</string>
+    <string name="transaction_tags_creating">Tag wird erstellt…</string>
+    <string name="transaction_tags_searching">Suchen…</string>
+    <string name="transaction_tags_empty_catalog">Noch keine Tags — Namen eingeben und Fertig tippen</string>
+    <string name="transaction_tags_no_match">Keine passenden Tags</string>
+    <string name="transaction_tags_create">\"%1$s\" erstellen</string>
+    <string name="transaction_tags_remove">%1$s entfernen</string>
+    <string name="transaction_tags_clear_search">Suche löschen</string>
+    <string name="transaction_owned_account_search_label">Konten suchen</string>
+    <string name="transaction_owned_account_no_accounts">Keine Konten verfügbar</string>
+    <string name="transaction_owned_account_no_matches">Keine Treffer</string>
+    <string name="transaction_template_default_name">Neue Vorlage</string>
+    <string name="filter_autocomplete_no_results">Keine Ergebnisse</string>
+    <string name="content_description_clear">Löschen</string>
+
+    <string name="settings_not_configured">Nicht konfiguriert</string>
+</resources>

@@ -17,7 +17,7 @@ import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.repository.TagRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.domain.model.Tag
-import com.pledgerio.app.ui.transactions.form.TransactionFormLabels
+import com.pledgerio.app.ui.transactions.form.AutoClassifyStatus
 import com.pledgerio.app.util.MainDispatcherRule
 import com.pledgerio.app.domain.model.TransactionTemplate
 import com.pledgerio.app.util.Resource
@@ -129,14 +129,6 @@ class TransactionFormViewModelTest {
     }
 
     @Test
-    fun `labels match transaction type`() {
-        assertEquals("Paid from", TransactionFormLabels.sourceLabel(TransactionType.CREDIT))
-        assertEquals("To (payee)", TransactionFormLabels.targetLabel(TransactionType.CREDIT))
-        assertEquals("Received from", TransactionFormLabels.sourceLabel(TransactionType.DEBIT))
-        assertEquals("Deposited to", TransactionFormLabels.targetLabel(TransactionType.DEBIT))
-    }
-
-    @Test
     fun `preserves owned source when switching expense to transfer`() = runTest {
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -172,7 +164,7 @@ class TransactionFormViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.validationAttempted)
-        assertNotNull(viewModel.uiState.value.fieldErrors.amount)
+        assertFalse(viewModel.uiState.value.canSubmit)
         assertFalse(viewModel.uiState.value.saveSuccess)
     }
 
@@ -303,7 +295,7 @@ class TransactionFormViewModelTest {
         assertTrue(viewModel.uiState.value.tags.contains("weekly"))
         assertTrue(viewModel.uiState.value.tags.contains("essentials"))
         assertTrue(viewModel.uiState.value.moreOptionsExpanded)
-        assertTrue(viewModel.uiState.value.autoClassifyStatus?.contains("Applied") == true)
+        assertTrue(viewModel.uiState.value.autoClassifyStatus is AutoClassifyStatus.Applied)
     }
 
     @Test

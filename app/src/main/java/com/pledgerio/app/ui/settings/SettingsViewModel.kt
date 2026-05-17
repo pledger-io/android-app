@@ -2,9 +2,11 @@ package com.pledgerio.app.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pledgerio.app.domain.model.AppLocale
 import com.pledgerio.app.domain.model.Currency
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.ThemeMode
+import com.pledgerio.app.util.LocaleManager
 import com.pledgerio.app.domain.repository.AuthRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.util.BiometricAuthenticator
@@ -21,6 +23,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 
 data class SettingsUiState(
@@ -32,10 +36,12 @@ data class SettingsUiState(
     val displayCurrencyLabel: String = "EUR",
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val financeExperienceMode: FinanceExperienceMode = FinanceExperienceMode.GUIDED,
+    val appLocale: AppLocale = AppLocale.SYSTEM,
     val currencies: List<Currency> = emptyList(),
     val showCurrencyPicker: Boolean = false,
     val showThemePicker: Boolean = false,
     val showExperiencePicker: Boolean = false,
+    val showLanguagePicker: Boolean = false,
     val isLoggingOut: Boolean = false,
 )
 
@@ -78,6 +84,11 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferences.financeExperienceMode.collect { mode ->
                 _uiState.update { it.copy(financeExperienceMode = mode) }
+            }
+        }
+        viewModelScope.launch {
+            userPreferences.appLocale.collect { locale ->
+                _uiState.update { it.copy(appLocale = locale) }
             }
         }
         loadCurrencies()
@@ -134,6 +145,25 @@ class SettingsViewModel @Inject constructor(
 
     fun dismissExperiencePicker() {
         _uiState.update { it.copy(showExperiencePicker = false) }
+    }
+
+    fun openLanguagePicker() {
+        _uiState.update { it.copy(showLanguagePicker = true) }
+    }
+
+    fun dismissLanguagePicker() {
+        _uiState.update { it.copy(showLanguagePicker = false) }
+    }
+
+    fun selectAppLocale(locale: AppLocale, onLocaleApplied: () -> Unit) {
+        viewModelScope.launch {
+            userPreferences.setAppLocale(locale)
+            withContext(Dispatchers.Main) {
+                LocaleManager.apply(locale)
+                dismissLanguagePicker()
+                onLocaleApplied()
+            }
+        }
     }
 
     fun selectCurrency(code: String) {

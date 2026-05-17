@@ -37,9 +37,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.AccountTypeCatalog
 import com.pledgerio.app.domain.model.AccountTypeOption
@@ -67,10 +69,15 @@ fun AccountFormScreen(
     Scaffold(
         topBar = {
             PledgerTopBar(
-                title = if (uiState.isEditing) "Edit Account" else "New Account",
+                title = stringResource(
+                    if (uiState.isEditing) R.string.account_form_edit_title else R.string.account_form_new_title,
+                ),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.nav_back),
+                        )
                     }
                 },
             )
@@ -102,7 +109,7 @@ fun AccountFormScreen(
                     OutlinedTextField(
                         value = uiState.name,
                         onValueChange = viewModel::onNameChanged,
-                        label = { Text("Account name *") },
+                        label = { Text(stringResource(R.string.account_name_label)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         isError = uiState.error != null && uiState.name.isBlank(),
@@ -111,7 +118,7 @@ fun AccountFormScreen(
                     OutlinedTextField(
                         value = uiState.description,
                         onValueChange = viewModel::onDescriptionChanged,
-                        label = { Text("Description") },
+                        label = { Text(stringResource(R.string.account_description_label)) },
                         modifier = Modifier.fillMaxWidth(),
                         minLines = 2,
                         maxLines = 4,
@@ -143,12 +150,12 @@ fun AccountFormScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    text = typeMeta.displayName,
+                                    text = typeMeta.localizedDisplayName(),
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
                                 )
                                 Text(
-                                    text = typeMeta.description,
+                                    text = typeMeta.localizedDescription(),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -166,7 +173,7 @@ fun AccountFormScreen(
                         OutlinedTextField(
                             value = uiState.iban,
                             onValueChange = viewModel::onIbanChanged,
-                            label = { Text("IBAN") },
+                            label = { Text(stringResource(R.string.account_iban_label)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                         )
@@ -174,7 +181,7 @@ fun AccountFormScreen(
                         OutlinedTextField(
                             value = uiState.bic,
                             onValueChange = viewModel::onBicChanged,
-                            label = { Text("BIC") },
+                            label = { Text(stringResource(R.string.account_bic_label)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                         )
@@ -184,7 +191,7 @@ fun AccountFormScreen(
                         OutlinedTextField(
                             value = uiState.openingBalance,
                             onValueChange = viewModel::onOpeningBalanceChanged,
-                            label = { Text("Opening balance") },
+                            label = { Text(stringResource(R.string.account_opening_balance_label)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -198,7 +205,15 @@ fun AccountFormScreen(
                         enabled = uiState.isValid && !uiState.isSaving,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text(if (uiState.isEditing) "Save Changes" else "Create Account")
+                        Text(
+                            stringResource(
+                                if (uiState.isEditing) {
+                                    R.string.account_form_save_changes
+                                } else {
+                                    R.string.account_form_create
+                                },
+                            ),
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -213,15 +228,13 @@ private fun AccountOwnershipSelector(
     variant: AccountTypeVariantChoice,
     onJointChanged: (Boolean) -> Unit,
 ) {
-    val (personalLabel, jointLabel) = when (variant.family) {
-        AccountTypeFamily.CHECKING -> "Personal" to "Joint"
-        AccountTypeFamily.SAVINGS -> "Personal" to "Joint"
-    }
+    val personalLabel = stringResource(R.string.account_ownership_personal)
+    val jointLabel = stringResource(R.string.account_ownership_joint)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = when (variant.family) {
-                AccountTypeFamily.CHECKING -> "Checking account"
-                AccountTypeFamily.SAVINGS -> "Savings account"
+                AccountTypeFamily.CHECKING -> stringResource(R.string.account_ownership_checking)
+                AccountTypeFamily.SAVINGS -> stringResource(R.string.account_ownership_savings)
             },
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -253,8 +266,10 @@ private fun AccountTypeDropdown(
     val selectedLabel = ownedPickerEntries.firstOrNull { entry ->
         entry.soloTypeCode.equals(selectedCode, ignoreCase = true) ||
             entry.jointTypeCode?.equals(selectedCode, ignoreCase = true) == true
-    }?.label
-        ?: counterpartyTypes.firstOrNull { it.code == selectedCode }?.displayName
+    }?.label?.resolve()
+        ?: counterpartyTypes.firstOrNull { it.code == selectedCode }?.let { option ->
+            AccountTypeCatalog.metadataFor(option.code).localizedDisplayName()
+        }
         ?: selectedCode.replace("_", " ").replaceFirstChar { it.uppercase() }
 
     ExposedDropdownMenuBox(
@@ -265,7 +280,7 @@ private fun AccountTypeDropdown(
             value = selectedLabel,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Account type *") },
+            label = { Text(stringResource(R.string.account_type_label)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -279,7 +294,7 @@ private fun AccountTypeDropdown(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            "Your accounts",
+                            stringResource(R.string.account_section_your_accounts),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -291,12 +306,15 @@ private fun AccountTypeDropdown(
                     DropdownMenuItem(
                         text = {
                             Column {
-                                Text(entry.label)
+                                Text(entry.label.resolve())
                                 Text(
                                     text = if (entry.jointTypeCode != null) {
-                                        "${entry.description} · personal or joint below"
+                                        stringResource(
+                                            R.string.account_picker_joint_hint_form,
+                                            entry.description.resolve(),
+                                        )
                                     } else {
-                                        entry.description
+                                        entry.description.resolve()
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -314,7 +332,7 @@ private fun AccountTypeDropdown(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            "Counterparties",
+                            stringResource(R.string.accounts_counterparties_title),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -323,13 +341,15 @@ private fun AccountTypeDropdown(
                     enabled = false,
                 )
                 counterpartyTypes.forEach { option ->
+                    val meta = AccountTypeCatalog.metadataFor(option.code)
                     DropdownMenuItem(
                         text = {
                             Column {
-                                Text(option.displayName)
-                                if (option.description.isNotBlank()) {
+                                Text(meta.localizedDisplayName())
+                                val description = option.description.ifBlank { meta.localizedDescription() }
+                                if (description.isNotBlank()) {
                                     Text(
-                                        text = option.description,
+                                        text = description,
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -365,7 +385,7 @@ private fun CurrencyDropdown(
             value = selectedLabel,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Currency *") },
+            label = { Text(stringResource(R.string.account_currency_label)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .fillMaxWidth()

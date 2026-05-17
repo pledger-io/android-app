@@ -35,9 +35,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.FinanceExperienceMode
+import com.pledgerio.app.ui.util.formBannerHint
+import com.pledgerio.app.ui.util.formBannerTitle
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar
@@ -49,6 +53,12 @@ import com.pledgerio.app.ui.transactions.form.SaveTemplateDialog
 import com.pledgerio.app.ui.transactions.form.TransactionFormMoreOptions
 import com.pledgerio.app.ui.transactions.form.TransactionSplitEditor
 import com.pledgerio.app.ui.transactions.form.TransactionTemplatesSection
+import com.pledgerio.app.ui.transactions.form.TransactionFormLabels
+import com.pledgerio.app.ui.transactions.form.localizedFieldErrors
+import com.pledgerio.app.ui.transactions.form.localizedSplitValidationError
+import com.pledgerio.app.ui.transactions.form.localizedValidationSummary
+import com.pledgerio.app.ui.transactions.form.screenTitleLocalized
+import com.pledgerio.app.ui.transactions.form.submitLabelLocalized
 import com.pledgerio.app.ui.transactions.form.TransactionTypeSelector
 import java.time.Instant
 import java.time.LocalDate
@@ -62,9 +72,15 @@ fun TransactionFormScreen(
     viewModel: TransactionFormViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val fieldErrors = uiState.localizedFieldErrors()
+    val typeSubtitle = TransactionFormLabels.typeSubtitle(uiState.type)
+    val sourceLabel = TransactionFormLabels.sourceLabel(uiState.type)
+    val targetLabel = TransactionFormLabels.targetLabel(uiState.type)
+    val flowHelperText = TransactionFormLabels.flowHelperText(uiState.type)
     val zone = remember { ZoneId.systemDefault() }
     val today = remember { LocalDate.now() }
     val yesterday = remember { today.minusDays(1) }
+    val defaultTemplateName = stringResource(R.string.transaction_template_default_name)
 
     LaunchedEffect(uiState.saveSuccess) {
         if (uiState.saveSuccess) {
@@ -102,12 +118,12 @@ fun TransactionFormScreen(
                         } ?: viewModel.dismissDatePicker()
                     },
                 ) {
-                    Text("OK")
+                    Text(stringResource(R.string.action_ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = viewModel::dismissDatePicker) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             },
         ) {
@@ -118,7 +134,7 @@ fun TransactionFormScreen(
     when (uiState.ownedAccountPickerSide) {
         OwnedAccountPickerSide.SOURCE -> {
             OwnedAccountPickerSheet(
-                title = uiState.sourceLabel,
+                title = sourceLabel,
                 accounts = uiState.ownedAccounts,
                 selectedId = uiState.sourceAccountId,
                 onDismiss = viewModel::dismissOwnedAccountPicker,
@@ -127,7 +143,7 @@ fun TransactionFormScreen(
         }
         OwnedAccountPickerSide.TARGET -> {
             OwnedAccountPickerSheet(
-                title = uiState.targetLabel,
+                title = targetLabel,
                 accounts = uiState.ownedAccounts,
                 selectedId = uiState.targetAccountId,
                 onDismiss = viewModel::dismissOwnedAccountPicker,
@@ -140,11 +156,14 @@ fun TransactionFormScreen(
     Scaffold(
         topBar = {
             PledgerTopBar(
-                title = uiState.screenTitle,
-                subtitle = uiState.typeSubtitle,
+                title = uiState.screenTitleLocalized(),
+                subtitle = typeSubtitle,
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.nav_back),
+                        )
                     }
                 },
             )
@@ -154,9 +173,9 @@ fun TransactionFormScreen(
                 TransactionFormFooter(
                     canSubmit = uiState.canSubmit,
                     isSaving = uiState.isSaving,
-                    validationSummary = uiState.validationSummary,
+                    validationSummary = uiState.localizedValidationSummary(),
                     serverError = uiState.error,
-                    submitLabel = uiState.submitLabel,
+                    submitLabel = uiState.submitLabelLocalized(),
                     onSubmit = viewModel::submit,
                 )
             }
@@ -183,15 +202,15 @@ fun TransactionFormScreen(
                     ) {
                         TransactionTypeSelector(
                             selected = uiState.type,
-                            subtitle = uiState.typeSubtitle,
+                            subtitle = typeSubtitle,
                             onSelected = viewModel::onTypeChanged,
                         )
 
                         if (uiState.financeExperienceMode == FinanceExperienceMode.GUIDED) {
                             Spacer(modifier = Modifier.height(12.dp))
                             ExperienceModeBanner(
-                                title = uiState.experienceModeTitle,
-                                hint = uiState.experienceModeHint,
+                                title = uiState.financeExperienceMode.formBannerTitle(),
+                                hint = uiState.financeExperienceMode.formBannerHint(),
                             )
                         }
 
@@ -200,7 +219,9 @@ fun TransactionFormScreen(
                             TransactionTemplatesSection(
                                 templates = uiState.templates,
                                 onApplyTemplate = viewModel::applyTemplate,
-                                onSaveAsTemplate = viewModel::showSaveTemplateDialog,
+                                onSaveAsTemplate = {
+                                    viewModel.showSaveTemplateDialog(defaultTemplateName)
+                                },
                             )
                         }
 
@@ -209,7 +230,7 @@ fun TransactionFormScreen(
                         TransactionAmountCard(
                             amount = uiState.amount,
                             onAmountChange = viewModel::onAmountChanged,
-                            amountError = uiState.fieldErrors.amount,
+                            amountError = fieldErrors.amount,
                             currency = uiState.currency,
                             currencies = uiState.currencies,
                             onCurrencyChange = viewModel::onCurrencyChanged,
@@ -224,9 +245,9 @@ fun TransactionFormScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         TransactionFlowCard(
-                            sourceLabel = uiState.sourceLabel,
-                            targetLabel = uiState.targetLabel,
-                            helperText = uiState.flowHelperText,
+                            sourceLabel = sourceLabel,
+                            targetLabel = targetLabel,
+                            helperText = flowHelperText,
                             sourceKind = uiState.sourceInputKind,
                             targetKind = uiState.targetInputKind,
                             sourceAccountId = uiState.sourceAccountId,
@@ -240,8 +261,8 @@ fun TransactionFormScreen(
                             targetSuggestions = uiState.targetSuggestions,
                             isSearchingTarget = uiState.isSearchingTarget,
                             ownedAccounts = uiState.ownedAccounts,
-                            sourceError = uiState.fieldErrors.source,
-                            targetError = uiState.fieldErrors.target,
+                            sourceError = fieldErrors.source,
+                            targetError = fieldErrors.target,
                             onSourceQueryChange = viewModel::onSourceQueryChanged,
                             onSourceAutocompleteSelected = viewModel::selectSourceAutocomplete,
                             onSourceAutocompleteClear = viewModel::clearSourceAccount,
@@ -269,13 +290,13 @@ fun TransactionFormScreen(
                         OutlinedTextField(
                             value = uiState.description,
                             onValueChange = viewModel::onDescriptionChanged,
-                            label = { Text("What was this for?") },
-                            placeholder = { Text("Groceries, salary, rent…") },
+                            label = { Text(stringResource(R.string.transaction_description_label)) },
+                            placeholder = { Text(stringResource(R.string.transaction_description_hint)) },
                             singleLine = false,
                             minLines = 1,
                             maxLines = 3,
-                            isError = uiState.fieldErrors.description != null,
-                            supportingText = uiState.fieldErrors.description?.let { { Text(it) } },
+                            isError = fieldErrors.description != null,
+                            supportingText = fieldErrors.description?.let { { Text(it) } },
                             modifier = Modifier.fillMaxWidth(),
                         )
 
@@ -291,7 +312,7 @@ fun TransactionFormScreen(
                                 splitTotal = uiState.splitTotal,
                                 remaining = uiState.splitRemaining,
                                 validationError = if (uiState.validationAttempted) {
-                                    uiState.splitValidationError
+                                    uiState.localizedSplitValidationError()
                                 } else {
                                     null
                                 },
@@ -351,7 +372,7 @@ fun TransactionFormScreen(
                         ) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Need categories, tags, or contracts? Open More options.",
+                                text = stringResource(R.string.transaction_form_guided_hint),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )

@@ -32,7 +32,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.TransactionTemplate
 
 @Composable
@@ -53,7 +55,11 @@ fun TransactionTemplatesSection(
             scrollState.value > 0
         }
     }
-    val scrollHint = if (showEndIndicator) "More templates, scroll horizontally" else null
+    val scrollHint = if (showEndIndicator) {
+        stringResource(R.string.transaction_templates_scroll_hint)
+    } else {
+        null
+    }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
@@ -62,7 +68,7 @@ fun TransactionTemplatesSection(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Templates",
+                text = stringResource(R.string.transaction_templates),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -72,7 +78,7 @@ fun TransactionTemplatesSection(
                     contentDescription = null,
                     modifier = Modifier.padding(end = 4.dp),
                 )
-                Text("Save current")
+                Text(stringResource(R.string.transaction_save_template))
             }
         }
         Box(

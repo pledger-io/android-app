@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.pledgerio.app.domain.model.AppLocale
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.ThemeMode
 import com.pledgerio.app.domain.model.TransactionType
@@ -42,6 +43,9 @@ class UserPreferences @Inject constructor(
     private val _financeExperienceMode = MutableStateFlow(FinanceExperienceMode.GUIDED)
     val financeExperienceMode: StateFlow<FinanceExperienceMode> = _financeExperienceMode.asStateFlow()
 
+    private val _appLocale = MutableStateFlow(AppLocale.SYSTEM)
+    val appLocale: StateFlow<AppLocale> = _appLocale.asStateFlow()
+
     init {
         scope.launch {
             dataStore.data.map { prefs ->
@@ -58,8 +62,16 @@ class UserPreferences @Inject constructor(
                 FinanceExperienceMode.fromStorage(prefs[KEY_FINANCE_EXPERIENCE_MODE])
             }.collect { _financeExperienceMode.value = it }
         }
+        scope.launch {
+            dataStore.data.map { prefs ->
+                AppLocale.fromStorage(prefs[KEY_APP_LOCALE])
+            }.collect { _appLocale.value = it }
+        }
         companionInstance = this
     }
+
+    suspend fun appLocaleOnce(): AppLocale =
+        dataStore.data.map { prefs -> AppLocale.fromStorage(prefs[KEY_APP_LOCALE]) }.first()
 
     suspend fun setDisplayCurrency(code: String) {
         dataStore.edit { it[KEY_DISPLAY_CURRENCY] = code }
@@ -71,6 +83,10 @@ class UserPreferences @Inject constructor(
 
     suspend fun setFinanceExperienceMode(mode: FinanceExperienceMode) {
         dataStore.edit { it[KEY_FINANCE_EXPERIENCE_MODE] = mode.storageValue }
+    }
+
+    suspend fun setAppLocale(locale: AppLocale) {
+        dataStore.edit { it[KEY_APP_LOCALE] = locale.storageValue }
     }
 
     suspend fun getLastTransactionType(): TransactionType? {
@@ -98,6 +114,7 @@ class UserPreferences @Inject constructor(
         private val KEY_DISPLAY_CURRENCY = stringPreferencesKey("display_currency")
         private val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
         private val KEY_FINANCE_EXPERIENCE_MODE = stringPreferencesKey("finance_experience_mode")
+        private val KEY_APP_LOCALE = stringPreferencesKey("app_locale")
         private val KEY_LAST_TRANSACTION_TYPE = stringPreferencesKey("last_transaction_type")
 
         @Volatile

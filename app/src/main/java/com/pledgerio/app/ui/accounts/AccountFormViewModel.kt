@@ -10,7 +10,10 @@ import com.pledgerio.app.domain.model.Currency
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.util.Resource
+import android.content.Context
+import com.pledgerio.app.R
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -53,6 +56,7 @@ data class AccountFormUiState(
 
 @HiltViewModel
 class AccountFormViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle,
     private val accountRepository: AccountRepository,
     private val currencyRepository: CurrencyRepository,
@@ -119,7 +123,9 @@ class AccountFormViewModel @Inject constructor(
     fun save() {
         val state = _uiState.value
         if (!state.isValid) {
-            _uiState.update { it.copy(error = "Please provide a name") }
+            _uiState.update {
+                it.copy(error = context.getString(R.string.account_error_name_required))
+            }
             return
         }
 

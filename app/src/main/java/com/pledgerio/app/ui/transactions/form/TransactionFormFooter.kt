@@ -10,7 +10,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.pledgerio.app.R
 
 @Composable
 fun TransactionFormFooter(
@@ -18,7 +20,7 @@ fun TransactionFormFooter(
     isSaving: Boolean,
     validationSummary: String?,
     serverError: String?,
-    submitLabel: String = "Create transaction",
+    submitLabel: String,
     onSubmit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -51,7 +53,13 @@ fun TransactionFormFooter(
                 enabled = canSubmit && !isSaving,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(if (isSaving) "Saving…" else submitLabel)
+                Text(
+                    if (isSaving) {
+                        stringResource(R.string.transaction_form_saving)
+                    } else {
+                        submitLabel
+                    },
+                )
             }
         }
     }

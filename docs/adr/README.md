@@ -23,6 +23,7 @@ This directory contains Architecture Decision Records (ADRs) for the Pledger.io 
 | [015](015-stale-while-revalidate-cache.md) | Stale-While-Revalidate Cache for Reference Data | Accepted |
 | [016](016-usability-improvement-program.md) | Usability Improvement Program | Accepted |
 | [017](017-deep-links-and-reports.md) | Deep Links and Reports Data | Accepted |
+| [018](018-app-localization.md) | App Localization (en / nl / de) | Accepted |
 
 ## ADR Format
 
