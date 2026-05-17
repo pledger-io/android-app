@@ -60,22 +60,32 @@ class TransactionFormViewModelTest {
     private val checking = Account(id = 1, name = "Checking", typeCode = "default", currency = "EUR")
     private val savings = Account(id = 2, name = "Savings", typeCode = "savings", currency = "EUR")
 
-    private fun setupRepository() {
+    private fun setupRepository(
+        experienceMode: FinanceExperienceMode = FinanceExperienceMode.GUIDED,
+        ownedAccounts: List<Account> = listOf(checking, savings),
+    ) {
         every { currencyRepository.getCurrencies() } returns flowOf(emptyList())
-        every { userPreferences.financeExperienceMode } returns MutableStateFlow(FinanceExperienceMode.GUIDED)
+        every { userPreferences.financeExperienceMode } returns MutableStateFlow(experienceMode)
         coEvery { userPreferences.setLastTransactionType(any()) } returns Unit
         every { transactionTemplateStore.templates } returns flowOf(emptyList())
         every { tagRepository.observeTags() } returns flowOf(
             listOf(Tag("housing"), Tag("travel")),
         )
         every { tagRepository.observeMatching(any()) } returns flowOf(emptyList())
-        coEvery { accountRepository.refreshOwnedAccounts() } returns Resource.Success(
-            listOf(checking, savings),
-        )
+        coEvery { tagRepository.refreshTags() } returns Resource.Success(emptyList())
+        every { categoryRepository.observeMatching(any()) } returns flowOf(emptyList())
+        every { budgetRepository.observeExpenseGroups(any()) } returns flowOf(emptyList())
+        every { contractRepository.observeMatching(any()) } returns flowOf(emptyList())
+        coEvery { accountRepository.refreshOwnedAccounts() } returns Resource.Success(ownedAccounts)
+        coEvery { accountRepository.searchAccounts(any(), any(), any()) } returns Resource.Success(emptyList())
     }
 
-    private fun createViewModel(): TransactionFormViewModel {
-        setupRepository()
+    private fun createViewModel(
+        experienceMode: FinanceExperienceMode = FinanceExperienceMode.GUIDED,
+        ownedAccounts: List<Account> = listOf(checking, savings),
+        savedState: SavedStateHandle = savedStateHandle,
+    ): TransactionFormViewModel {
+        setupRepository(experienceMode = experienceMode, ownedAccounts = ownedAccounts)
         return TransactionFormViewModel(
             transactionRepository,
             accountRepository,
@@ -86,7 +96,7 @@ class TransactionFormViewModelTest {
             tagRepository,
             userPreferences,
             transactionTemplateStore,
-            savedStateHandle,
+            savedState,
         )
     }
 
@@ -177,23 +187,8 @@ class TransactionFormViewModelTest {
 
     @Test
     fun `owned account selection sets currency from account`() = runTest {
-        every { currencyRepository.getCurrencies() } returns flowOf(emptyList())
         val usdChecking = checking.copy(currency = "USD")
-        coEvery { accountRepository.refreshOwnedAccounts() } returns Resource.Success(
-            listOf(usdChecking, savings),
-        )
-        val viewModel = TransactionFormViewModel(
-            transactionRepository,
-            accountRepository,
-            currencyRepository,
-            categoryRepository,
-            budgetRepository,
-            contractRepository,
-            tagRepository,
-            userPreferences,
-            transactionTemplateStore,
-            savedStateHandle,
-        )
+        val viewModel = createViewModel(ownedAccounts = listOf(usdChecking, savings))
         advanceUntilIdle()
 
         viewModel.onSourceDropdownSelected(usdChecking.id)
@@ -267,8 +262,7 @@ class TransactionFormViewModelTest {
 
     @Test
     fun `power mode expands optional sections and shows templates by default`() = runTest {
-        every { userPreferences.financeExperienceMode } returns MutableStateFlow(FinanceExperienceMode.POWER)
-        val viewModel = createViewModel()
+        val viewModel = createViewModel(experienceMode = FinanceExperienceMode.POWER)
         advanceUntilIdle()
 
         assertEquals(FinanceExperienceMode.POWER, viewModel.uiState.value.financeExperienceMode)
