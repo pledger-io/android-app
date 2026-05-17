@@ -84,6 +84,15 @@ class UserPreferences @Inject constructor(
         dataStore.edit { it[KEY_LAST_TRANSACTION_TYPE] = type.name }
     }
 
+    /** Clears preferences tied to the previous signed-in user (keeps theme & experience mode). */
+    suspend fun clearSessionData() {
+        dataStore.edit { prefs ->
+            prefs.remove(KEY_DISPLAY_CURRENCY)
+            prefs.remove(KEY_LAST_TRANSACTION_TYPE)
+        }
+        _displayCurrencyCode.value = DEFAULT_CURRENCY
+    }
+
     companion object {
         private const val DEFAULT_CURRENCY = "EUR"
         private val KEY_DISPLAY_CURRENCY = stringPreferencesKey("display_currency")

@@ -28,4 +28,8 @@ class FakeSyncMetadataDao : SyncMetadataDao {
     override suspend fun delete(key: String) {
         data.value = data.value - key
     }
+
+    override suspend fun deleteAll() {
+        data.value = emptyMap()
+    }
 }

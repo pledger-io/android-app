@@ -1,5 +1,6 @@
 package com.pledgerio.app.data.repository
 
+import com.pledgerio.app.data.local.LocalDataCleaner
 import com.pledgerio.app.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.LoginRequest
 import com.pledgerio.app.domain.repository.AuthRepository
@@ -15,6 +16,7 @@ import javax.inject.Inject
 class AuthRepositoryImpl @Inject constructor(
     private val apiService: PledgerApiService,
     private val sessionManager: SessionManager,
+    private val localDataCleaner: LocalDataCleaner,
     private val okHttpClient: OkHttpClient,
 ) : AuthRepository {
 
@@ -29,6 +31,7 @@ class AuthRepositoryImpl @Inject constructor(
                 if (token.isBlank()) {
                     return Resource.Error("No access token in response")
                 }
+                localDataCleaner.clearAllUserData()
                 sessionManager.saveToken(token)
                 sessionManager.saveUsername(username)
                 body.refreshToken?.let { sessionManager.saveRefreshToken(it) }
@@ -87,6 +90,7 @@ class AuthRepositoryImpl @Inject constructor(
         } catch (_: Exception) {
             // Clear local session even when the server is unreachable
         }
+        localDataCleaner.clearAllUserData()
         sessionManager.clearAuthTokens()
     }
 }

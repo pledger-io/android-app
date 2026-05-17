@@ -34,13 +34,6 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideAuthInterceptor(
-        sessionManager: SessionManager,
-        tokenRefresher: TokenRefresher,
-    ): AuthInterceptor = AuthInterceptor(sessionManager, tokenRefresher)
-
-    @Provides
-    @Singleton
     fun provideDynamicBaseUrlInterceptor(sessionManager: SessionManager): DynamicBaseUrlInterceptor =
         DynamicBaseUrlInterceptor(sessionManager)
 
