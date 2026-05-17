@@ -6,6 +6,7 @@ import com.pledgerio.app.data.local.dao.AccountTypeDao
 import com.pledgerio.app.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.AccountDto
 import com.pledgerio.app.data.remote.dto.AccountPagedResponse
+import com.pledgerio.app.data.remote.dto.BalancePartitionedDto
 import com.pledgerio.app.data.remote.dto.PageInfo
 import com.pledgerio.app.domain.model.AccountTypeCodes
 import com.pledgerio.app.util.FakeSyncMetadataDao
@@ -75,11 +76,22 @@ class CounterpartyAccountsRefreshTest {
             ),
         )
         coEvery { accountDao.replaceByTypes(any(), any()) } just Runs
+        coEvery {
+            apiService.getPartitionedBalance("account", any())
+        } returns Response.success(
+            listOf(
+                BalancePartitionedDto(balance = 42.0, partition = "Party 1"),
+                BalancePartitionedDto(balance = 7.5, partition = "Party 51"),
+            ),
+        )
 
         val result = repository.refreshCounterpartyAccounts()
 
         assertTrue(result is Resource.Success)
-        assertEquals(80, (result as Resource.Success).data.size)
+        val accounts = (result as Resource.Success).data
+        assertEquals(80, accounts.size)
+        assertEquals(42.0, accounts.first { it.name == "Party 1" }.balance, 0.0)
+        assertEquals(7.5, accounts.first { it.name == "Party 51" }.balance, 0.0)
         coVerify {
             apiService.getAccounts(
                 type = counterpartyTypes,

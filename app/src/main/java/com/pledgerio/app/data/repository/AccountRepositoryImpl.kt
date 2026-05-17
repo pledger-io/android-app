@@ -111,9 +111,11 @@ class AccountRepositoryImpl @Inject constructor(
         ) { refreshCounterpartyAccounts() }
 
         if (cachedPage.isNotEmpty()) {
+            val enrichedPage = enrichWithBalances(cachedPage)
+            persistAccountBalances(enrichedPage)
             return Resource.Success(
                 PagedAccounts(
-                    items = cachedPage,
+                    items = enrichedPage,
                     totalRecords = cachedTotal,
                     offset = offset,
                     pageSize = pageSize,
@@ -149,11 +151,12 @@ class AccountRepositoryImpl @Inject constructor(
                     if (totalRecords == 0L && items.size < pageSize) break
                     offset = collected.size
                 }
+                val enriched = enrichWithBalances(collected)
                 accountDao.replaceByTypes(
                     types = counterpartyTypes,
-                    items = collected.map { AccountEntity.fromDomain(it) },
+                    items = enriched.map { AccountEntity.fromDomain(it) },
                 )
-                Resource.Success(collected)
+                Resource.Success(enriched)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -227,14 +230,12 @@ class AccountRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 val body = response.body()
                 val items = body?.content?.map { it.toDomain() }?.distinctBy { it.id } ?: emptyList()
-                val total = body?.info?.records ?: items.size.toLong()
-                // Opportunistic write-through so subsequent reads hit the cache.
-                if (items.isNotEmpty()) {
-                    accountDao.insertAll(items.map { AccountEntity.fromDomain(it) })
-                }
+                val enriched = enrichWithBalances(items)
+                val total = body?.info?.records ?: enriched.size.toLong()
+                persistAccountBalances(enriched)
                 Resource.Success(
                     PagedAccounts(
-                        items = items,
+                        items = enriched,
                         totalRecords = total,
                         offset = offset,
                         pageSize = pageSize,
@@ -246,6 +247,11 @@ class AccountRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Network error")
         }
+    }
+
+    private suspend fun persistAccountBalances(accounts: List<Account>) {
+        if (accounts.isEmpty()) return
+        accountDao.insertAll(accounts.map { AccountEntity.fromDomain(it) })
     }
 
     private suspend fun enrichWithBalances(accounts: List<Account>): List<Account> {
@@ -359,7 +365,17 @@ class AccountRepositoryImpl @Inject constructor(
 
     override suspend fun getAccount(id: Long): Resource<Account> {
         val cached = accountDao.getById(id)?.toDomain()
-        if (cached != null && !cacheRefresher.isStale(SyncKeys.OWNED_ACCOUNTS, CachePolicy.OWNED_ACCOUNTS_TTL_MS)) {
+        val cacheKey = if (cached != null && AccountTypeCatalog.isCounterparty(cached.typeCode)) {
+            SyncKeys.COUNTERPARTY_ACCOUNTS
+        } else {
+            SyncKeys.OWNED_ACCOUNTS
+        }
+        val cacheTtl = if (cacheKey == SyncKeys.COUNTERPARTY_ACCOUNTS) {
+            CachePolicy.COUNTERPARTY_ACCOUNTS_TTL_MS
+        } else {
+            CachePolicy.OWNED_ACCOUNTS_TTL_MS
+        }
+        if (cached != null && !cacheRefresher.isStale(cacheKey, cacheTtl)) {
             return Resource.Success(cached)
         }
         return try {
@@ -367,11 +383,7 @@ class AccountRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 val dto = response.body() ?: return Resource.Error("Account not found")
                 val account = dto.toDomain()
-                val enriched = if (AccountTypeCatalog.isCounterparty(account.typeCode)) {
-                    account
-                } else {
-                    enrichWithBalances(listOf(account)).first()
-                }
+                val enriched = enrichWithBalances(listOf(account)).first()
                 accountDao.insert(AccountEntity.fromDomain(enriched))
                 Resource.Success(enriched)
             } else {
