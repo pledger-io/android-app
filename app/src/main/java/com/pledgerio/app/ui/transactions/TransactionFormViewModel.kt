@@ -261,6 +261,7 @@ class TransactionFormViewModel @Inject constructor(
 
     private var sourceSearchJob: Job? = null
     private var targetSearchJob: Job? = null
+    private var tagCatalogLoadJob: Job? = null
 
     private val categoryQueryFlow = MutableStateFlow("")
     private val expenseQueryFlow = MutableStateFlow("")
@@ -297,7 +298,6 @@ class TransactionFormViewModel @Inject constructor(
             },
         )
         observeTagSuggestions()
-        observeCatalogTags()
         if (editTransactionId != null) {
             loadTransactionForEdit(editTransactionId)
         }
@@ -342,12 +342,11 @@ class TransactionFormViewModel @Inject constructor(
                 }
                 .flatMapLatest { query ->
                     if (query.isBlank()) {
-                        tagRepository.observeTags()
+                        flowOf(emptyList())
                     } else {
-                        tagRepository.observeMatching(query)
+                        tagRepository.observeMatching(query).map { tags -> tags.map { it.name } }
                     }
                 }
-                .map { tags -> tags.map { it.name } }
                 .collect { names -> applyTagSuggestions(names) }
         }
     }
@@ -357,14 +356,32 @@ class TransactionFormViewModel @Inject constructor(
             val filtered = names.filter { name ->
                 state.tags.none { selected -> selected.equals(name, ignoreCase = true) }
             }
-            state.copy(isSearchingTags = false, tagSuggestions = filtered)
+            if (!state.isSearchingTags && state.tagSuggestions == filtered) {
+                state
+            } else {
+                state.copy(isSearchingTags = false, tagSuggestions = filtered)
+            }
         }
     }
 
-    private fun observeCatalogTags() {
-        viewModelScope.launch {
-            tagRepository.observeTags().collect { tags ->
-                _uiState.update { it.copy(catalogTagNames = tags.map { tag -> tag.name }.toSet()) }
+    fun ensureTagCatalogLoaded() {
+        if (_uiState.value.catalogTagNames.isNotEmpty()) {
+            if (tagQueryFlow.value.isBlank()) {
+                applyTagSuggestions(_uiState.value.catalogTagNames.sorted())
+            }
+            return
+        }
+        if (tagCatalogLoadJob?.isActive == true) return
+        tagCatalogLoadJob = viewModelScope.launch {
+            when (val result = tagRepository.refreshTags()) {
+                is Resource.Success -> {
+                    val names = result.data.map { it.name }
+                    _uiState.update { it.copy(catalogTagNames = names.toSet()) }
+                    if (tagQueryFlow.value.isBlank()) {
+                        applyTagSuggestions(names)
+                    }
+                }
+                is Resource.Error, is Resource.Loading -> Unit
             }
         }
     }
@@ -446,11 +463,15 @@ class TransactionFormViewModel @Inject constructor(
     }
 
     fun toggleMoreOptions() {
+        val willExpand = !_uiState.value.moreOptionsExpanded
         _uiState.update {
             it.copy(
-                moreOptionsExpanded = !it.moreOptionsExpanded,
+                moreOptionsExpanded = willExpand,
                 moreOptionsManuallyToggled = true,
             )
+        }
+        if (willExpand) {
+            ensureTagCatalogLoaded()
         }
     }
 
@@ -1024,9 +1045,9 @@ class TransactionFormViewModel @Inject constructor(
                 sourceAccountName = sourceName,
                 destinationAccountId = state.targetAccountId,
                 destinationAccountName = targetName,
-                categoryId = state.categorySelected?.id,
-                expenseId = state.expenseSelected?.id,
-                contractId = state.contractSelected?.id,
+                categoryId = resolveCategoryId(state),
+                expenseId = resolveExpenseId(state),
+                contractId = resolveContractId(state),
                 tags = state.tags,
             )
 
@@ -1174,6 +1195,38 @@ class TransactionFormViewModel @Inject constructor(
         }
     }
 
+    private suspend fun resolveContractOptionByName(name: String): FilterOption? {
+        return when (val result = contractRepository.searchContracts(name)) {
+            is Resource.Success -> {
+                val options = result.data.map { FilterOption(id = it.id, label = it.name) }
+                bestMatchOption(name = name, options = options)
+            }
+
+            is Resource.Error, is Resource.Loading -> null
+        }
+    }
+
+    private suspend fun resolveCategoryId(state: TransactionFormUiState): Long? {
+        state.categorySelected?.id?.let { return it }
+        val name = state.categoryQuery.trim()
+        if (name.isEmpty()) return null
+        return resolveCategoryOptionByName(name)?.id
+    }
+
+    private suspend fun resolveExpenseId(state: TransactionFormUiState): Long? {
+        state.expenseSelected?.id?.let { return it }
+        val name = state.expenseQuery.trim()
+        if (name.isEmpty()) return null
+        return resolveExpenseOptionByName(name)?.id
+    }
+
+    private suspend fun resolveContractId(state: TransactionFormUiState): Long? {
+        state.contractSelected?.id?.let { return it }
+        val name = state.contractQuery.trim()
+        if (name.isEmpty()) return null
+        return resolveContractOptionByName(name)?.id
+    }
+
     private fun bestMatchOption(name: String, options: List<FilterOption>): FilterOption? {
         val trimmed = name.trim()
         if (trimmed.isBlank()) return null
@@ -1250,6 +1303,15 @@ class TransactionFormViewModel @Inject constructor(
             when (val result = transactionRepository.getTransaction(id)) {
                 is Resource.Success -> {
                     val tx = result.data
+                    val categorySelected = tx.categoryName
+                        ?.takeIf { it.isNotBlank() }
+                        ?.let { resolveCategoryOptionByName(it) }
+                    val expenseSelected = tx.budgetName
+                        ?.takeIf { it.isNotBlank() }
+                        ?.let { resolveExpenseOptionByName(it) }
+                    val contractSelected = tx.contractName
+                        ?.takeIf { it.isNotBlank() }
+                        ?.let { resolveContractOptionByName(it) }
                     val sourceKind = TransactionFormUiState.inputKindForSource(tx.type)
                     val targetKind = TransactionFormUiState.inputKindForTarget(tx.type)
                     _uiState.update { state ->
@@ -1282,9 +1344,12 @@ class TransactionFormViewModel @Inject constructor(
                             targetAccountId = tx.destinationAccountId,
                             targetSelected = targetSelected,
                             targetQuery = tx.destinationAccountName,
-                            categoryQuery = tx.categoryName.orEmpty(),
-                            expenseQuery = tx.budgetName.orEmpty(),
-                            contractQuery = tx.contractName.orEmpty(),
+                            categorySelected = categorySelected,
+                            categoryQuery = categorySelected?.label ?: tx.categoryName.orEmpty(),
+                            expenseSelected = expenseSelected,
+                            expenseQuery = expenseSelected?.label ?: tx.budgetName.orEmpty(),
+                            contractSelected = contractSelected,
+                            contractQuery = contractSelected?.label ?: tx.contractName.orEmpty(),
                             tags = tx.tags,
                             splitLines = tx.split.toSplitLineUi(),
                             originalSplitSnapshot = tx.split,
@@ -1340,18 +1405,27 @@ class TransactionFormViewModel @Inject constructor(
     private fun observeExperienceMode() {
         viewModelScope.launch {
             userPreferences.financeExperienceMode.collect { mode ->
-                _uiState.update { state ->
-                    // Preserve explicit user intent when they manually expanded/collapsed advanced fields.
-                    val shouldExpandMoreOptions = when {
-                        state.isEditing -> state.moreOptionsExpanded
-                        state.moreOptionsManuallyToggled -> state.moreOptionsExpanded
-                        mode == FinanceExperienceMode.POWER -> true
-                        else -> false
-                    }
-                    state.copy(
+                val previous = _uiState.value
+                val shouldExpandMoreOptions = when {
+                    previous.isEditing -> previous.moreOptionsExpanded
+                    previous.moreOptionsManuallyToggled -> previous.moreOptionsExpanded
+                    mode == FinanceExperienceMode.POWER -> true
+                    else -> false
+                }
+                if (
+                    previous.financeExperienceMode == mode &&
+                    previous.moreOptionsExpanded == shouldExpandMoreOptions
+                ) {
+                    return@collect
+                }
+                _uiState.update {
+                    it.copy(
                         financeExperienceMode = mode,
                         moreOptionsExpanded = shouldExpandMoreOptions,
                     )
+                }
+                if (shouldExpandMoreOptions && !previous.moreOptionsExpanded) {
+                    ensureTagCatalogLoaded()
                 }
             }
         }

@@ -66,6 +66,7 @@ fun TransactionFormMoreOptions(
     autoClassifyStatus: String? = null,
     onAutoClassify: () -> Unit = {},
     onSelectTagSuggestion: (String) -> Unit,
+    onTagsFieldFocus: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -163,6 +164,7 @@ fun TransactionFormMoreOptions(
                         onAddTag = onAddTag,
                         onRemoveTag = onRemoveTag,
                         onSelectSuggestion = onSelectTagSuggestion,
+                        onFieldFocus = onTagsFieldFocus,
                         modifier = Modifier.padding(top = 12.dp),
                     )
                 }

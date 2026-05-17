@@ -8,6 +8,7 @@ import com.pledgerio.app.data.local.entity.CategoryEntity
 import com.pledgerio.app.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.CategoryDto
 import com.pledgerio.app.data.remote.dto.CategoryPagedResponse
+import com.pledgerio.app.data.remote.dto.PageInfo
 import com.pledgerio.app.domain.model.Category
 import com.pledgerio.app.util.FakeSyncMetadataDao
 import com.pledgerio.app.util.Resource
@@ -43,7 +44,7 @@ class CategoryRepositoryImplTest {
     @Test
     fun `searchCategories returns cached results when present`() = runTest {
         val cached = listOf(CategoryEntity(id = 1, name = "Groceries"))
-        coEvery { categoryDao.searchOnce("Gro", 20) } returns cached
+        coEvery { categoryDao.searchOnce("Gro", 500) } returns cached
 
         val result = repository.searchCategories("Gro")
 
@@ -65,6 +66,37 @@ class CategoryRepositoryImplTest {
         assertTrue(result is Resource.Success)
         coVerify { categoryDao.replaceAll(match { it.size == 1 && it.first().name == "Fuel" }) }
         assertNotNull(syncMetadataDao.getLastSyncedAt(SyncKeys.CATEGORIES))
+    }
+
+    @Test
+    fun `refreshCategories fetches subsequent pages using received count as offset`() = runTest {
+        val page1 = (1L..50L).map { id -> CategoryDto(id = id, name = "Category $id") }
+        val page2 = (51L..80L).map { id -> CategoryDto(id = id, name = "Category $id") }
+        coEvery {
+            apiService.getCategories(name = null, offset = 0, numberOfResults = 200)
+        } returns Response.success(
+            CategoryPagedResponse(
+                content = page1,
+                info = PageInfo(records = 80, pages = 2, pageSize = 50),
+            ),
+        )
+        coEvery {
+            apiService.getCategories(name = null, offset = 50, numberOfResults = 200)
+        } returns Response.success(
+            CategoryPagedResponse(
+                content = page2,
+                info = PageInfo(records = 80, pages = 2, pageSize = 30),
+            ),
+        )
+        coEvery { categoryDao.replaceAll(any()) } just Runs
+
+        val result = repository.refreshCategories()
+
+        assertTrue(result is Resource.Success)
+        assertEquals(80, (result as Resource.Success).data.size)
+        coVerify {
+            apiService.getCategories(name = null, offset = 50, numberOfResults = 200)
+        }
     }
 
     @Test

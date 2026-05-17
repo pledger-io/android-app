@@ -32,7 +32,7 @@ class CategoryRepositoryImpl @Inject constructor(
             .onStart { triggerStaleRefresh() }
 
     override fun observeMatching(query: String): Flow<List<Category>> =
-        categoryDao.observeMatching(query.trim())
+        categoryDao.observeMatching(query.trim(), limit = CATEGORY_SEARCH_LIMIT)
             .map { rows -> rows.map { it.toDomain() } }
             .distinctUntilChanged()
             .onStart { triggerStaleRefresh() }
@@ -55,7 +55,7 @@ class CategoryRepositoryImpl @Inject constructor(
 
     override suspend fun searchCategories(name: String): Resource<List<Category>> {
         triggerStaleRefresh()
-        val results = categoryDao.searchOnce(name.trim(), limit = 20)
+        val results = categoryDao.searchOnce(name.trim(), limit = CATEGORY_SEARCH_LIMIT)
             .map { it.toDomain() }
         return Resource.Success(results)
     }
@@ -172,7 +172,7 @@ class CategoryRepositoryImpl @Inject constructor(
     private suspend fun fetchAllCategoriesFromApi(name: String? = null): List<Category>? {
         val collected = mutableListOf<Category>()
         var offset = 0
-        val pageSize = 200
+        val pageSize = CATEGORY_PAGE_SIZE
         while (true) {
             val response = apiService.getCategories(
                 name = name?.trim()?.takeIf { it.isNotEmpty() },
@@ -191,11 +191,20 @@ class CategoryRepositoryImpl @Inject constructor(
                 )
             } ?: emptyList()
             collected.addAll(page)
-            val total = body?.info?.records ?: collected.size.toLong()
-            if (page.isEmpty() || collected.size.toLong() >= total) break
-            offset += pageSize
+            val totalRecords = body?.info?.records ?: 0L
+            if (page.isEmpty()) break
+            if (totalRecords > 0 && collected.size.toLong() >= totalRecords) break
+            // When the server omits total count, a short page means there is no next page.
+            if (totalRecords == 0L && page.size < pageSize) break
+            // Offset is a record skip count — advance by items received, not requested page size.
+            offset = collected.size
         }
         return collected
+    }
+
+    companion object {
+        private const val CATEGORY_PAGE_SIZE = 200
+        private const val CATEGORY_SEARCH_LIMIT = 500
     }
 
     private fun triggerStaleRefresh() {

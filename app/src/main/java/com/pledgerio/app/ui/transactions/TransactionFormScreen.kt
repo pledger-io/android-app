@@ -344,6 +344,7 @@ fun TransactionFormScreen(
                             autoClassifyStatus = uiState.autoClassifyStatus,
                             onAutoClassify = viewModel::autoClassify,
                             onSelectTagSuggestion = viewModel::selectTagFromSuggestion,
+                            onTagsFieldFocus = viewModel::ensureTagCatalogLoaded,
                         )
 
                         if (

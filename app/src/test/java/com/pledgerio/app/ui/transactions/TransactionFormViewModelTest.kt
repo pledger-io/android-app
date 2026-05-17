@@ -6,6 +6,7 @@ import com.pledgerio.app.domain.model.BudgetExpense
 import com.pledgerio.app.domain.model.Category
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.FilterOption
+import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionClassificationSuggestion
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.AccountRepository
@@ -309,5 +310,93 @@ class TransactionFormViewModelTest {
         assertTrue(viewModel.uiState.value.tags.contains("essentials"))
         assertTrue(viewModel.uiState.value.moreOptionsExpanded)
         assertTrue(viewModel.uiState.value.autoClassifyStatus?.contains("Applied") == true)
+    }
+
+    @Test
+    fun `edit load resolves category id from metadata name`() = runTest {
+        val transactionId = 99L
+        coEvery { transactionRepository.getTransaction(transactionId) } returns Resource.Success(
+            Transaction(
+                id = transactionId,
+                description = "Lunch",
+                amount = 12.5,
+                type = TransactionType.CREDIT,
+                date = LocalDate.now(),
+                sourceAccountId = checking.id,
+                sourceAccountName = checking.name,
+                destinationAccountId = 5L,
+                destinationAccountName = "Cafe",
+                categoryName = "Food",
+            ),
+        )
+        coEvery { categoryRepository.searchCategories("Food") } returns Resource.Success(
+            listOf(Category(id = 10, name = "Food")),
+        )
+        setupRepository()
+        val viewModel = TransactionFormViewModel(
+            transactionRepository,
+            accountRepository,
+            currencyRepository,
+            categoryRepository,
+            budgetRepository,
+            contractRepository,
+            tagRepository,
+            userPreferences,
+            transactionTemplateStore,
+            SavedStateHandle(mapOf("transactionId" to transactionId)),
+        )
+        advanceUntilIdle()
+
+        assertEquals(10L, viewModel.uiState.value.categorySelected?.id)
+        assertEquals("Food", viewModel.uiState.value.categoryQuery)
+    }
+
+    @Test
+    fun `edit submit keeps category when adding budget expense`() = runTest {
+        val transactionId = 99L
+        val existing = Transaction(
+            id = transactionId,
+            description = "Lunch",
+            amount = 12.5,
+            type = TransactionType.CREDIT,
+            date = LocalDate.now(),
+            sourceAccountId = checking.id,
+            sourceAccountName = checking.name,
+            destinationAccountId = 5L,
+            destinationAccountName = "Cafe",
+            categoryName = "Food",
+        )
+        coEvery { transactionRepository.getTransaction(transactionId) } returns Resource.Success(existing)
+        coEvery { categoryRepository.searchCategories("Food") } returns Resource.Success(
+            listOf(Category(id = 10, name = "Food")),
+        )
+        coEvery { budgetRepository.searchExpenses("Transport") } returns Resource.Success(
+            listOf(BudgetExpense(id = 20, name = "Transport", amount = 0.0, expected = 100.0)),
+        )
+        coEvery { transactionRepository.updateTransaction(any()) } returns Resource.Success(existing)
+        setupRepository()
+        val viewModel = TransactionFormViewModel(
+            transactionRepository,
+            accountRepository,
+            currencyRepository,
+            categoryRepository,
+            budgetRepository,
+            contractRepository,
+            tagRepository,
+            userPreferences,
+            transactionTemplateStore,
+            SavedStateHandle(mapOf("transactionId" to transactionId)),
+        )
+        advanceUntilIdle()
+
+        viewModel.selectExpense(FilterOption(20, "Transport"))
+        viewModel.submit()
+        advanceUntilIdle()
+
+        coVerify {
+            transactionRepository.updateTransaction(
+                match { it.categoryId == 10L && it.expenseId == 20L },
+            )
+        }
     }
 }

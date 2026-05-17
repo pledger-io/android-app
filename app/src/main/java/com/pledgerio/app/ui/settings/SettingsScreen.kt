@@ -259,6 +259,13 @@ fun SettingsScreen(
                         subtitle = "Manage transaction categories",
                         onClick = onNavigateToCategories,
                     )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    SettingsItem(
+                        icon = Icons.Default.Tag,
+                        title = "Tags",
+                        subtitle = "Manage transaction tags",
+                        onClick = onNavigateToTags,
+                    )
                 }
             }
 
@@ -290,13 +297,6 @@ fun SettingsScreen(
                         title = "Finance experience",
                         subtitle = "${uiState.financeExperienceMode.displayName} — ${uiState.financeExperienceMode.description}",
                         onClick = viewModel::openExperiencePicker,
-                    )
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingsItem(
-                        icon = Icons.Default.Tag,
-                        title = "Manage tags",
-                        subtitle = "Create, rename, and remove transaction tags",
-                        onClick = onNavigateToTags,
                     )
                 }
             }
