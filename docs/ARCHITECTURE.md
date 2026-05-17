@@ -180,7 +180,7 @@ Screen → ViewModel → Repository → Retrofit
 |------|-----------|
 | Auth | `/v2/api/security/authenticate`, `/v2/api/security/oauth`, `/v2/api/security/logout` |
 | Accounts | `/v2/api/accounts`, `/v2/api/accounts/{id}`, `/v2/api/account-types` |
-| Transactions | `/v2/api/transactions`, `/v2/api/transactions/{id}` |
+| Transactions | `/v2/api/transactions`, `/v2/api/transactions/{id}`, `/v2/api/ai/auto-complete` |
 | Categories | `/v2/api/categories` |
 | Budgets | `/v2/api/budgets` (GET/POST/PATCH), `/v2/api/budgets/expenses` (GET/PATCH), `/v2/api/budgets/expenses/balance` |
 | Contracts | `/v2/api/contracts` |

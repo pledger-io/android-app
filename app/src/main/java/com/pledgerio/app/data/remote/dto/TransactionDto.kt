@@ -71,3 +71,10 @@ data class TransactionPagedResponse(
     @Json(name = "info") val info: PageInfo = PageInfo(),
     @Json(name = "content") val content: List<TransactionDto> = emptyList(),
 )
+
+@JsonClass(generateAdapter = true)
+data class TransactionClassificationSuggestionDto(
+    @Json(name = "budget") val budget: String? = null,
+    @Json(name = "category") val category: String? = null,
+    @Json(name = "tags") val tags: List<String>? = null,
+)

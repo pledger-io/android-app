@@ -1,6 +1,7 @@
 package com.pledgerio.app.domain.repository
 
 import com.pledgerio.app.domain.model.Transaction
+import com.pledgerio.app.domain.model.TransactionClassificationSuggestion
 import com.pledgerio.app.domain.model.TransactionFilters
 import com.pledgerio.app.domain.model.TransactionSplit
 import com.pledgerio.app.domain.model.TransactionType
@@ -33,5 +34,11 @@ interface TransactionRepository {
     suspend fun updateTransaction(transaction: Transaction): Resource<Transaction>
     suspend fun patchTransactionSplits(id: Long, splits: List<TransactionSplit>): Resource<Transaction>
     suspend fun deleteTransaction(id: Long): Resource<Unit>
+    suspend fun suggestClassifications(
+        amount: Double? = null,
+        description: String? = null,
+        source: String? = null,
+        destination: String? = null,
+    ): Resource<TransactionClassificationSuggestion>
     fun getRecentTransactions(limit: Int = 5): Flow<Resource<List<Transaction>>>
 }

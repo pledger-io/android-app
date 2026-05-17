@@ -117,6 +117,8 @@ data class TransactionFormUiState(
     val originalSplitSnapshot: List<TransactionSplit> = emptyList(),
     val financeExperienceMode: FinanceExperienceMode = FinanceExperienceMode.GUIDED,
     val moreOptionsManuallyToggled: Boolean = false,
+    val isAutoClassifying: Boolean = false,
+    val autoClassifyStatus: String? = null,
 ) {
     val splitTotal: Double
         get() = splitLines.sumOf { it.amount.toDoubleOrNull() ?: 0.0 }
@@ -155,6 +157,8 @@ data class TransactionFormUiState(
     val submitLabel: String get() = if (isEditing) "Save changes" else "Create transaction"
     val showTemplatesSection: Boolean
         get() = !isEditing && financeExperienceMode == FinanceExperienceMode.POWER
+    val canAutoClassify: Boolean
+        get() = !isEditing && (description.isNotBlank() || amount.toDoubleOrNull() != null)
     val experienceModeTitle: String
         get() = if (financeExperienceMode == FinanceExperienceMode.GUIDED) {
             "Guided mode"
@@ -325,11 +329,11 @@ class TransactionFormViewModel @Inject constructor(
     }
 
     fun onDescriptionChanged(value: String) {
-        _uiState.update { it.copy(description = value, error = null) }
+        _uiState.update { it.copy(description = value, error = null, autoClassifyStatus = null) }
     }
 
     fun onAmountChanged(value: String) {
-        _uiState.update { it.copy(amount = value, error = null) }
+        _uiState.update { it.copy(amount = value, error = null, autoClassifyStatus = null) }
     }
 
     fun onTypeChanged(type: TransactionType) {
@@ -585,7 +589,7 @@ class TransactionFormViewModel @Inject constructor(
     }
 
     fun onSourceQueryChanged(query: String) {
-        _uiState.update { it.copy(sourceQuery = query, error = null) }
+        _uiState.update { it.copy(sourceQuery = query, error = null, autoClassifyStatus = null) }
         sourceSearchJob?.cancel()
         sourceSearchJob = viewModelScope.launch {
             delay(SEARCH_DEBOUNCE_MS)
@@ -594,7 +598,7 @@ class TransactionFormViewModel @Inject constructor(
     }
 
     fun onTargetQueryChanged(query: String) {
-        _uiState.update { it.copy(targetQuery = query, error = null) }
+        _uiState.update { it.copy(targetQuery = query, error = null, autoClassifyStatus = null) }
         targetSearchJob?.cancel()
         targetSearchJob = viewModelScope.launch {
             delay(SEARCH_DEBOUNCE_MS)
@@ -665,6 +669,138 @@ class TransactionFormViewModel @Inject constructor(
         }
     }
 
+    fun autoClassify() {
+        val state = _uiState.value
+        if (state.isEditing || state.isAutoClassifying) return
+
+        val amount = state.amount.toDoubleOrNull()
+        val description = state.description.trim().ifBlank { null }
+        if (description == null && amount == null) {
+            _uiState.update {
+                it.copy(autoClassifyStatus = "Add a description or amount so auto classification can run.")
+            }
+            return
+        }
+
+        val sourceName = resolveAccountName(
+            accountId = state.sourceAccountId,
+            selected = state.sourceSelected,
+            ownedAccounts = state.ownedAccounts,
+        ).ifBlank { state.sourceQuery.trim() }.takeIf { it.isNotBlank() }
+        val targetName = resolveAccountName(
+            accountId = state.targetAccountId,
+            selected = state.targetSelected,
+            ownedAccounts = state.ownedAccounts,
+        ).ifBlank { state.targetQuery.trim() }.takeIf { it.isNotBlank() }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isAutoClassifying = true, autoClassifyStatus = null) }
+            when (
+                val result = transactionRepository.suggestClassifications(
+                    amount = amount,
+                    description = description,
+                    source = sourceName,
+                    destination = targetName,
+                )
+            ) {
+                is Resource.Success -> {
+                    val suggestion = result.data
+                    val suggestedCategory = suggestion.category?.trim().orEmpty()
+                    val suggestedExpense = suggestion.budget?.trim().orEmpty()
+                    val suggestedTags = suggestion.tags
+                        .map { it.trim() }
+                        .filter { it.isNotBlank() }
+
+                    val categoryOption = suggestedCategory
+                        .takeIf { it.isNotBlank() }
+                        ?.let { resolveCategoryOptionByName(it) }
+                    val expenseOption = suggestedExpense
+                        .takeIf { it.isNotBlank() }
+                        ?.let { resolveExpenseOptionByName(it) }
+
+                    val appliedParts = buildList {
+                        if (categoryOption != null) add("category")
+                        if (expenseOption != null) add("expense group")
+                        if (suggestedTags.isNotEmpty()) add("tags")
+                    }
+                    val unresolvedParts = buildList {
+                        if (suggestedCategory.isNotBlank() && categoryOption == null) add("category")
+                        if (suggestedExpense.isNotBlank() && expenseOption == null) add("expense group")
+                    }
+                    val status = when {
+                        appliedParts.isEmpty() && unresolvedParts.isEmpty() ->
+                            "No classification suggestions were returned."
+                        appliedParts.isNotEmpty() && unresolvedParts.isEmpty() ->
+                            "Applied suggestions for ${appliedParts.joinToString()}."
+                        appliedParts.isEmpty() ->
+                            "Suggestions returned, but couldn't match ${unresolvedParts.joinToString()}."
+                        else ->
+                            "Applied ${appliedParts.joinToString()} and couldn't match ${unresolvedParts.joinToString()}."
+                    }
+
+                    _uiState.update { current ->
+                        val mergedTags = if (suggestedTags.isNotEmpty()) {
+                            (current.tags + suggestedTags)
+                                .distinctBy { it.lowercase() }
+                        } else {
+                            current.tags
+                        }
+                        val shouldExpand = suggestedCategory.isNotBlank() ||
+                            suggestedExpense.isNotBlank() ||
+                            suggestedTags.isNotEmpty()
+                        current.copy(
+                            isAutoClassifying = false,
+                            autoClassifyStatus = status,
+                            categorySelected = when {
+                                categoryOption != null -> categoryOption
+                                suggestedCategory.isNotBlank() -> null
+                                else -> current.categorySelected
+                            },
+                            categoryQuery = when {
+                                categoryOption != null -> categoryOption.label
+                                suggestedCategory.isNotBlank() -> suggestedCategory
+                                else -> current.categoryQuery
+                            },
+                            categorySuggestions = emptyList(),
+                            expenseSelected = when {
+                                expenseOption != null -> expenseOption
+                                suggestedExpense.isNotBlank() -> null
+                                else -> current.expenseSelected
+                            },
+                            expenseQuery = when {
+                                expenseOption != null -> expenseOption.label
+                                suggestedExpense.isNotBlank() -> suggestedExpense
+                                else -> current.expenseQuery
+                            },
+                            expenseSuggestions = emptyList(),
+                            tags = mergedTags,
+                            tagInput = "",
+                            moreOptionsExpanded = if (shouldExpand) true else current.moreOptionsExpanded,
+                            moreOptionsManuallyToggled = shouldExpand || current.moreOptionsManuallyToggled,
+                        )
+                    }
+                    if (suggestedCategory.isNotBlank() && categoryOption == null) {
+                        categoryQueryFlow.value = suggestedCategory
+                    }
+                    if (suggestedExpense.isNotBlank() && expenseOption == null) {
+                        expenseQueryFlow.value = suggestedExpense
+                    }
+                }
+
+                is Resource.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            isAutoClassifying = false,
+                            autoClassifyStatus = result.message ?: "Couldn't classify this transaction.",
+                        )
+                    }
+                }
+
+                is Resource.Loading -> Unit
+            }
+        }
+    }
+
     fun selectSourceAutocomplete(option: FilterOption) {
         _uiState.update {
             it.copy(
@@ -673,6 +809,7 @@ class TransactionFormViewModel @Inject constructor(
                 sourceAccountId = option.id,
                 sourceSuggestions = emptyList(),
                 error = null,
+                autoClassifyStatus = null,
             )
         }
     }
@@ -685,6 +822,7 @@ class TransactionFormViewModel @Inject constructor(
                 targetAccountId = option.id,
                 targetSuggestions = emptyList(),
                 error = null,
+                autoClassifyStatus = null,
             )
         }
     }
@@ -719,6 +857,7 @@ class TransactionFormViewModel @Inject constructor(
                 currency = account?.currency ?: state.currency,
                 ownedAccountPickerSide = null,
                 error = null,
+                autoClassifyStatus = null,
             )
         }
     }
@@ -731,6 +870,7 @@ class TransactionFormViewModel @Inject constructor(
                 currency = account?.currency ?: state.currency,
                 ownedAccountPickerSide = null,
                 error = null,
+                autoClassifyStatus = null,
             )
         }
     }
@@ -891,6 +1031,35 @@ class TransactionFormViewModel @Inject constructor(
     ): String {
         selected?.label?.let { return it }
         return ownedAccounts.find { it.id == accountId }?.name ?: ""
+    }
+
+    private suspend fun resolveCategoryOptionByName(name: String): FilterOption? {
+        return when (val result = categoryRepository.searchCategories(name)) {
+            is Resource.Success -> {
+                val options = result.data.map { FilterOption(id = it.id, label = it.name) }
+                bestMatchOption(name = name, options = options)
+            }
+
+            is Resource.Error, is Resource.Loading -> null
+        }
+    }
+
+    private suspend fun resolveExpenseOptionByName(name: String): FilterOption? {
+        return when (val result = budgetRepository.searchExpenses(name)) {
+            is Resource.Success -> {
+                val options = result.data.map { FilterOption(id = it.id, label = it.name) }
+                bestMatchOption(name = name, options = options)
+            }
+
+            is Resource.Error, is Resource.Loading -> null
+        }
+    }
+
+    private fun bestMatchOption(name: String, options: List<FilterOption>): FilterOption? {
+        val trimmed = name.trim()
+        if (trimmed.isBlank()) return null
+        return options.firstOrNull { it.label.equals(trimmed, ignoreCase = true) }
+            ?: options.firstOrNull { it.label.contains(trimmed, ignoreCase = true) }
     }
 
     private suspend fun searchSourceAccounts(query: String) {

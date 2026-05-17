@@ -70,7 +70,7 @@ app/src/main/java/com/pledgerio/app/
 
 - **Onboarding** — Configurable server URL (`DynamicBaseUrlInterceptor`), health check, JWT login; server URL kept after auth errors or logout
 - **Dashboard** — Accounts overview, income/expense summary, recent transactions; FAB menu to add transaction or account
-- **Transactions** — Paged list with month navigation, infinite scroll, type chips (income/expense), optional filters (category, expense/budget, contract) with inline autocomplete; pull-to-refresh; create transaction form with type-specific account inputs (creditor/debtor search vs owned-account dropdown) and **Guided/Power** experience defaults; transaction detail with classification and account logos
+- **Transactions** — Paged list with month navigation, infinite scroll, type chips (income/expense), optional filters (category, expense/budget, contract) with inline autocomplete; pull-to-refresh; create transaction form with type-specific account inputs (creditor/debtor search vs owned-account dropdown), **Guided/Power** experience defaults, and one-tap AI auto-classification suggestions (expense group, category, tags); transaction detail with classification and account logos
 - **Accounts** — Grouped list with **All / Owned / Parties** filter chips (always visible, including empty states); type-aware add menu, balances from `/v2/api/balance`; detail with logo, type explanation, transaction history, and delete; add/edit with catalog-driven fields (see [Account types](docs/ACCOUNTS.md))
 - **Currencies** — Fetched from API, cached in Room, used for `formatCurrency()` across the app
 - **Budgets** — Initial budget setup on 404; monthly overview per expense group; manage groups (add/edit); detail screen (see [Budgets](docs/BUDGETS.md))

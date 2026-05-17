@@ -2,8 +2,11 @@ package com.pledgerio.app.ui.transactions
 
 import androidx.lifecycle.SavedStateHandle
 import com.pledgerio.app.domain.model.Account
+import com.pledgerio.app.domain.model.BudgetExpense
+import com.pledgerio.app.domain.model.Category
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.FilterOption
+import com.pledgerio.app.domain.model.TransactionClassificationSuggestion
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
@@ -235,5 +238,41 @@ class TransactionFormViewModelTest {
         assertEquals(FinanceExperienceMode.POWER, viewModel.uiState.value.financeExperienceMode)
         assertTrue(viewModel.uiState.value.moreOptionsExpanded)
         assertTrue(viewModel.uiState.value.showTemplatesSection)
+    }
+
+    @Test
+    fun `auto classify applies suggested category expense and tags`() = runTest {
+        coEvery {
+            transactionRepository.suggestClassifications(any(), any(), any(), any())
+        } returns Resource.Success(
+            TransactionClassificationSuggestion(
+                budget = "Groceries",
+                category = "Food",
+                tags = listOf("weekly", "essentials"),
+            ),
+        )
+        coEvery { categoryRepository.searchCategories("Food") } returns Resource.Success(
+            listOf(Category(id = 10, name = "Food")),
+        )
+        coEvery { budgetRepository.searchExpenses("Groceries") } returns Resource.Success(
+            listOf(BudgetExpense(id = 11, name = "Groceries", amount = 0.0, expected = 300.0)),
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.onDescriptionChanged("Weekly groceries")
+        viewModel.onAmountChanged("42.10")
+        viewModel.onSourceDropdownSelected(checking.id)
+        viewModel.onTargetQueryChanged("Supermarket")
+
+        viewModel.autoClassify()
+        advanceUntilIdle()
+
+        assertEquals(10L, viewModel.uiState.value.categorySelected?.id)
+        assertEquals(11L, viewModel.uiState.value.expenseSelected?.id)
+        assertTrue(viewModel.uiState.value.tags.contains("weekly"))
+        assertTrue(viewModel.uiState.value.tags.contains("essentials"))
+        assertTrue(viewModel.uiState.value.moreOptionsExpanded)
+        assertTrue(viewModel.uiState.value.autoClassifyStatus?.contains("Applied") == true)
     }
 }

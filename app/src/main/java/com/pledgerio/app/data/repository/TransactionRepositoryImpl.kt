@@ -8,6 +8,7 @@ import com.pledgerio.app.data.remote.dto.TransactionDto
 import com.pledgerio.app.data.remote.dto.TransactionSplitDto
 import com.pledgerio.app.domain.model.TransactionSplit
 import com.pledgerio.app.domain.model.Transaction
+import com.pledgerio.app.domain.model.TransactionClassificationSuggestion
 import com.pledgerio.app.domain.model.TransactionFilters
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.PagedResult
@@ -195,6 +196,36 @@ class TransactionRepositoryImpl @Inject constructor(
                 Resource.Success(Unit)
             } else {
                 Resource.Error("Failed to delete transaction: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun suggestClassifications(
+        amount: Double?,
+        description: String?,
+        source: String?,
+        destination: String?,
+    ): Resource<TransactionClassificationSuggestion> {
+        return try {
+            val response = apiService.suggestClassifications(
+                amount = amount,
+                description = description,
+                source = source,
+                destination = destination,
+            )
+            if (response.isSuccessful) {
+                val suggestion = response.body()
+                Resource.Success(
+                    TransactionClassificationSuggestion(
+                        budget = suggestion?.budget,
+                        category = suggestion?.category,
+                        tags = suggestion?.tags.orEmpty(),
+                    ),
+                )
+            } else {
+                Resource.Error("Failed to classify transaction: ${response.code()}")
             }
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Network error")

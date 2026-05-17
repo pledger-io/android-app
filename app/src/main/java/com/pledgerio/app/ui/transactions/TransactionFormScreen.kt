@@ -334,6 +334,11 @@ fun TransactionFormScreen(
                             onTagInputChange = viewModel::onTagInputChanged,
                             onAddTag = viewModel::addTag,
                             onRemoveTag = viewModel::removeTag,
+                            showAutoClassifyAction = !uiState.isEditing,
+                            canAutoClassify = uiState.canAutoClassify,
+                            isAutoClassifying = uiState.isAutoClassifying,
+                            autoClassifyStatus = uiState.autoClassifyStatus,
+                            onAutoClassify = viewModel::autoClassify,
                         )
 
                         if (

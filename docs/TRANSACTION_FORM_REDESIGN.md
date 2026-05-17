@@ -55,7 +55,7 @@ Description → Amount → Date (text) → Type chips → From * → To * → Cu
 4. **Progressive disclosure** — Required path is short; description and advanced fields grouped below.
 5. **Preserve context** — When changing type, keep accounts that still fit the same role (owned vs counterparty).
 6. **Reuse app patterns** — `PledgerCard`, `PledgerTopBar`, `FilterChip`, `AccountIcon`, theme colors (`IncomeGreen`, `ExpenseRed`, `EmeraldGreen`).
-7. **Same API contract** — No backend changes required for v1; optional category/expense later.
+7. **Same API contract** — No backend changes required for v1; optional category/expense later and AI suggestions can call `GET /v2/api/ai/auto-complete`.
 8. **Do not penalize experts** — Beginners get simpler defaults, while power users can keep advanced controls expanded.
 
 ---
@@ -135,7 +135,7 @@ Transfer:  [ From account ▾ ]    ──→  [ To account ▾ ]
 ### 3.5 Description & advanced section
 
 - **Description:** Moved below flow card; single line default, expandable to 2–3 lines; label “What was this for?” with examples in placeholder (“Groceries, salary, rent”).
-- **More options (collapsed):** Phase 2 — category, budget/expense, contract (API already used on list filters). Keeps v1 simple.
+- **More options (collapsed):** Phase 2 — category, budget/expense, contract (API already used on list filters). Includes an **Auto classify** action that suggests expense group/category/tags for new transactions.
 
 ### 3.6 Primary action
 
