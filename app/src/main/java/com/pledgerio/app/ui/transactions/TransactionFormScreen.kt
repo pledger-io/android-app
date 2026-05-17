@@ -1,15 +1,21 @@
 package com.pledgerio.app.ui.transactions
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,11 +33,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.ui.components.LoadingScreen
+import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.ui.transactions.form.OwnedAccountPickerSheet
 import com.pledgerio.app.ui.transactions.form.TransactionAmountCard
@@ -42,6 +51,7 @@ import com.pledgerio.app.ui.transactions.form.TransactionFormMoreOptions
 import com.pledgerio.app.ui.transactions.form.TransactionSplitEditor
 import com.pledgerio.app.ui.transactions.form.TransactionTemplatesSection
 import com.pledgerio.app.ui.transactions.form.TransactionTypeSelector
+import com.pledgerio.app.ui.theme.EmeraldGreen
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -177,6 +187,14 @@ fun TransactionFormScreen(
                             selected = uiState.type,
                             subtitle = uiState.typeSubtitle,
                             onSelected = viewModel::onTypeChanged,
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        ExperienceModeBanner(
+                            mode = uiState.financeExperienceMode,
+                            title = uiState.experienceModeTitle,
+                            hint = uiState.experienceModeHint,
                         )
 
                         if (uiState.showTemplatesSection) {
@@ -335,5 +353,53 @@ fun TransactionFormScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ExperienceModeBanner(
+    mode: FinanceExperienceMode,
+    title: String,
+    hint: String,
+) {
+    val accent = if (mode == FinanceExperienceMode.GUIDED) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        EmeraldGreen
+    }
+    val badgeBackground = accent.copy(alpha = 0.15f)
+    val icon = if (mode == FinanceExperienceMode.GUIDED) {
+        Icons.Default.School
+    } else {
+        Icons.Default.Bolt
+    }
+
+    PledgerCard {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = accent,
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = accent,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier
+                    .background(
+                        color = badgeBackground,
+                        shape = RoundedCornerShape(999.dp),
+                    )
+                    .padding(horizontal = 10.dp, vertical = 2.dp),
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = hint,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }

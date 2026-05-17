@@ -20,14 +20,18 @@ This mode system ensures the same feature set is available while changing only d
 
 ### Guided mode (default)
 
+- Dashboard shows a **Guided mode active** card so users immediately see which experience is enabled.
 - Transaction form opens with optional sections collapsed.
 - Transaction templates are hidden by default on new transactions.
+- Transaction form shows a guided banner explaining that optional fields can be opened later.
 - A hint below optional fields explains where categories/tags/contracts live.
 
 ### Power mode
 
+- Dashboard shows a **Power mode active** card.
 - Transaction form opens with optional sections expanded.
 - Transaction templates are shown immediately on new transactions.
+- Transaction form shows a power banner confirming advanced defaults are enabled.
 - Advanced users can still collapse sections manually when needed.
 
 ## Product rules

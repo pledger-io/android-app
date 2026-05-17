@@ -155,6 +155,18 @@ data class TransactionFormUiState(
     val submitLabel: String get() = if (isEditing) "Save changes" else "Create transaction"
     val showTemplatesSection: Boolean
         get() = !isEditing && financeExperienceMode == FinanceExperienceMode.POWER
+    val experienceModeTitle: String
+        get() = if (financeExperienceMode == FinanceExperienceMode.GUIDED) {
+            "Guided mode"
+        } else {
+            "Power mode"
+        }
+    val experienceModeHint: String
+        get() = if (financeExperienceMode == FinanceExperienceMode.GUIDED) {
+            "Focus on amount and accounts first. Open More options only when needed."
+        } else {
+            "Templates and advanced fields are ready for faster repetitive entry."
+        }
 
     val fieldErrors: TransactionFormFieldErrors
         get() = if (!validationAttempted) {
@@ -1050,6 +1062,26 @@ class TransactionFormViewModel @Inject constructor(
                 isLoading = false,
                 type = lastType ?: state.type,
             )
+        }
+    }
+
+    private fun observeExperienceMode() {
+        viewModelScope.launch {
+            userPreferences.financeExperienceMode.collect { mode ->
+                _uiState.update { state ->
+                    // Preserve explicit user intent when they manually expanded/collapsed advanced fields.
+                    val shouldExpandMoreOptions = when {
+                        state.isEditing -> state.moreOptionsExpanded
+                        state.moreOptionsManuallyToggled -> state.moreOptionsExpanded
+                        mode == FinanceExperienceMode.POWER -> true
+                        else -> false
+                    }
+                    state.copy(
+                        financeExperienceMode = mode,
+                        moreOptionsExpanded = shouldExpandMoreOptions,
+                    )
+                }
+            }
         }
     }
 

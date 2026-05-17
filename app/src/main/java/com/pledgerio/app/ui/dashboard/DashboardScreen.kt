@@ -23,6 +23,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material.icons.filled.TrendingUp
@@ -51,6 +53,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.ui.components.EmptyScreen
@@ -91,7 +94,11 @@ fun DashboardScreen(
         topBar = {
             PledgerTopBar(
                 title = "Pledger.io",
-                subtitle = "Your finances at a glance",
+                subtitle = if (uiState.financeExperienceMode == FinanceExperienceMode.GUIDED) {
+                    "Your finances at a glance · Guided mode"
+                } else {
+                    "Your finances at a glance · Power mode"
+                },
                 branded = true,
                 actions = {
                     IconButton(onClick = onNavigateToSettings) {
@@ -126,6 +133,10 @@ fun DashboardScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
                         item { Spacer(modifier = Modifier.height(8.dp)) }
+
+                        item {
+                            ExperienceModeCard(mode = uiState.financeExperienceMode)
+                        }
 
                         // Net Worth Card
                         item {
@@ -193,6 +204,44 @@ fun DashboardScreen(
                 onAddTransaction = onNavigateToAddTransaction,
                 onAddAccount = onNavigateToAddAccount,
             )
+        }
+    }
+}
+
+@Composable
+private fun ExperienceModeCard(mode: FinanceExperienceMode) {
+    val isGuided = mode == FinanceExperienceMode.GUIDED
+    val accent = if (isGuided) MaterialTheme.colorScheme.primary else EmeraldGreen
+    val icon = if (isGuided) Icons.Default.School else Icons.Default.Bolt
+    val title = if (isGuided) "Guided mode active" else "Power mode active"
+    val body = if (isGuided) {
+        "Simplified defaults are enabled to reduce setup friction."
+    } else {
+        "Advanced controls are enabled for faster transaction entry."
+    }
+    PledgerCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = accent,
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = body,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
