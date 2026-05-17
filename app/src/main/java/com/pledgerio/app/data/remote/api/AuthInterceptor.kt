@@ -1,5 +1,6 @@
 package com.pledgerio.app.data.remote.api
 
+import com.pledgerio.app.data.local.LocalDataCleaner
 import com.pledgerio.app.util.SessionManager
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -8,6 +9,7 @@ import javax.inject.Inject
 class AuthInterceptor @Inject constructor(
     private val sessionManager: SessionManager,
     private val tokenRefresher: TokenRefresher,
+    private val localDataCleaner: LocalDataCleaner,
 ) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -43,6 +45,7 @@ class AuthInterceptor @Inject constructor(
                     return chain.proceed(retryRequest)
                 }
             }
+            localDataCleaner.clearAllUserDataBlocking()
             sessionManager.clearAuthTokens()
         }
 

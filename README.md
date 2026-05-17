@@ -57,7 +57,6 @@ app/src/main/java/com/pledgerio/app/
 │   ├── dashboard/
 │   ├── transactions/   # List, detail, create form, filters
 │   ├── accounts/       # List, detail, add/edit form
-│   ├── categories/     # Category catalog management (search + CRUD)
 │   ├── budgets/
 │   ├── reports/
 │   └── settings/
@@ -71,12 +70,12 @@ app/src/main/java/com/pledgerio/app/
 
 - **Onboarding** — Configurable server URL (`DynamicBaseUrlInterceptor`), health check, JWT login; server URL kept after auth errors or logout
 - **Dashboard** — Accounts overview, income/expense summary, recent transactions; FAB menu to add transaction or account
-- **Transactions** — Paged list with month navigation, infinite scroll, type chips (income/expense), optional filters (category, expense/budget, contract) with inline autocomplete; pull-to-refresh; create transaction form with type-specific account inputs (creditor/debtor search vs owned-account dropdown); transaction detail with classification and account logos
+- **Transactions** — Paged list with month navigation, infinite scroll, type chips (income/expense), optional filters (category, expense/budget, contract) with inline autocomplete; pull-to-refresh; create transaction form with type-specific account inputs (creditor/debtor search vs owned-account dropdown), **Guided/Power** experience defaults, and one-tap AI auto-classification suggestions (expense group, category, tags); transaction detail with classification and account logos
 - **Accounts** — Grouped list with **All / Owned / Parties** filter chips (always visible, including empty states); type-aware add menu, balances from `/v2/api/balance`; detail with logo, type explanation, transaction history, and delete; add/edit with catalog-driven fields (see [Account types](docs/ACCOUNTS.md))
 - **Currencies** — Fetched from API, cached in Room, used for `formatCurrency()` across the app
 - **Budgets** — Initial budget setup on 404; monthly overview per expense group; manage groups (add/edit); detail screen (see [Budgets](docs/BUDGETS.md))
 - **Reports** — Report type selector UI (chart data integration in progress)
-- **Settings** — Storage, biometric toggle, language/theme preferences, category management, logout
+- **Settings** — Storage, biometric toggle, language/theme preferences, finance experience mode (Guided/Power), in-app bug reports (logs + GitHub issue), logout
 - **Offline** — Room cache with network fallback; periodic sync via WorkManager (accounts, currencies, budget alerts)
 - **Account logos** — `iconFileCode` loaded from `GET /v2/api/files/{fileCode}` on account and transaction detail screens
 
@@ -104,15 +103,14 @@ app/src/main/java/com/pledgerio/app/
 | `budget/{id}` | Expense group detail; edit monthly budget |
 | `reports` | Reports (bottom tab) |
 | `settings` | Settings |
-| `categories` | Category management |
 
 ## Documentation
 
 - [Architecture Overview](docs/ARCHITECTURE.md) — Layers, data flow, API integration, UI patterns
 - [Account types](docs/ACCOUNTS.md) — Owned vs counterparty accounts, type codes, transaction mapping
-- [Categories](docs/CATEGORIES.md) — Category CRUD flow, UX, API mapping
 - [Budgets](docs/BUDGETS.md) — Initial setup, expense groups, API mapping
 - [Transaction form redesign](docs/TRANSACTION_FORM_REDESIGN.md) — Planned UX for creating transactions (type-first flow, amount hero, contextual account labels)
+- [Usability modes](docs/USABILITY_MODES.md) — Guided mode for novices and Power mode for advanced users
 - [Architecture Decision Records](docs/adr/README.md) — Rationale for major technical choices
 
 Backend API reference: [pledger-io/rest-application](https://github.com/pledger-io/rest-application) (`/v2/api/…` contract).
@@ -154,6 +152,10 @@ Requires **JDK 21**.
 3. The **Release** workflow builds `assembleRelease` and uploads `pledger-io-<tag>-<version>.apk` to the release assets.
 
 To test the release build without publishing: **Actions → Release → Run workflow**. The APK is saved as a workflow artifact.
+
+### In-app bug reports
+
+Users can report problems from **Settings → About → Report a problem**. The app collects sanitized recent logs, prefills the org [bug report form](https://github.com/pledger-io/.github/issues/new?template=bug_report.yml) in the browser (summary, description, environment, logs), and the user taps **Submit** on GitHub — no app credentials required. Sign in to GitHub only if the repository requires it to open issues.
 
 **Optional production signing** — add these repository secrets; if omitted, CI signs the release APK with the debug keystore (fine for sideloading, not for Play Store):
 

@@ -4,14 +4,19 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,7 +60,13 @@ fun TransactionFormMoreOptions(
     onTagInputChange: (String) -> Unit,
     onAddTag: (String) -> Unit,
     onRemoveTag: (String) -> Unit,
+    showAutoClassifyAction: Boolean = false,
+    canAutoClassify: Boolean = true,
+    isAutoClassifying: Boolean = false,
+    autoClassifyStatus: String? = null,
+    onAutoClassify: () -> Unit = {},
     onSelectTagSuggestion: (String) -> Unit,
+    onTagsFieldFocus: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -72,6 +83,21 @@ fun TransactionFormMoreOptions(
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
             )
+            if (showAutoClassifyAction) {
+                TextButton(
+                    onClick = onAutoClassify,
+                    enabled = canAutoClassify && !isAutoClassifying,
+                ) {
+                    if (isAutoClassifying) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    Text("Auto classify")
+                }
+            }
             Icon(
                 imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                 contentDescription = if (expanded) "Collapse" else "Expand",
@@ -85,8 +111,16 @@ fun TransactionFormMoreOptions(
                         text = "Optional classification for reports and filters.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 12.dp),
+                        modifier = Modifier.padding(bottom = if (autoClassifyStatus == null) 12.dp else 4.dp),
                     )
+                    if (autoClassifyStatus != null) {
+                        Text(
+                            text = autoClassifyStatus,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 12.dp),
+                        )
+                    }
                     FilterAutocompleteField(
                         label = "Category",
                         query = categoryQuery,
@@ -130,6 +164,7 @@ fun TransactionFormMoreOptions(
                         onAddTag = onAddTag,
                         onRemoveTag = onRemoveTag,
                         onSelectSuggestion = onSelectTagSuggestion,
+                        onFieldFocus = onTagsFieldFocus,
                         modifier = Modifier.padding(top = 12.dp),
                     )
                 }

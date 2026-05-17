@@ -53,6 +53,7 @@ fun TransactionTagsField(
     onAddTag: (String) -> Unit,
     onRemoveTag: (String) -> Unit,
     onSelectSuggestion: (String) -> Unit,
+    onFieldFocus: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var isFocused by remember { mutableStateOf(false) }
@@ -98,7 +99,12 @@ fun TransactionTagsField(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .onFocusChanged { focusState -> isFocused = focusState.isFocused },
+                .onFocusChanged { focusState ->
+                    isFocused = focusState.isFocused
+                    if (focusState.isFocused) {
+                        onFieldFocus()
+                    }
+                },
         )
 
         if (showSuggestions) {

@@ -28,4 +28,16 @@
     <string name="budget_expense_remaining">%1$s remaining</string>
 
     <string name="offline_banner">You\'re offline. Showing cached data.</string>
+
+    <string name="report_issue_title">Report a problem</string>
+    <string name="report_issue_hint">Recent app logs are attached when you submit. Do not include passwords or personal data in the description.</string>
+    <string name="report_issue_summary_label">Summary</string>
+    <string name="report_issue_description_label">What happened?</string>
+    <string name="report_issue_submit">Submit</string>
+    <string name="report_issue_submitting">Submitting…</string>
+    <string name="report_issue_cancel">Cancel</string>
+    <string name="report_issue_settings_title">Report a problem</string>
+    <string name="report_issue_settings_subtitle">Attach logs and open a GitHub bug report</string>
+    <string name="report_issue_open_github">Opening GitHub — review the form and tap Submit.</string>
+    <string name="report_issue_open_github_with_clipboard">Opening GitHub — full logs are on your clipboard if needed.</string>
 </resources>

@@ -1,3 +1,16 @@
+import java.util.Properties
+
+// Use a full JDK from local.properties (not the IDE's bundled JRE — AGP needs jlink).
+Properties().apply {
+    val localPropertiesFile = file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+        getProperty("org.gradle.java.home")?.trim()?.let { javaHome ->
+            System.setProperty("org.gradle.java.home", javaHome)
+        }
+    }
+}
+
 pluginManagement {
     repositories {
         google {

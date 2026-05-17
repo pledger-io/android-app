@@ -2,7 +2,12 @@ package com.pledgerio.app.ui.transactions
 
 import androidx.lifecycle.SavedStateHandle
 import com.pledgerio.app.domain.model.Account
+import com.pledgerio.app.domain.model.BudgetExpense
+import com.pledgerio.app.domain.model.Category
+import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.FilterOption
+import com.pledgerio.app.domain.model.Transaction
+import com.pledgerio.app.domain.model.TransactionClassificationSuggestion
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
@@ -22,6 +27,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -54,21 +60,32 @@ class TransactionFormViewModelTest {
     private val checking = Account(id = 1, name = "Checking", typeCode = "default", currency = "EUR")
     private val savings = Account(id = 2, name = "Savings", typeCode = "savings", currency = "EUR")
 
-    private fun setupRepository() {
+    private fun setupRepository(
+        experienceMode: FinanceExperienceMode = FinanceExperienceMode.GUIDED,
+        ownedAccounts: List<Account> = listOf(checking, savings),
+    ) {
         every { currencyRepository.getCurrencies() } returns flowOf(emptyList())
+        every { userPreferences.financeExperienceMode } returns MutableStateFlow(experienceMode)
         coEvery { userPreferences.setLastTransactionType(any()) } returns Unit
         every { transactionTemplateStore.templates } returns flowOf(emptyList())
         every { tagRepository.observeTags() } returns flowOf(
             listOf(Tag("housing"), Tag("travel")),
         )
         every { tagRepository.observeMatching(any()) } returns flowOf(emptyList())
-        coEvery { accountRepository.refreshOwnedAccounts() } returns Resource.Success(
-            listOf(checking, savings),
-        )
+        coEvery { tagRepository.refreshTags() } returns Resource.Success(emptyList())
+        every { categoryRepository.observeMatching(any()) } returns flowOf(emptyList())
+        every { budgetRepository.observeExpenseGroups(any()) } returns flowOf(emptyList())
+        every { contractRepository.observeMatching(any()) } returns flowOf(emptyList())
+        coEvery { accountRepository.refreshOwnedAccounts() } returns Resource.Success(ownedAccounts)
+        coEvery { accountRepository.searchAccounts(any(), any(), any()) } returns Resource.Success(emptyList())
     }
 
-    private fun createViewModel(): TransactionFormViewModel {
-        setupRepository()
+    private fun createViewModel(
+        experienceMode: FinanceExperienceMode = FinanceExperienceMode.GUIDED,
+        ownedAccounts: List<Account> = listOf(checking, savings),
+        savedState: SavedStateHandle = savedStateHandle,
+    ): TransactionFormViewModel {
+        setupRepository(experienceMode = experienceMode, ownedAccounts = ownedAccounts)
         return TransactionFormViewModel(
             transactionRepository,
             accountRepository,
@@ -79,7 +96,7 @@ class TransactionFormViewModelTest {
             tagRepository,
             userPreferences,
             transactionTemplateStore,
-            savedStateHandle,
+            savedState,
         )
     }
 
@@ -170,23 +187,8 @@ class TransactionFormViewModelTest {
 
     @Test
     fun `owned account selection sets currency from account`() = runTest {
-        every { currencyRepository.getCurrencies() } returns flowOf(emptyList())
         val usdChecking = checking.copy(currency = "USD")
-        coEvery { accountRepository.refreshOwnedAccounts() } returns Resource.Success(
-            listOf(usdChecking, savings),
-        )
-        val viewModel = TransactionFormViewModel(
-            transactionRepository,
-            accountRepository,
-            currencyRepository,
-            categoryRepository,
-            budgetRepository,
-            contractRepository,
-            tagRepository,
-            userPreferences,
-            transactionTemplateStore,
-            savedStateHandle,
-        )
+        val viewModel = createViewModel(ownedAccounts = listOf(usdChecking, savings))
         advanceUntilIdle()
 
         viewModel.onSourceDropdownSelected(usdChecking.id)
@@ -246,5 +248,149 @@ class TransactionFormViewModelTest {
 
         assertEquals("creditor", viewModel.partyTypeCodeForNewAccount(isSource = false))
         assertNull(viewModel.partyTypeCodeForNewAccount(isSource = true))
+    }
+
+    @Test
+    fun `guided mode keeps optional sections collapsed by default`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(FinanceExperienceMode.GUIDED, viewModel.uiState.value.financeExperienceMode)
+        assertFalse(viewModel.uiState.value.moreOptionsExpanded)
+        assertFalse(viewModel.uiState.value.showTemplatesSection)
+    }
+
+    @Test
+    fun `power mode expands optional sections and shows templates by default`() = runTest {
+        val viewModel = createViewModel(experienceMode = FinanceExperienceMode.POWER)
+        advanceUntilIdle()
+
+        assertEquals(FinanceExperienceMode.POWER, viewModel.uiState.value.financeExperienceMode)
+        assertTrue(viewModel.uiState.value.moreOptionsExpanded)
+        assertTrue(viewModel.uiState.value.showTemplatesSection)
+    }
+
+    @Test
+    fun `auto classify applies suggested category expense and tags`() = runTest {
+        coEvery {
+            transactionRepository.suggestClassifications(any(), any(), any(), any())
+        } returns Resource.Success(
+            TransactionClassificationSuggestion(
+                budget = "Groceries",
+                category = "Food",
+                tags = listOf("weekly", "essentials"),
+            ),
+        )
+        coEvery { categoryRepository.searchCategories("Food") } returns Resource.Success(
+            listOf(Category(id = 10, name = "Food")),
+        )
+        coEvery { budgetRepository.searchExpenses("Groceries") } returns Resource.Success(
+            listOf(BudgetExpense(id = 11, name = "Groceries", amount = 0.0, expected = 300.0)),
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.onDescriptionChanged("Weekly groceries")
+        viewModel.onAmountChanged("42.10")
+        viewModel.onSourceDropdownSelected(checking.id)
+        viewModel.onTargetQueryChanged("Supermarket")
+
+        viewModel.autoClassify()
+        advanceUntilIdle()
+
+        assertEquals(10L, viewModel.uiState.value.categorySelected?.id)
+        assertEquals(11L, viewModel.uiState.value.expenseSelected?.id)
+        assertTrue(viewModel.uiState.value.tags.contains("weekly"))
+        assertTrue(viewModel.uiState.value.tags.contains("essentials"))
+        assertTrue(viewModel.uiState.value.moreOptionsExpanded)
+        assertTrue(viewModel.uiState.value.autoClassifyStatus?.contains("Applied") == true)
+    }
+
+    @Test
+    fun `edit load resolves category id from metadata name`() = runTest {
+        val transactionId = 99L
+        coEvery { transactionRepository.getTransaction(transactionId) } returns Resource.Success(
+            Transaction(
+                id = transactionId,
+                description = "Lunch",
+                amount = 12.5,
+                type = TransactionType.CREDIT,
+                date = LocalDate.now(),
+                sourceAccountId = checking.id,
+                sourceAccountName = checking.name,
+                destinationAccountId = 5L,
+                destinationAccountName = "Cafe",
+                categoryName = "Food",
+            ),
+        )
+        coEvery { categoryRepository.searchCategories("Food") } returns Resource.Success(
+            listOf(Category(id = 10, name = "Food")),
+        )
+        setupRepository()
+        val viewModel = TransactionFormViewModel(
+            transactionRepository,
+            accountRepository,
+            currencyRepository,
+            categoryRepository,
+            budgetRepository,
+            contractRepository,
+            tagRepository,
+            userPreferences,
+            transactionTemplateStore,
+            SavedStateHandle(mapOf("transactionId" to transactionId)),
+        )
+        advanceUntilIdle()
+
+        assertEquals(10L, viewModel.uiState.value.categorySelected?.id)
+        assertEquals("Food", viewModel.uiState.value.categoryQuery)
+    }
+
+    @Test
+    fun `edit submit keeps category when adding budget expense`() = runTest {
+        val transactionId = 99L
+        val existing = Transaction(
+            id = transactionId,
+            description = "Lunch",
+            amount = 12.5,
+            type = TransactionType.CREDIT,
+            date = LocalDate.now(),
+            sourceAccountId = checking.id,
+            sourceAccountName = checking.name,
+            destinationAccountId = 5L,
+            destinationAccountName = "Cafe",
+            categoryName = "Food",
+        )
+        coEvery { transactionRepository.getTransaction(transactionId) } returns Resource.Success(existing)
+        coEvery { categoryRepository.searchCategories("Food") } returns Resource.Success(
+            listOf(Category(id = 10, name = "Food")),
+        )
+        coEvery { budgetRepository.searchExpenses("Transport") } returns Resource.Success(
+            listOf(BudgetExpense(id = 20, name = "Transport", amount = 0.0, expected = 100.0)),
+        )
+        coEvery { transactionRepository.updateTransaction(any()) } returns Resource.Success(existing)
+        setupRepository()
+        val viewModel = TransactionFormViewModel(
+            transactionRepository,
+            accountRepository,
+            currencyRepository,
+            categoryRepository,
+            budgetRepository,
+            contractRepository,
+            tagRepository,
+            userPreferences,
+            transactionTemplateStore,
+            SavedStateHandle(mapOf("transactionId" to transactionId)),
+        )
+        advanceUntilIdle()
+
+        viewModel.selectExpense(FilterOption(20, "Transport"))
+        viewModel.submit()
+        advanceUntilIdle()
+
+        coVerify {
+            transactionRepository.updateTransaction(
+                match { it.categoryId == 10L && it.expenseId == 20L },
+            )
+        }
     }
 }

@@ -1,12 +1,13 @@
 package com.pledgerio.app.ui.components
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,6 +21,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
 import com.pledgerio.app.ui.theme.EmeraldGreen
 import com.pledgerio.app.ui.theme.HeaderGradientBottomDark
 import com.pledgerio.app.ui.theme.HeaderGradientBottomLight
@@ -41,10 +44,9 @@ fun PledgerTopBar(
     val darkTheme = isSystemInDarkTheme()
     val barHeight = if (branded) 88.dp else 64.dp
 
-    Box(
+    Column(
         modifier = modifier
             .fillMaxWidth()
-            .height(barHeight)
             .drawBehind {
                 val gradient = if (darkTheme) {
                     Brush.verticalGradient(
@@ -76,6 +78,7 @@ fun PledgerTopBar(
                 )
             },
     ) {
+        Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
         TopAppBar(
             title = {
                 if (branded) {
@@ -122,7 +125,10 @@ fun PledgerTopBar(
                 navigationIconContentColor = HeaderOnGradient,
                 actionIconContentColor = HeaderOnGradient,
             ),
-            modifier = Modifier.fillMaxWidth(),
+            windowInsets = WindowInsets(0),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(barHeight),
         )
     }
 }

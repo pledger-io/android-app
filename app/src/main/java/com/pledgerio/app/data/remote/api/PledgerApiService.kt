@@ -101,6 +101,14 @@ interface PledgerApiService {
     @DELETE("v2/api/transactions/{id}")
     suspend fun deleteTransaction(@Path("id") id: Long): Response<Unit>
 
+    @GET("v2/api/ai/auto-complete")
+    suspend fun suggestClassifications(
+        @Query("amount") amount: Double? = null,
+        @Query("description") description: String? = null,
+        @Query("source") source: String? = null,
+        @Query("destination") destination: String? = null,
+    ): Response<TransactionClassificationSuggestionDto>
+
     // Categories
     @GET("v2/api/categories")
     suspend fun getCategories(

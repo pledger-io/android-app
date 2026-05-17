@@ -103,6 +103,10 @@ class SyncWorker @AssistedInject constructor(
         private const val NOTIFICATION_ID = 1001
         private const val WORK_NAME = "pledger_sync"
 
+        fun cancel(context: Context) {
+            WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+        }
+
         fun schedule(context: Context) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)

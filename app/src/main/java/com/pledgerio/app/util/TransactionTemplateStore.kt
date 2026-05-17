@@ -79,6 +79,10 @@ class TransactionTemplateStore @Inject constructor(
         }
     }
 
+    suspend fun clearAll() {
+        dataStore.edit { it.remove(KEY_TEMPLATES) }
+    }
+
     private fun parse(json: String?): List<TransactionTemplate> {
         if (json.isNullOrBlank()) return emptyList()
         return runCatching { adapter.fromJson(json) }.getOrNull().orEmpty()

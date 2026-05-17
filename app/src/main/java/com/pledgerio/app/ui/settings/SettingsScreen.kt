@@ -17,11 +17,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.filled.Storage
@@ -33,11 +35,19 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.ThemeMode
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,9 +56,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.R
 import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.ui.theme.ExpenseRed
 
@@ -60,9 +74,38 @@ fun SettingsScreen(
     onNavigateToTags: () -> Unit,
     onLogout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
+    issueReportViewModel: IssueReportViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val issueReportState by issueReportViewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
     var showLogoutDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(issueReportState.readyToOpen) {
+        val report = issueReportState.readyToOpen ?: return@LaunchedEffect
+        report.clipboardText?.let { text ->
+            val clipboard = ContextCompat.getSystemService(context, ClipboardManager::class.java)
+            clipboard?.setPrimaryClip(ClipData.newPlainText("Pledger bug report", text))
+        }
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(report.issueUrl)))
+        snackbarHostState.showSnackbar(
+            if (report.clipboardText != null) {
+                context.getString(R.string.report_issue_open_github_with_clipboard)
+            } else {
+                context.getString(R.string.report_issue_open_github)
+            },
+        )
+        issueReportViewModel.clearReadyToOpen()
+    }
+
+    ReportIssueDialog(
+        state = issueReportState,
+        onDismiss = issueReportViewModel::dismissDialog,
+        onTitleChange = issueReportViewModel::onTitleChange,
+        onDescriptionChange = issueReportViewModel::onDescriptionChange,
+        onSubmit = issueReportViewModel::submit,
+    )
 
     if (showLogoutDialog) {
         AlertDialog(
@@ -167,6 +210,47 @@ fun SettingsScreen(
         )
     }
 
+    if (uiState.showExperiencePicker) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissExperiencePicker,
+            title = { Text("Finance experience") },
+            text = {
+                Column {
+                    FinanceExperienceMode.entries.forEach { mode ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { viewModel.selectFinanceExperienceMode(mode) }
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(
+                                selected = uiState.financeExperienceMode == mode,
+                                onClick = { viewModel.selectFinanceExperienceMode(mode) },
+                            )
+                            Column {
+                                Text(
+                                    text = mode.displayName,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                                Text(
+                                    text = mode.description,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = viewModel::dismissExperiencePicker) {
+                    Text("Cancel")
+                }
+            },
+        )
+    }
+
     Scaffold(
         topBar = {
             PledgerTopBar(
@@ -178,7 +262,8 @@ fun SettingsScreen(
                     }
                 },
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -209,6 +294,24 @@ fun SettingsScreen(
             }
 
             item {
+                SettingsSection("Data") {
+                    SettingsItem(
+                        icon = Icons.Default.Category,
+                        title = "Categories",
+                        subtitle = "Manage transaction categories",
+                        onClick = onNavigateToCategories,
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    SettingsItem(
+                        icon = Icons.Default.Tag,
+                        title = "Tags",
+                        subtitle = "Manage transaction tags",
+                        onClick = onNavigateToTags,
+                    )
+                }
+            }
+
+            item {
                 SettingsSection("Preferences") {
                     SettingsItem(
                         icon = Icons.Default.Language,
@@ -232,23 +335,23 @@ fun SettingsScreen(
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SettingsItem(
-                        icon = Icons.Default.Category,
-                        title = "Manage categories",
-                        subtitle = "Create, edit, and remove transaction categories",
-                        onClick = onNavigateToCategories,
-                    )
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingsItem(
-                        icon = Icons.Default.Tag,
-                        title = "Manage tags",
-                        subtitle = "Create, rename, and remove transaction tags",
-                        onClick = onNavigateToTags,
+                        icon = Icons.Default.Speed,
+                        title = "Finance experience",
+                        subtitle = "${uiState.financeExperienceMode.displayName} — ${uiState.financeExperienceMode.description}",
+                        onClick = viewModel::openExperiencePicker,
                     )
                 }
             }
 
             item {
                 SettingsSection("About") {
+                    SettingsItem(
+                        icon = Icons.Default.BugReport,
+                        title = stringResource(R.string.report_issue_settings_title),
+                        subtitle = stringResource(R.string.report_issue_settings_subtitle),
+                        onClick = issueReportViewModel::openDialog,
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SettingsItem(
                         icon = Icons.Default.Info,
                         title = "Version",

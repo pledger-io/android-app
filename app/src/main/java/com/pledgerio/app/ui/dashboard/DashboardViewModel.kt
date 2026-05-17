@@ -3,6 +3,7 @@ package com.pledgerio.app.ui.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Account
+import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
@@ -25,6 +26,7 @@ data class DashboardUiState(
     val monthlyIncome: Double = 0.0,
     val monthlyExpense: Double = 0.0,
     val currency: String = "EUR",
+    val financeExperienceMode: FinanceExperienceMode = FinanceExperienceMode.GUIDED,
     val accounts: List<Account> = emptyList(),
     val recentTransactions: List<Transaction> = emptyList(),
 )
@@ -45,6 +47,11 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferences.displayCurrencyCode.collect { code ->
                 _uiState.update { it.copy(currency = code) }
+            }
+        }
+        viewModelScope.launch {
+            userPreferences.financeExperienceMode.collect { mode ->
+                _uiState.update { it.copy(financeExperienceMode = mode) }
             }
         }
         loadDashboard()

@@ -116,17 +116,19 @@ class AccountDetailViewModel @Inject constructor(
                         _uiState.value.transactions + newItems
                     }
                     val allItems = merged.distinctBy { it.id }
+                    // Stop when this page is short — totalRecords may count all accounts, not this filter.
+                    val hasMore = newItems.size >= PAGE_SIZE
                     _uiState.update {
                         it.copy(
                             isLoadingMore = false,
                             transactions = allItems,
                             currentPage = page,
-                            hasMore = allItems.size.toLong() < result.data.totalRecords,
+                            hasMore = hasMore,
                         )
                     }
                 }
                 is Resource.Error -> {
-                    _uiState.update { it.copy(isLoadingMore = false) }
+                    _uiState.update { it.copy(isLoadingMore = false, hasMore = false) }
                 }
                 is Resource.Loading -> {}
             }

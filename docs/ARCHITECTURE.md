@@ -52,7 +52,6 @@ ui/
 ├── dashboard/          # Overview, recent transactions
 ├── transactions/       # List, detail, form, filters, autocomplete
 ├── accounts/           # List, detail, form
-├── categories/         # Category catalog management (search + CRUD)
 ├── budgets/            # Overview, initial setup, expense groups, detail
 ├── reports/
 ├── settings/
@@ -64,7 +63,7 @@ ui/
 - Routes are defined in `Screen` (sealed class).
 - `NavGraph` wires composable destinations; path args (`accountId`, `transactionId`) are read in ViewModels via `SavedStateHandle`.
 - **Bottom tabs:** Dashboard, Transactions, Budgets, Accounts, Reports.
-- **Stack screens:** Detail views, add/edit forms, onboarding, settings, category management (bottom bar hidden when not on a main tab).
+- **Stack screens:** Detail views, add/edit forms, onboarding, settings (bottom bar hidden when not on a main tab).
 - Outer scaffold padding is passed into `NavGraph` so FABs clear the bottom navigation bar.
 
 #### Transaction list UX
@@ -85,6 +84,11 @@ Account fields depend on transaction type:
 | Transfer | Owned accounts dropdown | Owned accounts dropdown |
 
 Owned account types come from `GET /v2/api/account-types` (excluding counterparty types); lists are loaded with `GET /v2/api/accounts?type=…`.
+
+The form adapts using a persisted **finance experience mode**:
+
+- **Guided** (default): cleaner first-pass form with optional sections collapsed.
+- **Power**: optional sections (and templates on new transactions) are visible by default for faster repetitive entry.
 
 **Redesign (planned):** See [Transaction form redesign](TRANSACTION_FORM_REDESIGN.md) for UX goals (type-first layout, money-flow card, date picker, sticky submit) and phased implementation.
 
@@ -176,8 +180,8 @@ Screen → ViewModel → Repository → Retrofit
 |------|-----------|
 | Auth | `/v2/api/security/authenticate`, `/v2/api/security/oauth`, `/v2/api/security/logout` |
 | Accounts | `/v2/api/accounts`, `/v2/api/accounts/{id}`, `/v2/api/account-types` |
-| Transactions | `/v2/api/transactions`, `/v2/api/transactions/{id}` |
-| Categories | `/v2/api/categories`, `/v2/api/categories/{id}` |
+| Transactions | `/v2/api/transactions`, `/v2/api/transactions/{id}`, `/v2/api/ai/auto-complete` |
+| Categories | `/v2/api/categories` |
 | Budgets | `/v2/api/budgets` (GET/POST/PATCH), `/v2/api/budgets/expenses` (GET/PATCH), `/v2/api/budgets/expenses/balance` |
 | Contracts | `/v2/api/contracts` |
 | Balance | `/v2/api/balance`, `/v2/api/balance/{partition}` |
@@ -247,6 +251,8 @@ User action → ViewModel → StateFlow<UiState> → Compose recomposition
 ```
 
 Navigation arguments via `SavedStateHandle`. No Android framework types inside ViewModels beyond `SavedStateHandle`.
+
+`UserPreferences` stores user-controlled UI defaults such as theme, display currency, last transaction type, and finance experience mode (`guided` / `power`) so novice-friendly behavior does not block power-user workflows.
 
 ## Theming
 

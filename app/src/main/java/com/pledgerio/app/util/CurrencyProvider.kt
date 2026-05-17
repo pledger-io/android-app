@@ -29,6 +29,10 @@ class CurrencyProvider @Inject constructor(
 
     fun get(code: String): Currency? = cache[code]
 
+    fun clearCache() {
+        cache.clear()
+    }
+
     fun formatAmount(amount: Double, currencyCode: String): String {
         val currency = cache[currencyCode]
         return if (currency != null) {
