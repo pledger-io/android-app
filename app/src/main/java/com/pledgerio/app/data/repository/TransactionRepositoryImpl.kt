@@ -51,6 +51,7 @@ class TransactionRepositoryImpl @Inject constructor(
                 expenses = filters.expenseId?.let { listOf(it) },
                 categories = filters.categoryId?.let { listOf(it) },
                 contracts = filters.contractId?.let { listOf(it) },
+                description = filters.description,
                 offset = apiOffset,
                 numberOfResults = pageSize,
             )

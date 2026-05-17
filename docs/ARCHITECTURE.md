@@ -65,6 +65,7 @@ ui/
 - **Bottom tabs:** Dashboard, Transactions, Budgets, Accounts, Reports.
 - **Stack screens:** Detail views, add/edit forms, onboarding, settings (bottom bar hidden when not on a main tab).
 - Outer scaffold padding is passed into `NavGraph` so FABs clear the bottom navigation bar.
+- **Usability roadmap:** Tiered improvements (settings discoverability, offline banner scope, error retry, theme alignment) are documented in [USABILITY_IMPROVEMENT_PLAN.md](USABILITY_IMPROVEMENT_PLAN.md) and [ADR-016](adr/016-usability-improvement-program.md).
 
 #### Transaction list UX
 

@@ -40,6 +40,11 @@ class TransactionDetailViewModel @Inject constructor(
         loadTransaction()
     }
 
+    fun reload() {
+        _uiState.update { it.copy(error = null) }
+        loadTransaction()
+    }
+
     private fun loadTransaction() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }

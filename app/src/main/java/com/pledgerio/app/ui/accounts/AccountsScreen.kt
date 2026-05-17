@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -41,18 +42,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.AccountListFilter
 import com.pledgerio.app.domain.model.AccountSection
 import com.pledgerio.app.domain.model.AccountTypeCatalog
 import com.pledgerio.app.ui.components.AccountIcon
+import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.ui.components.EmptyScreen
+import com.pledgerio.app.ui.components.LastUpdatedIndicator
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
@@ -67,6 +72,7 @@ import com.pledgerio.app.util.formatCurrency
 fun AccountsScreen(
     onNavigateToDetail: (Long) -> Unit,
     onNavigateToAdd: (String?) -> Unit,
+    onNavigateToSettings: () -> Unit,
     viewModel: AccountsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -135,6 +141,14 @@ fun AccountsScreen(
                         else -> "Creditors & debtors"
                     }
                 },
+                actions = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.open_settings),
+                        )
+                    }
+                },
             )
         },
     ) { paddingValues ->
@@ -168,6 +182,10 @@ fun AccountsScreen(
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
+                    LastUpdatedIndicator(
+                        lastUpdatedAtMillis = uiState.lastUpdatedAtMillis,
+                        isRefreshing = uiState.isRefreshing,
+                    )
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -183,28 +201,30 @@ fun AccountsScreen(
                                 )
                             }
                             showEmpty -> {
+                                val guided =
+                                    uiState.financeExperienceMode == FinanceExperienceMode.GUIDED
                                 EmptyScreen(
                                     icon = Icons.Default.AccountBalance,
                                     title = when (uiState.filter) {
-                                        AccountListFilter.COUNTERPARTY -> "No parties found"
-                                        else -> "No accounts yet"
+                                        AccountListFilter.COUNTERPARTY ->
+                                            stringResource(R.string.empty_parties_title)
+                                        else -> stringResource(R.string.empty_accounts_title)
                                     },
                                     message = when (uiState.filter) {
-                                        AccountListFilter.COUNTERPARTY -> if (
-                                            uiState.counterpartySearchQuery.isNotBlank()
-                                        ) {
-                                            "Try a different search term."
-                                        } else {
-                                            "Add creditors and debtors you pay or receive money from."
-                                        }
-                                        else -> "Add checking, savings, credit, or counterparty accounts."
+                                        AccountListFilter.COUNTERPARTY ->
+                                            stringResource(R.string.empty_parties_message)
+                                        else -> stringResource(R.string.empty_accounts_message)
                                     },
-                                    actionLabel = if (uiState.filter == AccountListFilter.COUNTERPARTY) {
-                                        "Add party"
+                                    actionLabel = if (guided) {
+                                        stringResource(R.string.empty_add_account)
                                     } else {
-                                        "Add account"
+                                        null
                                     },
-                                    onAction = { showAddMenu = true },
+                                    onAction = if (guided) {
+                                        { showAddMenu = true }
+                                    } else {
+                                        null
+                                    },
                                 )
                             }
                             else -> {

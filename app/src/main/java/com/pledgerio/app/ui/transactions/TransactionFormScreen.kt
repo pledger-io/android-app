@@ -14,7 +14,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -51,7 +50,6 @@ import com.pledgerio.app.ui.transactions.form.TransactionFormMoreOptions
 import com.pledgerio.app.ui.transactions.form.TransactionSplitEditor
 import com.pledgerio.app.ui.transactions.form.TransactionTemplatesSection
 import com.pledgerio.app.ui.transactions.form.TransactionTypeSelector
-import com.pledgerio.app.ui.theme.EmeraldGreen
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -189,13 +187,13 @@ fun TransactionFormScreen(
                             onSelected = viewModel::onTypeChanged,
                         )
 
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        ExperienceModeBanner(
-                            mode = uiState.financeExperienceMode,
-                            title = uiState.experienceModeTitle,
-                            hint = uiState.experienceModeHint,
-                        )
+                        if (uiState.financeExperienceMode == FinanceExperienceMode.GUIDED) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            ExperienceModeBanner(
+                                title = uiState.experienceModeTitle,
+                                hint = uiState.experienceModeHint,
+                            )
+                        }
 
                         if (uiState.showTemplatesSection) {
                             Spacer(modifier = Modifier.height(12.dp))
@@ -369,21 +367,12 @@ fun TransactionFormScreen(
 
 @Composable
 private fun ExperienceModeBanner(
-    mode: FinanceExperienceMode,
     title: String,
     hint: String,
 ) {
-    val accent = if (mode == FinanceExperienceMode.GUIDED) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        EmeraldGreen
-    }
+    val accent = MaterialTheme.colorScheme.primary
     val badgeBackground = accent.copy(alpha = 0.15f)
-    val icon = if (mode == FinanceExperienceMode.GUIDED) {
-        Icons.Default.School
-    } else {
-        Icons.Default.Bolt
-    }
+    val icon = Icons.Default.School
 
     PledgerCard {
         Row(verticalAlignment = Alignment.CenterVertically) {

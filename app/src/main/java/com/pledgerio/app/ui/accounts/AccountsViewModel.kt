@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.AccountListFilter
+import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.AccountSection
 import com.pledgerio.app.domain.model.AccountTypeCatalog
 import com.pledgerio.app.domain.model.AccountTypeOption
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.util.Resource
+import com.pledgerio.app.util.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -35,6 +37,8 @@ data class AccountsUiState(
     val isLoadingMoreCounterparties: Boolean = false,
     val hasMoreCounterparties: Boolean = true,
     val counterpartyError: String? = null,
+    val lastUpdatedAtMillis: Long? = null,
+    val financeExperienceMode: FinanceExperienceMode = FinanceExperienceMode.GUIDED,
 ) {
     val ownedCount: Int get() = ownedAccounts.size
 
@@ -64,6 +68,7 @@ data class AccountsUiState(
 @HiltViewModel
 class AccountsViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
+    userPreferences: UserPreferences,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AccountsUiState())
@@ -77,6 +82,11 @@ class AccountsViewModel @Inject constructor(
         loadAccountTypes()
         loadOwnedAccounts()
         loadCounterpartyTotal()
+        viewModelScope.launch {
+            userPreferences.financeExperienceMode.collect { mode ->
+                _uiState.update { it.copy(financeExperienceMode = mode) }
+            }
+        }
     }
 
     fun applyAccountSaved(account: Account) {
@@ -151,7 +161,12 @@ class AccountsViewModel @Inject constructor(
                     }
                 }
             } finally {
-                _uiState.update { it.copy(isRefreshing = false) }
+                _uiState.update {
+                    it.copy(
+                        isRefreshing = false,
+                        lastUpdatedAtMillis = System.currentTimeMillis(),
+                    )
+                }
             }
         }
     }
@@ -195,6 +210,7 @@ class AccountsViewModel @Inject constructor(
                             isRefreshing = false,
                             ownedAccounts = result.data,
                             error = null,
+                            lastUpdatedAtMillis = System.currentTimeMillis(),
                         )
                     }
                     is Resource.Error -> _uiState.update {

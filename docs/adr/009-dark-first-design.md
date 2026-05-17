@@ -32,6 +32,8 @@ Typography:
 
 Theme selection follows system preference by default, with a manual override in Settings.
 
+`PledgerTheme` applies the user’s `ThemeMode` (system / light / dark). Branded chrome (`PledgerTopBar`) must use the **same** resolved dark flag—not `isSystemInDarkTheme()` alone—so headers match the rest of the app when the user forces light or dark mode. See [ADR-016](016-usability-improvement-program.md) (T1.5).
+
 ## Consequences
 
 ### Positive

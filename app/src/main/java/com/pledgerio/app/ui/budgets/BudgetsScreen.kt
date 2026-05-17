@@ -2,6 +2,7 @@ package com.pledgerio.app.ui.budgets
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,9 +15,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -38,6 +41,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.Budget
 import com.pledgerio.app.ui.components.EmptyScreen
+import com.pledgerio.app.ui.components.LastUpdatedIndicator
+import com.pledgerio.app.ui.components.MonthNavigator
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
@@ -47,11 +52,13 @@ import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.IncomeGreen
 import com.pledgerio.app.ui.theme.WarningAmber
 import com.pledgerio.app.util.formatCurrency
+import java.time.YearMonth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BudgetsScreen(
     onNavigateToDetail: (Long) -> Unit,
+    onNavigateToSettings: () -> Unit,
     viewModel: BudgetsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -86,6 +93,14 @@ fun BudgetsScreen(
             PledgerTopBar(
                 title = "Budgets",
                 subtitle = "Plan and track your spending",
+                actions = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.open_settings),
+                        )
+                    }
+                },
             )
         },
         floatingActionButton = {
@@ -107,6 +122,24 @@ fun BudgetsScreen(
             onRefresh = viewModel::refresh,
             modifier = Modifier.padding(paddingValues),
         ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                if (!uiState.needsInitialSetup) {
+                    MonthNavigator(
+                        monthLabel = uiState.monthLabel,
+                        canGoNext = uiState.currentMonth < YearMonth.now(),
+                        onPrevious = viewModel::previousMonth,
+                        onNext = viewModel::nextMonth,
+                    )
+                    LastUpdatedIndicator(
+                        lastUpdatedAtMillis = uiState.lastUpdatedAtMillis,
+                        isRefreshing = uiState.isRefreshing,
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                ) {
             when {
                 uiState.isLoading && !uiState.isRefreshing -> LoadingScreen()
                 uiState.needsInitialSetup -> {
@@ -205,6 +238,8 @@ fun BudgetsScreen(
 
                         item { Spacer(modifier = Modifier.height(80.dp)) }
                     }
+                }
+            }
                 }
             }
         }

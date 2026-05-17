@@ -2,6 +2,7 @@ package com.pledgerio.app.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -21,6 +22,7 @@ import com.pledgerio.app.ui.dashboard.DashboardScreen
 import com.pledgerio.app.ui.onboarding.LoginScreen
 import com.pledgerio.app.ui.onboarding.ServerSetupScreen
 import com.pledgerio.app.ui.reports.ReportsScreen
+import com.pledgerio.app.ui.search.SearchScreen
 import com.pledgerio.app.ui.settings.SettingsScreen
 import com.pledgerio.app.ui.transactions.TransactionDetailScreen
 import com.pledgerio.app.ui.transactions.TransactionFormScreen
@@ -37,13 +39,28 @@ fun NavGraph(
         startDestination = startDestination,
         modifier = modifier,
     ) {
-        composable(Screen.ServerSetup.route) {
+        composable(
+            route = Screen.ServerSetup.route,
+            arguments = listOf(
+                navArgument("changeServer") {
+                    type = NavType.BoolType
+                    defaultValue = false
+                },
+            ),
+        ) { backStackEntry ->
+            val changeServer = backStackEntry.arguments?.getBoolean("changeServer") ?: false
             ServerSetupScreen(
+                changeServerMode = changeServer,
+                onNavigateBack = if (changeServer) {
+                    { navController.popBackStack() }
+                } else {
+                    null
+                },
                 onServerValidated = {
                     navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.ServerSetup.route) { inclusive = true }
+                        popUpTo(0) { inclusive = true }
                     }
-                }
+                },
             )
         }
 
@@ -55,7 +72,7 @@ fun NavGraph(
                     }
                 },
                 onBackToServer = {
-                    navController.navigate(Screen.ServerSetup.route) {
+                    navController.navigate(Screen.ServerSetup.createRoute(changeServer = false)) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 }
@@ -65,7 +82,7 @@ fun NavGraph(
         composable(Screen.Dashboard.route) {
             DashboardScreen(
                 onNavigateToTransactions = {
-                    navController.navigate(Screen.Transactions.route)
+                    navController.navigate(Screen.Transactions.createRoute())
                 },
                 onNavigateToTransaction = { id ->
                     navController.navigate(Screen.TransactionDetail.createRoute(id))
@@ -79,16 +96,46 @@ fun NavGraph(
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
                 },
+                onNavigateToSearch = {
+                    navController.navigate(Screen.Search.route)
+                },
             )
         }
 
-        composable(Screen.Transactions.route) {
+        composable(Screen.Search.route) {
+            SearchScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToTransaction = { id ->
+                    navController.navigate(Screen.TransactionDetail.createRoute(id))
+                },
+                onNavigateToAccount = { id ->
+                    navController.navigate(Screen.AccountDetail.createRoute(id))
+                },
+            )
+        }
+
+        composable(
+            route = Screen.Transactions.route,
+            arguments = listOf(
+                navArgument("expenseId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                },
+                navArgument("expenseName") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+            ),
+        ) {
             TransactionsScreen(
                 onNavigateToDetail = { id ->
                     navController.navigate(Screen.TransactionDetail.createRoute(id))
                 },
                 onNavigateToAdd = {
                     navController.navigate(Screen.AddTransaction.route)
+                },
+                onNavigateToSettings = {
+                    navController.navigate(Screen.Settings.route)
                 },
             )
         }
@@ -137,6 +184,9 @@ fun NavGraph(
                 onNavigateToAdd = { typeCode ->
                     navController.navigate(Screen.AddAccount.createRoute(typeCode))
                 },
+                onNavigateToSettings = {
+                    navController.navigate(Screen.Settings.route)
+                },
                 viewModel = accountsViewModel,
             )
         }
@@ -179,11 +229,26 @@ fun NavGraph(
             }
         }
 
-        composable(Screen.Budgets.route) {
+        composable(
+            route = Screen.Budgets.route,
+            arguments = listOf(
+                navArgument("year") {
+                    type = NavType.IntType
+                    defaultValue = -1
+                },
+                navArgument("month") {
+                    type = NavType.IntType
+                    defaultValue = -1
+                },
+            ),
+        ) {
             val budgetsViewModel: BudgetsViewModel = hiltViewModel()
             BudgetsScreen(
                 onNavigateToDetail = { id ->
                     navController.navigate(Screen.BudgetDetail.createRoute(id))
+                },
+                onNavigateToSettings = {
+                    navController.navigate(Screen.Settings.route)
                 },
                 viewModel = budgetsViewModel,
             )
@@ -199,11 +264,23 @@ fun NavGraph(
             BudgetDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onBudgetListUpdated = budgetsViewModel::applyBudgetListState,
+                onViewExpenseTransactions = { expenseId, expenseName ->
+                    navController.navigate(Screen.Transactions.createRoute(expenseId, expenseName)) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                    }
+                },
             )
         }
 
         composable(Screen.Reports.route) {
-            ReportsScreen()
+            ReportsScreen(
+                onNavigateToSettings = {
+                    navController.navigate(Screen.Settings.route)
+                },
+            )
         }
 
         composable(Screen.Settings.route) {
@@ -215,8 +292,11 @@ fun NavGraph(
                 onNavigateToTags = {
                     navController.navigate(Screen.Tags.route)
                 },
+                onNavigateToChangeServer = {
+                    navController.navigate(Screen.ServerSetup.createRoute(changeServer = true))
+                },
                 onLogout = {
-                    navController.navigate(Screen.ServerSetup.route) {
+                    navController.navigate(Screen.ServerSetup.createRoute(changeServer = false)) {
                         popUpTo(0) { inclusive = true }
                     }
                 },

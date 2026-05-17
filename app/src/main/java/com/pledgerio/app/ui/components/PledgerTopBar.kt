@@ -1,6 +1,5 @@
 package com.pledgerio.app.ui.components
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -30,6 +29,7 @@ import com.pledgerio.app.ui.theme.HeaderGradientTopDark
 import com.pledgerio.app.ui.theme.HeaderGradientTopLight
 import com.pledgerio.app.ui.theme.HeaderOnGradient
 import com.pledgerio.app.ui.theme.HeaderOnGradientMuted
+import com.pledgerio.app.ui.theme.LocalPledgerDarkTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,8 +41,8 @@ fun PledgerTopBar(
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
 ) {
-    val darkTheme = isSystemInDarkTheme()
-    val barHeight = if (branded) 88.dp else 64.dp
+    val darkTheme = LocalPledgerDarkTheme.current
+    val barHeight = 64.dp
 
     Column(
         modifier = modifier

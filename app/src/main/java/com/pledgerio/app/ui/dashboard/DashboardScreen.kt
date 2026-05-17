@@ -23,8 +23,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TrendingDown
 import androidx.compose.material.icons.filled.TrendingUp
@@ -52,11 +53,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.FinanceExperienceMode
+import com.pledgerio.app.ui.components.EmptyScreen
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionType
-import com.pledgerio.app.ui.components.EmptyScreen
+import com.pledgerio.app.ui.components.LastUpdatedIndicator
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
@@ -74,6 +78,7 @@ fun DashboardScreen(
     onNavigateToAddTransaction: () -> Unit,
     onNavigateToAddAccount: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToSearch: () -> Unit = {},
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -97,14 +102,20 @@ fun DashboardScreen(
                 subtitle = if (uiState.financeExperienceMode == FinanceExperienceMode.GUIDED) {
                     "Your finances at a glance · Guided mode"
                 } else {
-                    "Your finances at a glance · Power mode"
+                    "Your finances at a glance"
                 },
                 branded = true,
                 actions = {
+                    IconButton(onClick = onNavigateToSearch) {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = stringResource(R.string.search_title),
+                        )
+                    }
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(
                             Icons.Default.Settings,
-                            contentDescription = "Settings",
+                            contentDescription = stringResource(R.string.open_settings),
                         )
                     }
                 },
@@ -135,7 +146,16 @@ fun DashboardScreen(
                         item { Spacer(modifier = Modifier.height(8.dp)) }
 
                         item {
-                            ExperienceModeCard(mode = uiState.financeExperienceMode)
+                            LastUpdatedIndicator(
+                                lastUpdatedAtMillis = uiState.lastUpdatedAtMillis,
+                                isRefreshing = uiState.isRefreshing,
+                            )
+                        }
+
+                        if (uiState.financeExperienceMode == FinanceExperienceMode.GUIDED) {
+                            item {
+                                ExperienceModeCard()
+                            }
                         }
 
                         // Net Worth Card
@@ -176,11 +196,19 @@ fun DashboardScreen(
                         // Recent Transactions
                         if (uiState.recentTransactions.isEmpty() && !uiState.isLoading) {
                             item {
-                                Text(
-                                    text = "No recent transactions",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(vertical = 24.dp),
+                                val guided =
+                                    uiState.financeExperienceMode == FinanceExperienceMode.GUIDED
+                                EmptyScreen(
+                                    icon = Icons.Default.Receipt,
+                                    title = stringResource(R.string.empty_dashboard_transactions_title),
+                                    message = stringResource(R.string.empty_dashboard_transactions_message),
+                                    actionLabel = if (guided) {
+                                        stringResource(R.string.empty_add_transaction)
+                                    } else {
+                                        null
+                                    },
+                                    onAction = if (guided) onNavigateToAddTransaction else null,
+                                    modifier = Modifier.height(200.dp),
                                 )
                             }
                         } else {
@@ -209,16 +237,11 @@ fun DashboardScreen(
 }
 
 @Composable
-private fun ExperienceModeCard(mode: FinanceExperienceMode) {
-    val isGuided = mode == FinanceExperienceMode.GUIDED
-    val accent = if (isGuided) MaterialTheme.colorScheme.primary else EmeraldGreen
-    val icon = if (isGuided) Icons.Default.School else Icons.Default.Bolt
-    val title = if (isGuided) "Guided mode active" else "Power mode active"
-    val body = if (isGuided) {
-        "Simplified defaults are enabled to reduce setup friction."
-    } else {
-        "Advanced controls are enabled for faster transaction entry."
-    }
+private fun ExperienceModeCard() {
+    val accent = MaterialTheme.colorScheme.primary
+    val icon = Icons.Default.School
+    val title = "Guided mode active"
+    val body = "Simplified defaults are enabled to reduce setup friction."
     PledgerCard {
         Row(
             modifier = Modifier.fillMaxWidth(),

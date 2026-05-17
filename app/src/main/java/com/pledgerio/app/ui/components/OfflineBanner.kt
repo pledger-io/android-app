@@ -24,7 +24,7 @@ import com.pledgerio.app.R
 import com.pledgerio.app.ui.theme.WarningAmber
 
 /**
- * Compact banner shown above the bottom navigation bar when the device has no internet.
+ * Compact banner shown at the top of authenticated screens when the device has no internet.
  * The cached UI still works; this only communicates that data may be stale and writes
  * will fail.
  */

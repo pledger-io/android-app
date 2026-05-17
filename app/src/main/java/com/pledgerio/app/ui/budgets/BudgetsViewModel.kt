@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.budgets
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Budget
@@ -16,7 +17,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
+
+private val BUDGET_MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault())
 
 data class BudgetsUiState(
     val isLoading: Boolean = true,
@@ -35,7 +41,10 @@ data class BudgetsUiState(
     val formAmount: String = "",
     val formError: String? = null,
     val isSavingExpense: Boolean = false,
+    val currentMonth: YearMonth = YearMonth.now(),
+    val lastUpdatedAtMillis: Long? = null,
 ) {
+    val monthLabel: String get() = currentMonth.format(BUDGET_MONTH_FORMATTER)
     val isEditingExpense: Boolean get() = editingExpenseId != null
 
     val canAddExpenseGroups: Boolean get() = !needsInitialSetup && !isLoading
@@ -43,12 +52,21 @@ data class BudgetsUiState(
 
 @HiltViewModel
 class BudgetsViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val budgetRepository: BudgetRepository,
     private val createInitialBudgetUseCase: CreateInitialBudgetUseCase,
     private val saveBudgetExpenseUseCase: SaveBudgetExpenseUseCase,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(BudgetsUiState())
+    private val deepLinkYear = savedStateHandle.get<Int>("year")?.takeIf { it > 0 }
+    private val deepLinkMonth = savedStateHandle.get<Int>("month")?.takeIf { it in 1..12 }
+    private val initialMonth = if (deepLinkYear != null && deepLinkMonth != null) {
+        YearMonth.of(deepLinkYear, deepLinkMonth)
+    } else {
+        YearMonth.now()
+    }
+
+    private val _uiState = MutableStateFlow(BudgetsUiState(currentMonth = initialMonth))
     val uiState: StateFlow<BudgetsUiState> = _uiState.asStateFlow()
 
     private var loadJob: Job? = null
@@ -59,6 +77,29 @@ class BudgetsViewModel @Inject constructor(
 
     fun refresh() {
         _uiState.update { it.copy(isRefreshing = true) }
+        loadBudgets()
+    }
+
+    fun previousMonth() {
+        navigateToMonth(_uiState.value.currentMonth.minusMonths(1))
+    }
+
+    fun nextMonth() {
+        val next = _uiState.value.currentMonth.plusMonths(1)
+        if (next <= YearMonth.now()) {
+            navigateToMonth(next)
+        }
+    }
+
+    private fun navigateToMonth(month: YearMonth) {
+        loadJob?.cancel()
+        _uiState.update {
+            it.copy(
+                currentMonth = month,
+                budgets = emptyList(),
+                error = null,
+            )
+        }
         loadBudgets()
     }
 
@@ -204,14 +245,15 @@ class BudgetsViewModel @Inject constructor(
     }
 
     private fun loadBudgets() {
-        val now = LocalDate.now()
+        val month = _uiState.value.currentMonth
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
-            budgetRepository.getBudgets(now.year, now.monthValue).collect { result ->
+            budgetRepository.getBudgets(month.year, month.monthValue).collect { result ->
                 when (result) {
                     is Resource.Loading -> _uiState.update { it.copy(isLoading = true) }
                     is Resource.Success -> {
                         val data = result.data
+                        val now = LocalDate.now()
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -219,8 +261,9 @@ class BudgetsViewModel @Inject constructor(
                                 budgets = data.budgets,
                                 needsInitialSetup = data.needsInitialSetup,
                                 error = null,
-                                setupYear = if (data.needsInitialSetup) now.year else it.setupYear,
-                                setupMonth = if (data.needsInitialSetup) now.monthValue else it.setupMonth,
+                                setupYear = if (data.needsInitialSetup) month.year else it.setupYear,
+                                setupMonth = if (data.needsInitialSetup) month.monthValue else it.setupMonth,
+                                lastUpdatedAtMillis = System.currentTimeMillis(),
                             )
                         }
                     }

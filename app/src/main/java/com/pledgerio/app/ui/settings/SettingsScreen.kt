@@ -62,6 +62,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.BuildConfig
 import com.pledgerio.app.R
 import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.ui.theme.ExpenseRed
@@ -72,6 +73,7 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToCategories: () -> Unit,
     onNavigateToTags: () -> Unit,
+    onNavigateToChangeServer: () -> Unit,
     onLogout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
     issueReportViewModel: IssueReportViewModel = hiltViewModel(),
@@ -274,9 +276,9 @@ fun SettingsScreen(
                 SettingsSection("Server") {
                     SettingsItem(
                         icon = Icons.Default.Storage,
-                        title = "Server URL",
+                        title = stringResource(R.string.settings_change_server),
                         subtitle = uiState.serverUrl ?: "Not configured",
-                        onClick = { /* TODO: Edit server URL */ },
+                        onClick = onNavigateToChangeServer,
                     )
                 }
             }
@@ -286,9 +288,10 @@ fun SettingsScreen(
                     SettingsToggle(
                         icon = Icons.Default.Fingerprint,
                         title = "Biometric Login",
-                        subtitle = "Use fingerprint or face to unlock",
-                        checked = uiState.biometricEnabled,
-                        onCheckedChange = viewModel::toggleBiometric,
+                        subtitle = stringResource(R.string.settings_biometric_coming_soon),
+                        checked = false,
+                        enabled = false,
+                        onCheckedChange = {},
                     )
                 }
             }
@@ -330,8 +333,9 @@ fun SettingsScreen(
                     SettingsItem(
                         icon = Icons.Default.Notifications,
                         title = "Notifications",
-                        subtitle = "Budget alerts",
-                        onClick = { /* TODO: Notification settings */ },
+                        subtitle = stringResource(R.string.settings_notifications_coming_soon),
+                        onClick = {},
+                        enabled = false,
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SettingsItem(
@@ -355,7 +359,7 @@ fun SettingsScreen(
                     SettingsItem(
                         icon = Icons.Default.Info,
                         title = "Version",
-                        subtitle = "1.0.0",
+                        subtitle = BuildConfig.VERSION_NAME,
                         onClick = { },
                     )
                 }
@@ -413,17 +417,18 @@ private fun SettingsItem(
     title: String,
     subtitle: String,
     onClick: () -> Unit,
+    enabled: Boolean = true,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = null,
+            contentDescription = title,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(24.dp),
         )
@@ -449,6 +454,7 @@ private fun SettingsToggle(
     subtitle: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
+    enabled: Boolean = true,
 ) {
     Row(
         modifier = Modifier
@@ -458,7 +464,7 @@ private fun SettingsToggle(
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = null,
+            contentDescription = title,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(24.dp),
         )
@@ -477,6 +483,7 @@ private fun SettingsToggle(
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
+            enabled = enabled,
         )
     }
 }

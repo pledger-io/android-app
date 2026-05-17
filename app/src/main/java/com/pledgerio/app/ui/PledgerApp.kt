@@ -5,6 +5,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -36,6 +38,7 @@ import androidx.navigation.compose.rememberNavController
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.ThemeMode
 import com.pledgerio.app.ui.components.OfflineBanner
+import com.pledgerio.app.ui.navigation.DeepLink
 import com.pledgerio.app.ui.navigation.NavGraph
 import com.pledgerio.app.ui.navigation.Screen
 import com.pledgerio.app.ui.theme.EmeraldGreen
@@ -49,22 +52,31 @@ data class BottomNavItem(
 
 val bottomNavItems = listOf(
     BottomNavItem(Screen.Dashboard.route, Icons.Default.Home, R.string.tab_dashboard),
-    BottomNavItem(Screen.Transactions.route, Icons.Default.Receipt, R.string.tab_transactions),
-    BottomNavItem(Screen.Budgets.route, Icons.Default.PieChart, R.string.tab_budgets),
+    BottomNavItem("transactions", Icons.Default.Receipt, R.string.tab_transactions),
+    BottomNavItem("budgets", Icons.Default.PieChart, R.string.tab_budgets),
     BottomNavItem(Screen.Accounts.route, Icons.Default.AccountBalance, R.string.tab_accounts),
     BottomNavItem(Screen.Reports.route, Icons.Default.BarChart, R.string.tab_reports),
 )
 
-private val mainScreens = setOf(
+private val mainScreenRoutes = setOf(
     Screen.Dashboard.route,
-    Screen.Transactions.route,
-    Screen.Budgets.route,
+    "transactions",
+    "budgets",
     Screen.Accounts.route,
     Screen.Reports.route,
 )
 
+private val onboardingRoutes = setOf(
+    "server_setup",
+    Screen.Login.route,
+)
+
+private fun String?.baseRoute(): String? = this?.substringBefore('?')
+
 @Composable
 fun PledgerRoot(
+    deepLink: DeepLink? = null,
+    onDeepLinkHandled: () -> Unit = {},
     appViewModel: AppViewModel = hiltViewModel(),
 ) {
     val sessionManager = appViewModel.sessionManager
@@ -83,19 +95,46 @@ fun PledgerRoot(
 
     val startDestination = remember(sessionManager.getBaseUrl(), sessionManager.isLoggedIn()) {
         when {
-            sessionManager.getBaseUrl() == null -> Screen.ServerSetup.route
+            sessionManager.getBaseUrl() == null -> Screen.ServerSetup.createRoute(changeServer = false)
             !sessionManager.isLoggedIn() -> Screen.Login.route
             else -> Screen.Dashboard.route
         }
     }
 
-    val showBottomBar = currentRoute in mainScreens
+    val baseRoute = currentRoute.baseRoute()
+    val showBottomBar = baseRoute in mainScreenRoutes
+    val showOfflineBanner = baseRoute != null && baseRoute !in onboardingRoutes
+
+    LaunchedEffect(deepLink, sessionManager.isLoggedIn()) {
+        if (deepLink == null || !sessionManager.isLoggedIn()) return@LaunchedEffect
+        when (deepLink) {
+            is DeepLink.Transaction -> {
+                navController.navigate(Screen.TransactionDetail.createRoute(deepLink.id))
+            }
+            is DeepLink.Account -> {
+                navController.navigate(Screen.AccountDetail.createRoute(deepLink.id))
+            }
+            is DeepLink.Budgets -> {
+                val route = deepLink.yearMonth?.let { ym ->
+                    Screen.Budgets.createRoute(ym.year, ym.monthValue)
+                } ?: Screen.Budgets.createRoute()
+                navController.navigate(route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                }
+            }
+        }
+        onDeepLinkHandled()
+    }
 
     PledgerTheme(darkTheme = darkTheme) {
         PledgerAppContent(
             navController = navController,
             startDestination = startDestination,
             showBottomBar = showBottomBar,
+            showOfflineBanner = showOfflineBanner,
             navBackStackEntry = navBackStackEntry,
             isOnline = isOnline,
         )
@@ -107,14 +146,13 @@ private fun PledgerAppContent(
     navController: androidx.navigation.NavHostController,
     startDestination: String,
     showBottomBar: Boolean,
+    showOfflineBanner: Boolean,
     navBackStackEntry: androidx.navigation.NavBackStackEntry?,
     isOnline: Boolean,
 ) {
     Scaffold(
         bottomBar = {
-            Column {
-                OfflineBanner(isOnline = isOnline)
-                AnimatedVisibility(
+            AnimatedVisibility(
                     visible = showBottomBar,
                     enter = slideInVertically(initialOffsetY = { it }),
                     exit = slideOutVertically(targetOffsetY = { it }),
@@ -122,14 +160,19 @@ private fun PledgerAppContent(
                     NavigationBar {
                         bottomNavItems.forEach { item ->
                             val selected = navBackStackEntry?.destination?.hierarchy?.any {
-                                it.route == item.route
+                                it.route?.baseRoute() == item.route.baseRoute()
                             } == true
 
                             val label = stringResource(item.labelResId)
                             NavigationBarItem(
                                 selected = selected,
                                 onClick = {
-                                    navController.navigate(item.route) {
+                                    val destination = when (item.route.baseRoute()) {
+                                        "transactions" -> Screen.Transactions.createRoute()
+                                        "budgets" -> Screen.Budgets.createRoute()
+                                        else -> item.route
+                                    }
+                                    navController.navigate(destination) {
                                         popUpTo(navController.graph.findStartDestination().id) {
                                             saveState = true
                                         }
@@ -164,13 +207,21 @@ private fun PledgerAppContent(
                         }
                     }
                 }
-            }
         },
     ) { paddingValues ->
-        NavGraph(
-            navController = navController,
-            startDestination = startDestination,
-            modifier = Modifier.padding(paddingValues),
-        )
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize(),
+        ) {
+            if (showOfflineBanner) {
+                OfflineBanner(isOnline = isOnline)
+            }
+            NavGraph(
+                navController = navController,
+                startDestination = startDestination,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     }
 }

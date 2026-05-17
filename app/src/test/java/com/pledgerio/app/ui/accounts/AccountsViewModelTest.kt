@@ -5,11 +5,14 @@ import com.pledgerio.app.domain.model.AccountListFilter
 import com.pledgerio.app.domain.model.AccountTypeOption
 import com.pledgerio.app.domain.model.PagedAccounts
 import com.pledgerio.app.domain.repository.AccountRepository
+import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.util.MainDispatcherRule
 import com.pledgerio.app.util.Resource
+import com.pledgerio.app.util.UserPreferences
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -26,6 +29,14 @@ class AccountsViewModelTest {
   val mainDispatcherRule = MainDispatcherRule()
 
   private val repository = mockk<AccountRepository>()
+  private val userPreferences = mockk<UserPreferences>(relaxed = true)
+
+  init {
+    every { userPreferences.financeExperienceMode } returns
+      MutableStateFlow(FinanceExperienceMode.GUIDED)
+  }
+
+  private fun createViewModel() = AccountsViewModel(repository, userPreferences)
 
   private fun ownedAccount() = Account(id = 1, name = "Checking", typeCode = "default")
 
@@ -39,7 +50,7 @@ class AccountsViewModelTest {
       PagedAccounts(emptyList(), totalRecords = 0, offset = 0, pageSize = 1),
     )
 
-    val viewModel = AccountsViewModel(repository)
+    val viewModel = createViewModel()
     advanceUntilIdle()
 
     assertEquals(1, viewModel.uiState.value.ownedAccounts.size)
@@ -54,7 +65,7 @@ class AccountsViewModelTest {
       PagedAccounts(emptyList(), totalRecords = 342, offset = 0, pageSize = 1),
     )
 
-    val viewModel = AccountsViewModel(repository)
+    val viewModel = createViewModel()
     advanceUntilIdle()
 
     assertEquals(342, viewModel.uiState.value.counterpartyTotal)
@@ -76,7 +87,7 @@ class AccountsViewModelTest {
       ),
     )
 
-    val viewModel = AccountsViewModel(repository)
+    val viewModel = createViewModel()
     advanceUntilIdle()
 
     viewModel.setFilter(AccountListFilter.COUNTERPARTY)
@@ -110,7 +121,7 @@ class AccountsViewModelTest {
       ),
     )
 
-    val viewModel = AccountsViewModel(repository)
+    val viewModel = createViewModel()
     advanceUntilIdle()
     viewModel.setFilter(AccountListFilter.COUNTERPARTY)
     advanceUntilIdle()
@@ -134,7 +145,7 @@ class AccountsViewModelTest {
       PagedAccounts(emptyList(), totalRecords = 0, offset = 0, pageSize = 50),
     )
 
-    val viewModel = AccountsViewModel(repository)
+    val viewModel = createViewModel()
     advanceUntilIdle()
     viewModel.setFilter(AccountListFilter.COUNTERPARTY)
     advanceUntilIdle()
@@ -155,7 +166,7 @@ class AccountsViewModelTest {
       PagedAccounts(emptyList(), totalRecords = 5, offset = 0, pageSize = 1),
     )
 
-    val viewModel = AccountsViewModel(repository)
+    val viewModel = createViewModel()
     advanceUntilIdle()
 
     viewModel.applyAccountSaved(debtor)
@@ -173,7 +184,7 @@ class AccountsViewModelTest {
       PagedAccounts(emptyList(), totalRecords = 0, offset = 0, pageSize = 1),
     )
 
-    val viewModel = AccountsViewModel(repository)
+    val viewModel = createViewModel()
     advanceUntilIdle()
 
     assertEquals(types, viewModel.uiState.value.accountTypeOptions)

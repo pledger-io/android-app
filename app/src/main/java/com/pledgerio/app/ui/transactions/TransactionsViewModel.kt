@@ -1,7 +1,9 @@
 package com.pledgerio.app.ui.transactions
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.FilterOption
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionFilters
@@ -11,6 +13,7 @@ import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.util.Resource
+import com.pledgerio.app.util.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
@@ -57,6 +60,8 @@ data class TransactionsUiState(
     val isSearchingCategories: Boolean = false,
     val isSearchingExpenses: Boolean = false,
     val isSearchingContracts: Boolean = false,
+    val lastUpdatedAtMillis: Long? = null,
+    val financeExperienceMode: FinanceExperienceMode = FinanceExperienceMode.GUIDED,
 ) {
     val hasActiveFilters: Boolean
         get() = selectedCategory != null || selectedExpense != null || selectedContract != null
@@ -74,10 +79,12 @@ data class TransactionsUiState(
 @OptIn(FlowPreview::class, kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TransactionsViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val transactionRepository: TransactionRepository,
     private val categoryRepository: CategoryRepository,
     private val budgetRepository: BudgetRepository,
     private val contractRepository: ContractRepository,
+    userPreferences: UserPreferences,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TransactionsUiState())
@@ -97,7 +104,37 @@ class TransactionsViewModel @Inject constructor(
     init {
         val now = YearMonth.now()
         _uiState.update { it.copy(currentMonth = now) }
+        val expenseId = savedStateHandle.get<Long>("expenseId")?.takeIf { it >= 0 }
+        val expenseName = savedStateHandle.get<String>("expenseName").orEmpty()
+        if (expenseId != null) {
+            _uiState.update {
+                it.copy(
+                    selectedExpense = FilterOption(expenseId, expenseName),
+                    expenseQuery = expenseName,
+                    filtersExpanded = true,
+                )
+            }
+        }
         loadFirstPage()
+        viewModelScope.launch {
+            var appliedModeDefault = false
+            userPreferences.financeExperienceMode.collect { mode ->
+                _uiState.update { state ->
+                    val filtersExpanded = when {
+                        expenseId != null -> state.filtersExpanded
+                        !appliedModeDefault -> mode == FinanceExperienceMode.POWER
+                        else -> state.filtersExpanded
+                    }
+                    if (!appliedModeDefault) {
+                        appliedModeDefault = true
+                    }
+                    state.copy(
+                        financeExperienceMode = mode,
+                        filtersExpanded = filtersExpanded,
+                    )
+                }
+            }
+        }
         observeSuggestions(
             queryFlow = categoryQueryFlow,
             sourceFlow = { query -> categoryRepository.observeMatching(query).mapToOptions { it.id to it.name } },
@@ -158,7 +195,7 @@ class TransactionsViewModel @Inject constructor(
     }
 
     fun refresh() {
-        _uiState.update { it.copy(isRefreshing = true, transactions = emptyList()) }
+        _uiState.update { it.copy(isRefreshing = true) }
         loadFirstPage()
     }
 
@@ -347,6 +384,7 @@ class TransactionsViewModel @Inject constructor(
                             hasMoreInMonth = hasMoreInMonth,
                             totalRecords = totalRecords,
                             error = null,
+                            lastUpdatedAtMillis = System.currentTimeMillis(),
                         )
                     }
                 }

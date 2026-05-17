@@ -119,6 +119,7 @@ fun AccountDetailScreen(
             uiState.isLoading -> LoadingScreen(modifier = Modifier.padding(paddingValues))
             uiState.error != null -> ErrorScreen(
                 message = uiState.error ?: "",
+                onRetry = viewModel::reload,
                 modifier = Modifier.padding(paddingValues),
             )
             uiState.account != null -> {

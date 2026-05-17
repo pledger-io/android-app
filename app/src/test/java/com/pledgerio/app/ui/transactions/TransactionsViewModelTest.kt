@@ -5,11 +5,16 @@ import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.PagedResult
 import com.pledgerio.app.domain.repository.TransactionRepository
+import androidx.lifecycle.SavedStateHandle
+import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.util.MainDispatcherRule
 import com.pledgerio.app.util.Resource
+import com.pledgerio.app.util.UserPreferences
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -30,6 +35,24 @@ class TransactionsViewModelTest {
     private val categoryRepository = mockk<CategoryRepository>(relaxed = true)
     private val budgetRepository = mockk<BudgetRepository>(relaxed = true)
     private val contractRepository = mockk<ContractRepository>(relaxed = true)
+    private val userPreferences = mockk<UserPreferences>(relaxed = true)
+    private val savedStateHandle = SavedStateHandle(
+        mapOf("expenseId" to -1L, "expenseName" to ""),
+    )
+
+    init {
+        every { userPreferences.financeExperienceMode } returns
+            MutableStateFlow(FinanceExperienceMode.GUIDED)
+    }
+
+    private fun createViewModel() = TransactionsViewModel(
+        savedStateHandle = savedStateHandle,
+        transactionRepository = transactionRepository,
+        categoryRepository = categoryRepository,
+        budgetRepository = budgetRepository,
+        contractRepository = contractRepository,
+        userPreferences = userPreferences,
+    )
 
     @Test
     fun `navigateToMonth keeps selected month when API returns no transactions`() = runTest {
@@ -48,12 +71,7 @@ class TransactionsViewModelTest {
             PagedResult(emptyList(), totalRecords = 0, totalPages = 0, pageSize = 25),
         )
 
-        val viewModel = TransactionsViewModel(
-            transactionRepository,
-            categoryRepository,
-            budgetRepository,
-            contractRepository,
-        )
+        val viewModel = createViewModel()
         advanceUntilIdle()
 
         viewModel.navigateToMonth(target)
@@ -83,12 +101,7 @@ class TransactionsViewModelTest {
             PagedResult(emptyList(), totalRecords = 0, totalPages = 0, pageSize = 25),
         )
 
-        val viewModel = TransactionsViewModel(
-            transactionRepository,
-            categoryRepository,
-            budgetRepository,
-            contractRepository,
-        )
+        val viewModel = createViewModel()
         advanceUntilIdle()
 
         viewModel.previousMonth()

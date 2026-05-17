@@ -1,10 +1,19 @@
 package com.pledgerio.app.ui.navigation
 
 sealed class Screen(val route: String) {
-    data object ServerSetup : Screen("server_setup")
+    data object ServerSetup : Screen("server_setup?changeServer={changeServer}") {
+        fun createRoute(changeServer: Boolean = false) =
+            "server_setup?changeServer=$changeServer"
+    }
+    data object Transactions : Screen("transactions?expenseId={expenseId}&expenseName={expenseName}") {
+        fun createRoute(expenseId: Long? = null, expenseName: String? = null): String {
+            if (expenseId == null) return "transactions?expenseId=-1&expenseName="
+            val name = expenseName.orEmpty()
+            return "transactions?expenseId=$expenseId&expenseName=${android.net.Uri.encode(name)}"
+        }
+    }
     data object Login : Screen("login")
     data object Dashboard : Screen("dashboard")
-    data object Transactions : Screen("transactions")
     data object TransactionDetail : Screen("transaction/{transactionId}") {
         fun createRoute(transactionId: Long) = "transaction/$transactionId"
     }
@@ -23,7 +32,13 @@ sealed class Screen(val route: String) {
     data object EditAccount : Screen("account/{accountId}/edit") {
         fun createRoute(accountId: Long) = "account/$accountId/edit"
     }
-    data object Budgets : Screen("budgets")
+    data object Budgets : Screen("budgets?year={year}&month={month}") {
+        fun createRoute(year: Int? = null, month: Int? = null): String {
+            if (year == null || month == null) return "budgets?year=-1&month=-1"
+            return "budgets?year=$year&month=$month"
+        }
+    }
+    data object Search : Screen("search")
     data object BudgetDetail : Screen("budget/{budgetId}") {
         fun createRoute(budgetId: Long) = "budget/$budgetId"
     }

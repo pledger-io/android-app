@@ -51,32 +51,62 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun validateServer(baseUrl: String): Resource<Boolean> {
         return withContext(Dispatchers.IO) {
-            try {
-                val normalizedUrl = baseUrl.trimEnd('/')
-                URL(normalizedUrl)
-
-                val url = "$normalizedUrl/health"
-                val request = Request.Builder().url(url).build()
-                val response = okHttpClient.newCall(request).execute()
-                response.use { resp ->
-                    if (resp.isSuccessful) {
-                        sessionManager.saveBaseUrl(normalizedUrl)
-                        Resource.Success(true)
-                    } else {
-                        Resource.Error("Server returned HTTP ${resp.code} — is this a Pledger.io instance?")
-                    }
+            when (val result = pingServer(baseUrl)) {
+                is Resource.Success -> {
+                    sessionManager.saveBaseUrl(result.data)
+                    Resource.Success(true)
                 }
-            } catch (e: java.net.MalformedURLException) {
-                Resource.Error("Invalid URL format. Example: https://my-pledger.example.com")
-            } catch (e: java.net.ConnectException) {
-                Resource.Error("Could not connect. If using an emulator, try 10.0.2.2 instead of localhost.")
-            } catch (e: java.net.UnknownHostException) {
-                Resource.Error("Server not found. Check the URL and your network connection.")
-            } catch (e: java.io.IOException) {
-                Resource.Error("Connection failed: ${e.message}")
-            } catch (e: Exception) {
-                Resource.Error(e.message ?: "Could not connect to server")
+                is Resource.Error -> result
+                is Resource.Loading -> Resource.Loading
             }
+        }
+    }
+
+    override suspend fun changeServerUrl(baseUrl: String): Resource<Boolean> {
+        return withContext(Dispatchers.IO) {
+            when (val result = pingServer(baseUrl)) {
+                is Resource.Success -> {
+                    val normalizedUrl = result.data
+                    val previous = sessionManager.getBaseUrl()?.trimEnd('/')
+                    if (previous != null && previous != normalizedUrl) {
+                        localDataCleaner.clearAllUserData()
+                        sessionManager.clearAuthTokens()
+                    }
+                    sessionManager.saveBaseUrl(normalizedUrl)
+                    Resource.Success(true)
+                }
+                is Resource.Error -> result
+                is Resource.Loading -> Resource.Loading
+            }
+        }
+    }
+
+    /** @return Success with normalized base URL (no trailing slash) */
+    private fun pingServer(baseUrl: String): Resource<String> {
+        return try {
+            val normalizedUrl = baseUrl.trim().trimEnd('/')
+            URL(normalizedUrl)
+
+            val url = "$normalizedUrl/health"
+            val request = Request.Builder().url(url).build()
+            val response = okHttpClient.newCall(request).execute()
+            response.use { resp ->
+                if (resp.isSuccessful) {
+                    Resource.Success(normalizedUrl)
+                } else {
+                    Resource.Error("Server returned HTTP ${resp.code} — is this a Pledger.io instance?")
+                }
+            }
+        } catch (e: java.net.MalformedURLException) {
+            Resource.Error("Invalid URL format. Example: https://my-pledger.example.com")
+        } catch (e: java.net.ConnectException) {
+            Resource.Error("Could not connect. If using an emulator, try 10.0.2.2 instead of localhost.")
+        } catch (e: java.net.UnknownHostException) {
+            Resource.Error("Server not found. Check the URL and your network connection.")
+        } catch (e: java.io.IOException) {
+            Resource.Error("Connection failed: ${e.message}")
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Could not connect to server")
         }
     }
 

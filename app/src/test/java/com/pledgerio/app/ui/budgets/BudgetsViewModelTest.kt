@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.budgets
 
+import androidx.lifecycle.SavedStateHandle
 import com.pledgerio.app.domain.model.BudgetListState
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.domain.usecase.CreateInitialBudgetUseCase
@@ -27,6 +28,14 @@ class BudgetsViewModelTest {
     private val budgetRepository = mockk<BudgetRepository>()
     private val createInitialBudgetUseCase = mockk<CreateInitialBudgetUseCase>()
     private val saveBudgetExpenseUseCase = mockk<SaveBudgetExpenseUseCase>(relaxed = true)
+    private val savedStateHandle = SavedStateHandle(mapOf("year" to -1, "month" to -1))
+
+    private fun createViewModel() = BudgetsViewModel(
+        savedStateHandle = savedStateHandle,
+        budgetRepository = budgetRepository,
+        createInitialBudgetUseCase = createInitialBudgetUseCase,
+        saveBudgetExpenseUseCase = saveBudgetExpenseUseCase,
+    )
 
     @Before
     fun setUp() {
@@ -45,11 +54,7 @@ class BudgetsViewModelTest {
             Resource.Success(BudgetListState(needsInitialSetup = true)),
         )
 
-        val viewModel = BudgetsViewModel(
-            budgetRepository,
-            createInitialBudgetUseCase,
-            saveBudgetExpenseUseCase,
-        )
+        val viewModel = createViewModel()
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.needsInitialSetup)
@@ -75,11 +80,7 @@ class BudgetsViewModelTest {
         }
         coEvery { createInitialBudgetUseCase(any(), any(), any()) } returns Resource.Success(Unit)
 
-        val viewModel = BudgetsViewModel(
-            budgetRepository,
-            createInitialBudgetUseCase,
-            saveBudgetExpenseUseCase,
-        )
+        val viewModel = createViewModel()
         advanceUntilIdle()
 
         viewModel.onSetupIncomeChange("3000")

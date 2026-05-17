@@ -32,6 +32,7 @@ This mode system ensures the same feature set is available while changing only d
 - Transaction form opens with optional sections expanded.
 - Transaction templates are shown immediately on new transactions.
 - Transaction form shows a power banner confirming advanced defaults are enabled.
+- Transaction list opens with **filters expanded** by default (unless opened with an expense filter already applied).
 - Advanced users can still collapse sections manually when needed.
 
 ## Product rules
@@ -52,6 +53,10 @@ This mode system ensures the same feature set is available while changing only d
 | Transaction form behavior | `ui/transactions/TransactionFormViewModel.kt`, `TransactionFormScreen.kt` |
 
 ## Next usability iterations
+
+See the full prioritized backlog in [USABILITY_IMPROVEMENT_PLAN.md](USABILITY_IMPROVEMENT_PLAN.md) and [ADR-016](adr/016-usability-improvement-program.md).
+
+Planned extensions for experience modes:
 
 - Extend mode-aware defaults beyond transaction creation (dashboard onboarding cards, guided empty-state CTAs, shortcut-heavy power actions).
 - Add telemetry (or local diagnostics) to validate reduced friction for first-time users without slowing expert flows.

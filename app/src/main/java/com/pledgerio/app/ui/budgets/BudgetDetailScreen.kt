@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.budgets
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.R
+import com.pledgerio.app.domain.model.BudgetExpense
 import com.pledgerio.app.domain.model.BudgetListState
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
@@ -46,6 +48,7 @@ import com.pledgerio.app.util.formatCurrency
 fun BudgetDetailScreen(
     onNavigateBack: () -> Unit,
     onBudgetListUpdated: (BudgetListState) -> Unit = {},
+    onViewExpenseTransactions: (expenseId: Long, expenseName: String) -> Unit = { _, _ -> },
     viewModel: BudgetDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -94,6 +97,7 @@ fun BudgetDetailScreen(
             uiState.isLoading -> LoadingScreen(modifier = Modifier.padding(paddingValues))
             uiState.error != null -> ErrorScreen(
                 message = uiState.error ?: "",
+                onRetry = viewModel::refresh,
                 modifier = Modifier.padding(paddingValues),
             )
             uiState.budget != null -> {
@@ -160,18 +164,12 @@ fun BudgetDetailScreen(
                             )
                         }
                         items(budget.expenses) { expense ->
-                            PledgerCard {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                ) {
-                                    Text(expense.name, style = MaterialTheme.typography.bodyMedium)
-                                    Text(
-                                        "${expense.amount.formatCurrency()} / ${expense.expected.formatCurrency()}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                    )
-                                }
-                            }
+                            ExpenseCategoryCard(
+                                expense = expense,
+                                onViewTransactions = {
+                                    onViewExpenseTransactions(expense.id, expense.name)
+                                },
+                            )
                         }
                     }
 
@@ -179,6 +177,42 @@ fun BudgetDetailScreen(
                 }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ExpenseCategoryCard(
+    expense: BudgetExpense,
+    onViewTransactions: () -> Unit,
+) {
+    val overspent = expense.amount > expense.expected
+    PledgerCard(
+        modifier = if (overspent) {
+            Modifier.clickable(onClick = onViewTransactions)
+        } else {
+            Modifier
+        },
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(expense.name, style = MaterialTheme.typography.bodyMedium)
+                if (overspent) {
+                    Text(
+                        text = stringResource(R.string.budget_view_overspent_transactions),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = ExpenseRed,
+                    )
+                }
+            }
+            Text(
+                "${expense.amount.formatCurrency()} / ${expense.expected.formatCurrency()}",
+                style = MaterialTheme.typography.bodySmall,
+                color = if (overspent) ExpenseRed else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

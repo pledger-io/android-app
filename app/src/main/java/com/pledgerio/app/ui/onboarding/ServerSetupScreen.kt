@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -31,13 +33,17 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.R
 import com.pledgerio.app.ui.theme.EmeraldGreen
 import com.pledgerio.app.ui.theme.IncomeGreen
 
 @Composable
 fun ServerSetupScreen(
     onServerValidated: () -> Unit,
+    changeServerMode: Boolean = false,
+    onNavigateBack: (() -> Unit)? = null,
     viewModel: ServerSetupViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -50,6 +56,18 @@ fun ServerSetupScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        if (onNavigateBack != null) {
+            IconButton(
+                onClick = onNavigateBack,
+                modifier = Modifier.align(Alignment.Start),
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.nav_back),
+                )
+            }
+        }
+
         Icon(
             imageVector = Icons.Default.Cloud,
             contentDescription = null,
@@ -60,7 +78,11 @@ fun ServerSetupScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Connect to Pledger.io",
+            text = if (changeServerMode) {
+                stringResource(R.string.server_setup_change_title)
+            } else {
+                "Connect to Pledger.io"
+            },
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground,
         )
@@ -68,7 +90,11 @@ fun ServerSetupScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Enter the URL of your self-hosted Pledger.io instance",
+            text = if (changeServerMode) {
+                stringResource(R.string.server_setup_change_message)
+            } else {
+                "Enter the URL of your self-hosted Pledger.io instance"
+            },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -123,7 +149,13 @@ fun ServerSetupScreen(
                     color = MaterialTheme.colorScheme.onPrimary,
                 )
             } else {
-                Text("Connect")
+                Text(
+                    if (changeServerMode) {
+                        stringResource(R.string.server_setup_save)
+                    } else {
+                        "Connect"
+                    },
+                )
             }
         }
     }

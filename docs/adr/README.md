@@ -21,6 +21,8 @@ This directory contains Architecture Decision Records (ADRs) for the Pledger.io 
 | [013](013-ksp-over-kapt.md) | KSP over KAPT for Annotation Processing | Accepted |
 | [014](014-coil-authenticated-images.md) | Coil for Authenticated Account Logos | Accepted |
 | [015](015-stale-while-revalidate-cache.md) | Stale-While-Revalidate Cache for Reference Data | Accepted |
+| [016](016-usability-improvement-program.md) | Usability Improvement Program | Accepted |
+| [017](017-deep-links-and-reports.md) | Deep Links and Reports Data | Accepted |
 
 ## ADR Format
 

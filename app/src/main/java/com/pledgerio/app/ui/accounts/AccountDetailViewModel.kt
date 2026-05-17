@@ -60,6 +60,22 @@ class AccountDetailViewModel @Inject constructor(
         loadTransactionsPage(offset = state.transactions.size)
     }
 
+    fun reload() {
+        transactionsJob?.cancel()
+        loadingOffset = null
+        _uiState.update {
+            it.copy(
+                isLoading = true,
+                error = null,
+                transactions = emptyList(),
+                hasMore = true,
+                totalTransactionCount = 0,
+            )
+        }
+        loadAccount()
+        loadTransactionsPage(offset = 0)
+    }
+
     fun deleteAccount() {
         viewModelScope.launch {
             _uiState.update { it.copy(isDeleting = true, error = null) }

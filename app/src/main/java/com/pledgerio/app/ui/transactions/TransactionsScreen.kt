@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.TextButton
@@ -42,12 +43,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.TransactionType
+import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.ui.components.EmptyScreen
+import com.pledgerio.app.ui.components.LastUpdatedIndicator
+import com.pledgerio.app.ui.components.MonthNavigator
 import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.ui.theme.EmeraldGreen
 import com.pledgerio.app.ui.components.ErrorScreen
@@ -61,6 +67,7 @@ import java.time.YearMonth
 fun TransactionsScreen(
     onNavigateToDetail: (Long) -> Unit,
     onNavigateToAdd: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     viewModel: TransactionsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -89,6 +96,14 @@ fun TransactionsScreen(
             PledgerTopBar(
                 title = "Transactions",
                 subtitle = "Track income, expenses & transfers",
+                actions = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.open_settings),
+                        )
+                    }
+                },
             )
         },
         floatingActionButton = {
@@ -110,6 +125,10 @@ fun TransactionsScreen(
                 canGoNext = uiState.currentMonth < YearMonth.now(),
                 onPrevious = viewModel::previousMonth,
                 onNext = viewModel::nextMonth,
+            )
+            LastUpdatedIndicator(
+                lastUpdatedAtMillis = uiState.lastUpdatedAtMillis,
+                isRefreshing = uiState.isRefreshing,
             )
 
             Row(
@@ -232,14 +251,21 @@ fun TransactionsScreen(
                         )
                     }
                     uiState.transactions.isEmpty() -> {
+                        val guided = uiState.financeExperienceMode == FinanceExperienceMode.GUIDED
                         EmptyScreen(
                             icon = Icons.Default.Receipt,
-                            title = "No transactions",
+                            title = stringResource(R.string.empty_transactions_title),
                             message = if (uiState.hasActiveFilters) {
-                                "No transactions match your filters"
+                                stringResource(R.string.empty_transactions_filtered_message)
                             } else {
-                                "No transactions found for this month"
+                                stringResource(R.string.empty_transactions_message)
                             },
+                            actionLabel = if (guided) {
+                                stringResource(R.string.empty_add_transaction)
+                            } else {
+                                null
+                            },
+                            onAction = if (guided) onNavigateToAdd else null,
                         )
                     }
                     else -> {
@@ -300,43 +326,3 @@ fun TransactionsScreen(
     }
 }
 
-@Composable
-private fun MonthNavigator(
-    monthLabel: String,
-    canGoNext: Boolean,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        IconButton(onClick = onPrevious) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                contentDescription = "Previous month",
-            )
-        }
-        Text(
-            text = monthLabel,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.weight(1f),
-        )
-        IconButton(onClick = onNext, enabled = canGoNext) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = "Next month",
-                tint = if (canGoNext) {
-                    MaterialTheme.colorScheme.onSurface
-                } else {
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                },
-            )
-        }
-    }
-}

@@ -29,6 +29,7 @@ data class DashboardUiState(
     val financeExperienceMode: FinanceExperienceMode = FinanceExperienceMode.GUIDED,
     val accounts: List<Account> = emptyList(),
     val recentTransactions: List<Transaction> = emptyList(),
+    val lastUpdatedAtMillis: Long? = null,
 )
 
 @HiltViewModel
@@ -92,6 +93,7 @@ class DashboardViewModel @Inject constructor(
                                 netWorth = netWorth,
                                 currency = userPreferences.displayCurrencyCode.value,
                                 error = null,
+                                lastUpdatedAtMillis = System.currentTimeMillis(),
                             )
                         }
                     }
