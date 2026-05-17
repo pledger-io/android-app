@@ -55,8 +55,9 @@ class CategoryRepositoryImplTest {
     @Test
     fun `refreshCategories writes through to dao and marks metadata fresh`() = runTest {
         val dto = CategoryDto(id = 7, name = "Fuel")
-        coEvery { apiService.getCategories(any(), any(), any()) } returns
-            Response.success(CategoryPagedResponse(content = listOf(dto)))
+        coEvery {
+            apiService.getCategories(name = null, offset = 0, numberOfResults = 200)
+        } returns Response.success(CategoryPagedResponse(content = listOf(dto)))
         coEvery { categoryDao.replaceAll(any()) } just Runs
 
         val result = repository.refreshCategories()
@@ -64,6 +65,20 @@ class CategoryRepositoryImplTest {
         assertTrue(result is Resource.Success)
         coVerify { categoryDao.replaceAll(match { it.size == 1 && it.first().name == "Fuel" }) }
         assertNotNull(syncMetadataDao.getLastSyncedAt(SyncKeys.CATEGORIES))
+    }
+
+    @Test
+    fun `refreshCategories passes required pagination query params`() = runTest {
+        coEvery {
+            apiService.getCategories(name = null, offset = 0, numberOfResults = 200)
+        } returns Response.success(CategoryPagedResponse(content = emptyList()))
+        coEvery { categoryDao.replaceAll(any()) } just Runs
+
+        repository.refreshCategories()
+
+        coVerify(exactly = 1) {
+            apiService.getCategories(name = null, offset = 0, numberOfResults = 200)
+        }
     }
 
     @Test

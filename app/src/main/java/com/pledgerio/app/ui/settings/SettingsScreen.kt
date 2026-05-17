@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -58,6 +59,7 @@ import com.pledgerio.app.ui.theme.ExpenseRed
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToCategories: () -> Unit,
+    onNavigateToTags: () -> Unit,
     onLogout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -288,6 +290,13 @@ fun SettingsScreen(
                         title = "Finance experience",
                         subtitle = "${uiState.financeExperienceMode.displayName} — ${uiState.financeExperienceMode.description}",
                         onClick = viewModel::openExperiencePicker,
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    SettingsItem(
+                        icon = Icons.Default.Tag,
+                        title = "Manage tags",
+                        subtitle = "Create, rename, and remove transaction tags",
+                        onClick = onNavigateToTags,
                     )
                 }
             }

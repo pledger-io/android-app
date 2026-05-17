@@ -331,6 +331,10 @@ fun TransactionFormScreen(
                             onContractClear = viewModel::clearContract,
                             tags = uiState.tags,
                             tagInput = uiState.tagInput,
+                            tagSuggestions = uiState.tagSuggestions,
+                            isSearchingTags = uiState.isSearchingTags,
+                            isAddingTag = uiState.isAddingTag,
+                            tagError = uiState.tagError,
                             onTagInputChange = viewModel::onTagInputChanged,
                             onAddTag = viewModel::addTag,
                             onRemoveTag = viewModel::removeTag,
@@ -339,6 +343,7 @@ fun TransactionFormScreen(
                             isAutoClassifying = uiState.isAutoClassifying,
                             autoClassifyStatus = uiState.autoClassifyStatus,
                             onAutoClassify = viewModel::autoClassify,
+                            onSelectTagSuggestion = viewModel::selectTagFromSuggestion,
                         )
 
                         if (

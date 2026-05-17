@@ -11,6 +11,7 @@ object CachePolicy {
     val COUNTERPARTY_ACCOUNTS_TTL_MS = TimeUnit.MINUTES.toMillis(15)
     val ACCOUNT_TYPES_TTL_MS = TimeUnit.HOURS.toMillis(24)
     val CATEGORIES_TTL_MS = TimeUnit.MINUTES.toMillis(60)
+    val TAGS_TTL_MS = TimeUnit.MINUTES.toMillis(60)
     val EXPENSE_GROUPS_TTL_MS = TimeUnit.MINUTES.toMillis(60)
     val CONTRACTS_TTL_MS = TimeUnit.MINUTES.toMillis(60)
     val CURRENCIES_TTL_MS = TimeUnit.HOURS.toMillis(24)
