@@ -5,6 +5,7 @@ import com.pledgerio.app.data.local.entity.TransactionEntity
 import com.pledgerio.app.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.CreateTransactionRequest
 import com.pledgerio.app.data.remote.dto.TransactionDto
+import com.pledgerio.app.data.remote.dto.TransactionExtract
 import com.pledgerio.app.data.remote.dto.TransactionSplitDto
 import com.pledgerio.app.domain.model.TransactionSplit
 import com.pledgerio.app.domain.model.Transaction
@@ -240,7 +241,7 @@ class TransactionRepositoryImpl @Inject constructor(
         if (text.isBlank()) return Resource.Error("No text found in document")
         return try {
             val response = apiService.extractTransactionFromText(
-                request = mapOf("text" to text),
+                request = TransactionExtract(text),
             )
             if (response.isSuccessful) {
                 val body = response.body().orEmpty()
