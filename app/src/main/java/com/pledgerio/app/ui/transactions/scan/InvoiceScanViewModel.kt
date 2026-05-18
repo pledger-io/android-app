@@ -96,6 +96,18 @@ class InvoiceScanViewModel @Inject constructor(
         }
     }
 
+    fun onCameraPermissionDenied() {
+        _uiState.update {
+            it.copy(error = context.getString(R.string.invoice_scan_error_camera_permission_denied))
+        }
+    }
+
+    fun onCameraAppUnavailable() {
+        _uiState.update {
+            it.copy(error = context.getString(R.string.invoice_scan_error_no_camera_app))
+        }
+    }
+
     fun extractFromCurrentText() {
         val text = _uiState.value.extractedText.trim()
         if (text.isBlank()) {

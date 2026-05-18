@@ -1,7 +1,10 @@
 package com.pledgerio.app.ui.transactions.scan
 
+import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -56,6 +59,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
@@ -96,6 +100,26 @@ fun InvoiceScanScreen(
         pendingCameraUri = null
         if (success && capturedUri != null) {
             viewModel.onImageSelected(capturedUri)
+        }
+    }
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted) {
+            launchCameraCapture(
+                context = context,
+                onUriReady = { uri ->
+                    pendingCameraUri = uri
+                    cameraLauncher.launch(uri)
+                },
+                onFailure = {
+                    pendingCameraUri = null
+                    viewModel.onCameraCaptureLaunchFailed()
+                },
+                onNoCameraApp = viewModel::onCameraAppUnavailable,
+            )
+        } else {
+            viewModel.onCameraPermissionDenied()
         }
     }
 
@@ -206,14 +230,25 @@ fun InvoiceScanScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 Button(
                     onClick = {
-                        runCatching {
-                            createTempImageUri(context).also { uri ->
-                                pendingCameraUri = uri
-                                cameraLauncher.launch(uri)
-                            }
-                        }.onFailure {
-                            pendingCameraUri = null
-                            viewModel.onCameraCaptureLaunchFailed()
+                        val hasPermission = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.CAMERA,
+                        ) == PackageManager.PERMISSION_GRANTED
+                        if (hasPermission) {
+                            launchCameraCapture(
+                                context = context,
+                                onUriReady = { uri ->
+                                    pendingCameraUri = uri
+                                    cameraLauncher.launch(uri)
+                                },
+                                onFailure = {
+                                    pendingCameraUri = null
+                                    viewModel.onCameraCaptureLaunchFailed()
+                                },
+                                onNoCameraApp = viewModel::onCameraAppUnavailable,
+                            )
+                        } else {
+                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                         }
                     },
                     modifier = Modifier
@@ -341,6 +376,24 @@ fun InvoiceScanScreen(
                 ),
             )
         }
+    }
+}
+
+private fun launchCameraCapture(
+    context: Context,
+    onUriReady: (Uri) -> Unit,
+    onFailure: () -> Unit,
+    onNoCameraApp: () -> Unit,
+) {
+    val cameraIntent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE)
+    if (cameraIntent.resolveActivity(context.packageManager) == null) {
+        onNoCameraApp()
+        return
+    }
+    runCatching {
+        createTempImageUri(context)
+    }.onSuccess(onUriReady).onFailure {
+        onFailure()
     }
 }
 

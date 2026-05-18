@@ -438,6 +438,8 @@
     <string name="invoice_scan_error_no_text">No text to extract. Import an invoice photo first.</string>
     <string name="invoice_scan_error_no_readable_text">No readable text found. Try a clearer photo.</string>
     <string name="invoice_scan_error_read_failed">Could not read text from the selected image.</string>
+    <string name="invoice_scan_error_camera_permission_denied">Camera permission is required to take a photo.</string>
+    <string name="invoice_scan_error_no_camera_app">No camera app is available on this device.</string>
     <string name="invoice_scan_error_open_camera_failed">Could not open camera. Please try again or choose an existing image.</string>
     <string name="invoice_scan_error_extract_failed">Couldn\'t extract transaction details from this text. Please review and try again.</string>
     <string name="invoice_scan_use_draft_button">Use draft in transaction form</string>
