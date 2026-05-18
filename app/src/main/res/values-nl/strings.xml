@@ -175,6 +175,8 @@
     <string name="dashboard_expenses">Uitgaven</string>
     <string name="fab_new_transaction">Nieuwe transactie</string>
     <string name="fab_new_transaction_subtitle">Inkomsten, uitgaven of overboeking registreren</string>
+    <string name="fab_scan_invoice">Factuur/rekening scannen</string>
+    <string name="fab_scan_invoice_subtitle">Tekst ophalen en transactie vooraf invullen</string>
     <string name="fab_new_account">Nieuwe rekening</string>
     <string name="fab_new_account_subtitle">Bankrekening of portemonnee toevoegen</string>
 
@@ -404,6 +406,38 @@
     <string name="transaction_owned_account_no_accounts">Geen rekeningen beschikbaar</string>
     <string name="transaction_owned_account_no_matches">Geen resultaten</string>
     <string name="transaction_template_default_name">Nieuw sjabloon</string>
+    <string name="invoice_scan_title">Factuur of rekening scannen</string>
+    <string name="invoice_scan_subtitle">Importeer een afbeelding, haal tekst op en controleer het concept</string>
+    <string name="invoice_scan_steps_title">Stappenplan in 3 stappen</string>
+    <string name="invoice_scan_step_import">1. Importeren</string>
+    <string name="invoice_scan_step_extract">2. Uitlezen</string>
+    <string name="invoice_scan_step_review">3. Controleren</string>
+    <string name="invoice_scan_import_title">Stap 1 — Factuurafbeelding importeren</string>
+    <string name="invoice_scan_import_hint">Kies een duidelijke foto of screenshot van je rekening.</string>
+    <string name="invoice_scan_pick_image">Factuurafbeelding kiezen</string>
+    <string name="invoice_scan_preview_image_title">Voorbeeldafbeelding</string>
+    <string name="invoice_scan_reading_text">Tekst uit afbeelding lezen…</string>
+    <string name="invoice_scan_extracting_transaction">Transactiegegevens extraheren…</string>
+    <string name="invoice_scan_image_preview">Geselecteerde factuurafbeelding</string>
+    <string name="invoice_scan_text_title">Stap 2 — Opgehaalde tekst controleren</string>
+    <string name="invoice_scan_text_hint">Corrigeer OCR-fouten voordat je transactiegegevens extraheert.</string>
+    <string name="invoice_scan_text_label">Opgehaalde tekst</string>
+    <string name="invoice_scan_text_placeholder">De factuurtekst verschijnt hier na OCR.</string>
+    <string name="invoice_scan_extract_button">Transactieconcept extraheren</string>
+    <string name="invoice_scan_preview_title">Conceptvoorbeeld</string>
+    <string name="invoice_scan_preview_counterparty">Tegenpartij</string>
+    <string name="invoice_scan_preview_confidence">Betrouwbaarheid</string>
+    <string name="invoice_scan_confidence_high">Hoge betrouwbaarheid · %1$d%%</string>
+    <string name="invoice_scan_confidence_medium">Gemiddelde betrouwbaarheid · %1$d%%</string>
+    <string name="invoice_scan_confidence_low">Lage betrouwbaarheid · %1$d%%</string>
+    <string name="invoice_scan_ready_title">Stap 3 — Klaar om door te gaan</string>
+    <string name="invoice_scan_manual_entry">Doorgaan met handmatige invoer</string>
+    <string name="invoice_scan_draft_incomplete_hint">Sommige waarden ontbreken. Je kunt doorgaan en ze invullen in het transactiescherm.</string>
+    <string name="invoice_scan_error_no_text">Geen tekst om te extraheren. Importeer eerst een factuurfoto.</string>
+    <string name="invoice_scan_error_no_readable_text">Geen leesbare tekst gevonden. Probeer een duidelijkere foto.</string>
+    <string name="invoice_scan_error_read_failed">Kon geen tekst lezen uit de geselecteerde afbeelding.</string>
+    <string name="invoice_scan_error_extract_failed">Kon geen transactiegegevens uit deze tekst halen. Controleer en probeer opnieuw.</string>
+    <string name="invoice_scan_use_draft_button">Concept gebruiken in transactiescherm</string>
     <string name="filter_autocomplete_no_results">Geen resultaten</string>
     <string name="content_description_clear">Wissen</string>
 

@@ -6,6 +6,7 @@ import com.google.android.gms.tasks.Task
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.pledgerio.app.R
 import com.pledgerio.app.util.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -26,12 +27,12 @@ class InvoiceTextExtractor @Inject constructor(
             val text = result.text.trim()
             recognizer.close()
             if (text.isBlank()) {
-                Resource.Error("No readable text found. Try a clearer photo.")
+                Resource.Error(context.getString(R.string.invoice_scan_error_no_readable_text))
             } else {
                 Resource.Success(text)
             }
         } catch (e: Exception) {
-            Resource.Error(e.message ?: "Could not read text from the selected image")
+            Resource.Error(context.getString(R.string.invoice_scan_error_read_failed))
         }
     }
 }

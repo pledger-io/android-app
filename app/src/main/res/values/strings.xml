@@ -434,6 +434,10 @@
     <string name="invoice_scan_ready_title">Step 3 — Ready to continue</string>
     <string name="invoice_scan_manual_entry">Continue with manual entry</string>
     <string name="invoice_scan_draft_incomplete_hint">Some values are missing. You can continue and complete them in the transaction form.</string>
+    <string name="invoice_scan_error_no_text">No text to extract. Import an invoice photo first.</string>
+    <string name="invoice_scan_error_no_readable_text">No readable text found. Try a clearer photo.</string>
+    <string name="invoice_scan_error_read_failed">Could not read text from the selected image.</string>
+    <string name="invoice_scan_error_extract_failed">Couldn\'t extract transaction details from this text. Please review and try again.</string>
     <string name="invoice_scan_use_draft_button">Use draft in transaction form</string>
     <string name="filter_autocomplete_no_results">No results</string>
     <string name="content_description_clear">Clear</string>

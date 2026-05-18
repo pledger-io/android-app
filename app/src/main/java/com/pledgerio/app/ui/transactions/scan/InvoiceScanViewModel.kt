@@ -1,12 +1,15 @@
 package com.pledgerio.app.ui.transactions.scan
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pledgerio.app.R
 import com.pledgerio.app.data.ocr.InvoiceTextExtractor
 import com.pledgerio.app.domain.model.TransactionExtractionDraft
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.util.Resource
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +37,7 @@ data class InvoiceScanUiState(
 
 @HiltViewModel
 class InvoiceScanViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val invoiceTextExtractor: InvoiceTextExtractor,
     private val transactionRepository: TransactionRepository,
 ) : ViewModel() {
@@ -89,7 +93,9 @@ class InvoiceScanViewModel @Inject constructor(
     fun extractFromCurrentText() {
         val text = _uiState.value.extractedText.trim()
         if (text.isBlank()) {
-            _uiState.update { it.copy(error = "No text to extract. Import an invoice photo first.") }
+            _uiState.update {
+                it.copy(error = context.getString(R.string.invoice_scan_error_no_text))
+            }
             return
         }
         viewModelScope.launch {
@@ -114,7 +120,7 @@ class InvoiceScanViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             stage = InvoiceScanStage.IDLE,
-                            error = result.message,
+                            error = context.getString(R.string.invoice_scan_error_extract_failed),
                         )
                     }
                 }

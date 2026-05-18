@@ -66,6 +66,7 @@ fun InvoiceScanScreen(
     viewModel: InvoiceScanViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val extractedDraft = uiState.draft
     val scanProgress = when (uiState.stage) {
         InvoiceScanStage.IDLE -> 0f
         InvoiceScanStage.READING_TEXT -> 0.4f
@@ -94,7 +95,7 @@ fun InvoiceScanScreen(
             )
         },
         bottomBar = {
-            if (uiState.draft != null) {
+            if (extractedDraft != null) {
                 PledgerCard(
                     modifier = Modifier.padding(
                         start = 16.dp,
@@ -109,7 +110,7 @@ fun InvoiceScanScreen(
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Button(
-                        onClick = { onUseDraft(uiState.draft) },
+                        onClick = { onUseDraft(extractedDraft) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .defaultMinSize(minHeight = 48.dp),
