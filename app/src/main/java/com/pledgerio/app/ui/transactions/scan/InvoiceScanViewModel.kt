@@ -90,6 +90,12 @@ class InvoiceScanViewModel @Inject constructor(
         }
     }
 
+    fun onCameraCaptureLaunchFailed() {
+        _uiState.update {
+            it.copy(error = context.getString(R.string.invoice_scan_error_open_camera_failed))
+        }
+    }
+
     fun extractFromCurrentText() {
         val text = _uiState.value.extractedText.trim()
         if (text.isBlank()) {

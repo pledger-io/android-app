@@ -414,6 +414,7 @@
     <string name="invoice_scan_step_review">3. Controleren</string>
     <string name="invoice_scan_import_title">Stap 1 — Factuurafbeelding importeren</string>
     <string name="invoice_scan_import_hint">Kies een duidelijke foto of screenshot van je rekening.</string>
+    <string name="invoice_scan_take_photo">Foto maken</string>
     <string name="invoice_scan_pick_image">Factuurafbeelding kiezen</string>
     <string name="invoice_scan_preview_image_title">Voorbeeldafbeelding</string>
     <string name="invoice_scan_reading_text">Tekst uit afbeelding lezen…</string>
@@ -436,6 +437,7 @@
     <string name="invoice_scan_error_no_text">Geen tekst om te extraheren. Importeer eerst een factuurfoto.</string>
     <string name="invoice_scan_error_no_readable_text">Geen leesbare tekst gevonden. Probeer een duidelijkere foto.</string>
     <string name="invoice_scan_error_read_failed">Kon geen tekst lezen uit de geselecteerde afbeelding.</string>
+    <string name="invoice_scan_error_open_camera_failed">Kon de camera niet openen. Probeer het opnieuw of kies een bestaande afbeelding.</string>
     <string name="invoice_scan_error_extract_failed">Kon geen transactiegegevens uit deze tekst halen. Controleer en probeer opnieuw.</string>
     <string name="invoice_scan_use_draft_button">Concept gebruiken in transactiescherm</string>
     <string name="filter_autocomplete_no_results">Geen resultaten</string>

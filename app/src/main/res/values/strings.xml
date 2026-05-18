@@ -415,6 +415,7 @@
     <string name="invoice_scan_step_review">3. Review</string>
     <string name="invoice_scan_import_title">Step 1 — Import invoice image</string>
     <string name="invoice_scan_import_hint">Choose a clear photo or screenshot of your bill.</string>
+    <string name="invoice_scan_take_photo">Take a photo</string>
     <string name="invoice_scan_pick_image">Pick invoice image</string>
     <string name="invoice_scan_preview_image_title">Image preview</string>
     <string name="invoice_scan_reading_text">Reading text from image…</string>
@@ -437,6 +438,7 @@
     <string name="invoice_scan_error_no_text">No text to extract. Import an invoice photo first.</string>
     <string name="invoice_scan_error_no_readable_text">No readable text found. Try a clearer photo.</string>
     <string name="invoice_scan_error_read_failed">Could not read text from the selected image.</string>
+    <string name="invoice_scan_error_open_camera_failed">Could not open camera. Please try again or choose an existing image.</string>
     <string name="invoice_scan_error_extract_failed">Couldn\'t extract transaction details from this text. Please review and try again.</string>
     <string name="invoice_scan_use_draft_button">Use draft in transaction form</string>
     <string name="filter_autocomplete_no_results">No results</string>

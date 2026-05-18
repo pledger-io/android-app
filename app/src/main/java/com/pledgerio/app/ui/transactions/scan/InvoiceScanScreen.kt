@@ -1,5 +1,7 @@
 package com.pledgerio.app.ui.transactions.scan
 
+import android.content.Context
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -28,6 +30,7 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Sell
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -41,21 +44,27 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.TransactionExtractionDraft
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.util.formatCurrency
+import java.io.File
 import kotlin.math.roundToInt
 
 @Composable
@@ -65,8 +74,10 @@ fun InvoiceScanScreen(
     onManualEntry: () -> Unit,
     viewModel: InvoiceScanViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val extractedDraft = uiState.draft
+    var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
     val scanProgress = when (uiState.stage) {
         InvoiceScanStage.IDLE -> 0f
         InvoiceScanStage.READING_TEXT -> 0.4f
@@ -77,6 +88,15 @@ fun InvoiceScanScreen(
         contract = ActivityResultContracts.GetContent(),
     ) { uri ->
         if (uri != null) viewModel.onImageSelected(uri)
+    }
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+    ) { success ->
+        val capturedUri = pendingCameraUri
+        pendingCameraUri = null
+        if (success && capturedUri != null) {
+            viewModel.onImageSelected(capturedUri)
+        }
     }
 
     Scaffold(
@@ -185,6 +205,33 @@ fun InvoiceScanScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Button(
+                    onClick = {
+                        runCatching {
+                            createTempImageUri(context).also { uri ->
+                                pendingCameraUri = uri
+                                cameraLauncher.launch(uri)
+                            }
+                        }.onFailure {
+                            pendingCameraUri = null
+                            viewModel.onCameraCaptureLaunchFailed()
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = 48.dp),
+                    enabled = !uiState.isWorking,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PhotoCamera,
+                        contentDescription = null,
+                    )
+                    Text(
+                        text = stringResource(R.string.invoice_scan_take_photo),
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
                     onClick = { imagePickerLauncher.launch("image/*") },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -295,6 +342,22 @@ fun InvoiceScanScreen(
             )
         }
     }
+}
+
+private fun createTempImageUri(context: Context): Uri {
+    val imageDirectory = File(context.cacheDir, "invoice-scan").apply {
+        if (!exists()) mkdirs()
+    }
+    val imageFile = File.createTempFile(
+        "invoice-scan-",
+        ".jpg",
+        imageDirectory,
+    )
+    return FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        imageFile,
+    )
 }
 
 @Composable

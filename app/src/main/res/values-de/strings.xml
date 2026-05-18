@@ -414,6 +414,7 @@
     <string name="invoice_scan_step_review">3. Prüfen</string>
     <string name="invoice_scan_import_title">Schritt 1 — Rechnungsbild importieren</string>
     <string name="invoice_scan_import_hint">Wähle ein klares Foto oder einen Screenshot deines Belegs.</string>
+    <string name="invoice_scan_take_photo">Foto aufnehmen</string>
     <string name="invoice_scan_pick_image">Rechnungsbild auswählen</string>
     <string name="invoice_scan_preview_image_title">Bildvorschau</string>
     <string name="invoice_scan_reading_text">Text aus Bild wird gelesen…</string>
@@ -436,6 +437,7 @@
     <string name="invoice_scan_error_no_text">Kein Text zum Extrahieren. Importiere zuerst ein Rechnungsfoto.</string>
     <string name="invoice_scan_error_no_readable_text">Kein lesbarer Text gefunden. Versuche ein klareres Foto.</string>
     <string name="invoice_scan_error_read_failed">Text aus dem ausgewählten Bild konnte nicht gelesen werden.</string>
+    <string name="invoice_scan_error_open_camera_failed">Kamera konnte nicht geöffnet werden. Bitte versuche es erneut oder wähle ein bestehendes Bild aus.</string>
     <string name="invoice_scan_error_extract_failed">Transaktionsdetails konnten aus diesem Text nicht extrahiert werden. Bitte prüfe den Text und versuche es erneut.</string>
     <string name="invoice_scan_use_draft_button">Entwurf im Transaktionsformular verwenden</string>
     <string name="filter_autocomplete_no_results">Keine Ergebnisse</string>
