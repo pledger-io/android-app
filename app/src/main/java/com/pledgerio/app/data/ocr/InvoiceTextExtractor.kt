@@ -2,6 +2,7 @@ package com.pledgerio.app.data.ocr
 
 import android.content.Context
 import android.net.Uri
+import com.google.mlkit.vision.text.Text
 import com.google.android.gms.tasks.Task
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
@@ -24,7 +25,7 @@ class InvoiceTextExtractor @Inject constructor(
             val image = InputImage.fromFilePath(context, uri)
             val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
             val result = recognizer.process(image).awaitResult()
-            val text = result.text.trim()
+            val text = formatResultText(result)
             recognizer.close()
             if (text.isBlank()) {
                 Resource.Error(context.getString(R.string.invoice_scan_error_no_readable_text))
@@ -34,6 +35,23 @@ class InvoiceTextExtractor @Inject constructor(
         } catch (e: Exception) {
             Resource.Error(context.getString(R.string.invoice_scan_error_read_failed))
         }
+    }
+
+    private fun formatResultText(result: Text): String {
+        val lines = result.textBlocks
+            .flatMap { block -> block.lines }
+            .mapNotNull { line ->
+                val box = line.boundingBox ?: return@mapNotNull null
+                OcrTextFormatter.OcrLine(
+                    text = line.text,
+                    left = box.left,
+                    top = box.top,
+                    right = box.right,
+                    bottom = box.bottom,
+                )
+            }
+        if (lines.isEmpty()) return result.text.trim()
+        return OcrTextFormatter.format(lines).trim()
     }
 }
 
