@@ -201,6 +201,9 @@ fun NavGraph(
                         ),
                     )
                 },
+                onManualEntry = {
+                    navController.navigate(Screen.AddTransaction.createRoute())
+                },
             )
         }
 
