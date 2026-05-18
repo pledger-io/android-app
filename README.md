@@ -110,6 +110,7 @@ app/src/main/java/com/pledgerio/app/
 - [Account types](docs/ACCOUNTS.md) — Owned vs counterparty accounts, type codes, transaction mapping
 - [Budgets](docs/BUDGETS.md) — Initial setup, expense groups, API mapping
 - [Transaction form redesign](docs/TRANSACTION_FORM_REDESIGN.md) — Planned UX for creating transactions (type-first flow, amount hero, contextual account labels)
+- [Invoice scan to transaction plan](docs/INVOICE_SCAN_TRANSACTION_PLAN.md) — Proposed OCR + text extraction pipeline to prefill new transactions
 - [Usability modes](docs/USABILITY_MODES.md) — Guided mode for novices and Power mode for advanced users
 - [Localization](docs/LOCALIZATION.md) — English, Dutch, and German (extensible)
 - [Architecture Decision Records](docs/adr/README.md) — Rationale for major technical choices
