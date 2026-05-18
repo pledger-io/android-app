@@ -9,6 +9,7 @@ import com.pledgerio.app.data.remote.dto.TransactionSplitDto
 import com.pledgerio.app.domain.model.TransactionSplit
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionClassificationSuggestion
+import com.pledgerio.app.domain.model.TransactionExtractionDraft
 import com.pledgerio.app.domain.model.TransactionFilters
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.PagedResult
@@ -235,6 +236,46 @@ class TransactionRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun extractTransactionFromText(text: String): Resource<TransactionExtractionDraft> {
+        if (text.isBlank()) return Resource.Error("No text found in document")
+        return try {
+            val response = apiService.extractTransactionFromText(
+                request = mapOf("text" to text),
+            )
+            if (response.isSuccessful) {
+                val body = response.body().orEmpty()
+                val sourceMap = body.readMap("source")
+                val targetMap = body.readMap("target")
+                val metadata = body.readMap("metadata")
+                val rawDate = body.readString("date") ?: body.readString("transactionDate")
+                Resource.Success(
+                    TransactionExtractionDraft(
+                        description = body.readString("description") ?: body.readString("title"),
+                        amount = body.readDouble("amount") ?: metadata.readDouble("amount"),
+                        currency = body.readString("currency"),
+                        date = rawDate?.let(::parseLocalDateOrNull),
+                        type = body.readString("type")?.let(::parseExtractionType),
+                        sourceName = body.readString("sourceName")
+                            ?: sourceMap.readString("name")
+                            ?: sourceMap.readString("label"),
+                        targetName = body.readString("targetName")
+                            ?: body.readString("counterparty")
+                            ?: targetMap.readString("name")
+                            ?: targetMap.readString("label")
+                            ?: body.readString("merchant"),
+                        confidence = body.readDouble("confidence")
+                            ?: metadata.readDouble("confidence"),
+                        rawText = text,
+                    ),
+                )
+            } else {
+                Resource.Error("Failed to extract transaction from text: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
     override fun getRecentTransactions(limit: Int): Flow<Resource<List<Transaction>>> = flow {
         emit(Resource.Loading)
         try {
@@ -285,5 +326,38 @@ class TransactionRepositoryImpl @Inject constructor(
             split = split?.map { TransactionSplit(description = it.description, amount = it.amount) }
                 ?: emptyList(),
         )
+    }
+
+    private fun parseLocalDateOrNull(value: String): LocalDate? {
+        return runCatching { LocalDate.parse(value) }.getOrNull()
+    }
+
+    private fun parseExtractionType(value: String): TransactionType? {
+        return when (value.trim().uppercase()) {
+            "CREDIT", "EXPENSE" -> TransactionType.CREDIT
+            "DEBIT", "INCOME" -> TransactionType.DEBIT
+            "TRANSFER" -> TransactionType.TRANSFER
+            else -> null
+        }
+    }
+
+    private fun Map<String, Any?>.readString(key: String): String? {
+        val value = this[key] ?: return null
+        return (value as? String)?.trim()?.takeIf { it.isNotBlank() }
+    }
+
+    private fun Map<String, Any?>.readDouble(key: String): Double? {
+        val value = this[key] ?: return null
+        return when (value) {
+            is Number -> value.toDouble()
+            is String -> value.toDoubleOrNull()
+            else -> null
+        }
+    }
+
+    private fun Map<String, Any?>.readMap(key: String): Map<String, Any?> {
+        val value = this[key] ?: return emptyMap()
+        @Suppress("UNCHECKED_CAST")
+        return value as? Map<String, Any?> ?: emptyMap()
     }
 }

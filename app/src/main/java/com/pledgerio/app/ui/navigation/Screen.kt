@@ -1,5 +1,7 @@
 package com.pledgerio.app.ui.navigation
 
+import android.net.Uri
+
 sealed class Screen(val route: String) {
     data object ServerSetup : Screen("server_setup?changeServer={changeServer}") {
         fun createRoute(changeServer: Boolean = false) =
@@ -17,7 +19,40 @@ sealed class Screen(val route: String) {
     data object TransactionDetail : Screen("transaction/{transactionId}") {
         fun createRoute(transactionId: Long) = "transaction/$transactionId"
     }
-    data object AddTransaction : Screen("transaction/add")
+    data object AddTransaction : Screen(
+        "transaction/add?" +
+            "prefillDescription={prefillDescription}&" +
+            "prefillAmount={prefillAmount}&" +
+            "prefillCurrency={prefillCurrency}&" +
+            "prefillDate={prefillDate}&" +
+            "prefillType={prefillType}&" +
+            "prefillSource={prefillSource}&" +
+            "prefillTarget={prefillTarget}"
+    ) {
+        fun createRoute(
+            prefillDescription: String? = null,
+            prefillAmount: String? = null,
+            prefillCurrency: String? = null,
+            prefillDate: String? = null,
+            prefillType: String? = null,
+            prefillSource: String? = null,
+            prefillTarget: String? = null,
+        ): String {
+            val params = listOf(
+                "prefillDescription" to prefillDescription,
+                "prefillAmount" to prefillAmount,
+                "prefillCurrency" to prefillCurrency,
+                "prefillDate" to prefillDate,
+                "prefillType" to prefillType,
+                "prefillSource" to prefillSource,
+                "prefillTarget" to prefillTarget,
+            ).joinToString("&") { (key, value) ->
+                "$key=${Uri.encode(value.orEmpty())}"
+            }
+            return "transaction/add?$params"
+        }
+    }
+    data object InvoiceScan : Screen("transaction/scan")
     data object EditTransaction : Screen("transaction/{transactionId}/edit") {
         fun createRoute(transactionId: Long) = "transaction/$transactionId/edit"
     }

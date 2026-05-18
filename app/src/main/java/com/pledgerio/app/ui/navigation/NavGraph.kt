@@ -27,6 +27,7 @@ import com.pledgerio.app.ui.settings.SettingsScreen
 import com.pledgerio.app.ui.transactions.TransactionDetailScreen
 import com.pledgerio.app.ui.transactions.TransactionFormScreen
 import com.pledgerio.app.ui.transactions.TransactionsScreen
+import com.pledgerio.app.ui.transactions.scan.InvoiceScanScreen
 
 @Composable
 fun NavGraph(
@@ -88,7 +89,10 @@ fun NavGraph(
                     navController.navigate(Screen.TransactionDetail.createRoute(id))
                 },
                 onNavigateToAddTransaction = {
-                    navController.navigate(Screen.AddTransaction.route)
+                    navController.navigate(Screen.AddTransaction.createRoute())
+                },
+                onNavigateToScanInvoice = {
+                    navController.navigate(Screen.InvoiceScan.route)
                 },
                 onNavigateToAddAccount = {
                     navController.navigate(Screen.AddAccount.createRoute())
@@ -132,7 +136,7 @@ fun NavGraph(
                     navController.navigate(Screen.TransactionDetail.createRoute(id))
                 },
                 onNavigateToAdd = {
-                    navController.navigate(Screen.AddTransaction.route)
+                    navController.navigate(Screen.AddTransaction.createRoute())
                 },
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
@@ -140,11 +144,62 @@ fun NavGraph(
             )
         }
 
-        composable(Screen.AddTransaction.route) {
+        composable(
+            route = Screen.AddTransaction.route,
+            arguments = listOf(
+                navArgument("prefillDescription") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument("prefillAmount") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument("prefillCurrency") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument("prefillDate") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument("prefillType") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument("prefillSource") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument("prefillTarget") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+            ),
+        ) {
             TransactionFormScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToAddAccount = { typeCode ->
                     navController.navigate(Screen.AddAccount.createRoute(typeCode))
+                },
+            )
+        }
+
+        composable(Screen.InvoiceScan.route) {
+            InvoiceScanScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onUseDraft = { draft ->
+                    navController.navigate(
+                        Screen.AddTransaction.createRoute(
+                            prefillDescription = draft.description,
+                            prefillAmount = draft.amount?.toString(),
+                            prefillCurrency = draft.currency,
+                            prefillDate = draft.date?.toString(),
+                            prefillType = draft.type?.name,
+                            prefillSource = draft.sourceName,
+                            prefillTarget = draft.targetName,
+                        ),
+                    )
                 },
             )
         }

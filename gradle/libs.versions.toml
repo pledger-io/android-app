@@ -34,6 +34,7 @@ paging = "3.3.6"
 vico = "2.0.1"
 coil = "2.7.0"
 splashscreen = "1.0.1"
+mlkitTextRecognition = "16.0.1"
 
 junit = "4.13.2"
 coroutinesTest = "1.10.2"
@@ -94,6 +95,7 @@ androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", 
 vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
+mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
 
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }

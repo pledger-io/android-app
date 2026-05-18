@@ -76,6 +76,7 @@ fun DashboardScreen(
     onNavigateToTransactions: () -> Unit,
     onNavigateToTransaction: (Long) -> Unit,
     onNavigateToAddTransaction: () -> Unit,
+    onNavigateToScanInvoice: () -> Unit,
     onNavigateToAddAccount: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToSearch: () -> Unit = {},
@@ -230,6 +231,7 @@ fun DashboardScreen(
                 expanded = showAddMenu,
                 onExpandedChange = { showAddMenu = it },
                 onAddTransaction = onNavigateToAddTransaction,
+                onScanInvoice = onNavigateToScanInvoice,
                 onAddAccount = onNavigateToAddAccount,
             )
         }

@@ -106,6 +106,7 @@ dependencies {
     implementation(libs.vico.compose.m3)
     implementation(libs.coil.compose)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.mlkit.text.recognition)
     implementation(libs.androidx.compose.ui.text.google.fonts)
 
     testImplementation(libs.junit)

@@ -180,6 +180,8 @@
     <string name="dashboard_expenses">Expenses</string>
     <string name="fab_new_transaction">New transaction</string>
     <string name="fab_new_transaction_subtitle">Record income, expense or transfer</string>
+    <string name="fab_scan_invoice">Scan invoice/bill</string>
+    <string name="fab_scan_invoice_subtitle">Extract text and prefill a transaction</string>
     <string name="fab_new_account">New account</string>
     <string name="fab_new_account_subtitle">Add a bank account or wallet</string>
 
@@ -405,6 +407,19 @@
     <string name="transaction_owned_account_no_accounts">No accounts available</string>
     <string name="transaction_owned_account_no_matches">No matches</string>
     <string name="transaction_template_default_name">New template</string>
+    <string name="invoice_scan_title">Scan invoice or bill</string>
+    <string name="invoice_scan_subtitle">Import an image, extract text, and review the draft</string>
+    <string name="invoice_scan_pick_image">Pick invoice image</string>
+    <string name="invoice_scan_reading_text">Reading text from image…</string>
+    <string name="invoice_scan_extracting_transaction">Extracting transaction details…</string>
+    <string name="invoice_scan_image_preview">Selected invoice image</string>
+    <string name="invoice_scan_text_label">Extracted text</string>
+    <string name="invoice_scan_text_placeholder">The invoice text will appear here after OCR.</string>
+    <string name="invoice_scan_extract_button">Extract transaction draft</string>
+    <string name="invoice_scan_preview_title">Draft preview</string>
+    <string name="invoice_scan_preview_counterparty">Counterparty</string>
+    <string name="invoice_scan_preview_confidence">Confidence</string>
+    <string name="invoice_scan_use_draft_button">Use draft in transaction form</string>
     <string name="filter_autocomplete_no_results">No results</string>
     <string name="content_description_clear">Clear</string>
     <string name="content_description_collapse">Collapse</string>
