@@ -47,7 +47,9 @@ class AccountTypePickerTest {
     )
 
     assertEquals(2, entries.size)
-    val card = entries.single { (it.label as AccountPickerLabel.Custom).value == "Credit card" }
+    val card = entries.single { it.soloTypeCode == "credit_card" }
+    assertTrue(card.label is AccountPickerLabel.Custom)
+    assertEquals("Credit card", (card.label as AccountPickerLabel.Custom).value)
     assertNull(card.jointTypeCode)
     assertNull(card.family)
     assertEquals("credit_card", card.soloTypeCode)

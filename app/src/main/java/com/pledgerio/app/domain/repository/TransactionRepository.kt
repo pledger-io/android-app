@@ -2,6 +2,7 @@ package com.pledgerio.app.domain.repository
 
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionClassificationSuggestion
+import com.pledgerio.app.domain.model.TransactionExtractionDraft
 import com.pledgerio.app.domain.model.TransactionFilters
 import com.pledgerio.app.domain.model.TransactionSplit
 import com.pledgerio.app.domain.model.TransactionType
@@ -42,5 +43,6 @@ interface TransactionRepository {
         source: String? = null,
         destination: String? = null,
     ): Resource<TransactionClassificationSuggestion>
+    suspend fun extractTransactionFromText(text: String): Resource<TransactionExtractionDraft>
     fun getRecentTransactions(limit: Int = 5): Flow<Resource<List<Transaction>>>
 }

@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -42,7 +43,9 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.pledgerio.app.R
 import com.pledgerio.app.ui.theme.EmeraldGreen
 
 @Composable
@@ -50,6 +53,7 @@ fun DashboardAddFabMenu(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     onAddTransaction: () -> Unit,
+    onScanInvoice: () -> Unit,
     onAddAccount: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -104,18 +108,28 @@ fun DashboardAddFabMenu(
                         AddMenuActionRow(
                             icon = Icons.Default.Receipt,
                             iconTint = EmeraldGreen,
-                            title = "New transaction",
-                            subtitle = "Record income, expense or transfer",
+                            title = stringResource(R.string.fab_new_transaction),
+                            subtitle = stringResource(R.string.fab_new_transaction_subtitle),
                             onClick = {
                                 onExpandedChange(false)
                                 onAddTransaction()
                             },
                         )
                         AddMenuActionRow(
+                            icon = Icons.Default.DocumentScanner,
+                            iconTint = MaterialTheme.colorScheme.primary,
+                            title = stringResource(R.string.fab_scan_invoice),
+                            subtitle = stringResource(R.string.fab_scan_invoice_subtitle),
+                            onClick = {
+                                onExpandedChange(false)
+                                onScanInvoice()
+                            },
+                        )
+                        AddMenuActionRow(
                             icon = Icons.Default.AccountBalance,
                             iconTint = MaterialTheme.colorScheme.tertiary,
-                            title = "New account",
-                            subtitle = "Add a bank account or wallet",
+                            title = stringResource(R.string.fab_new_account),
+                            subtitle = stringResource(R.string.fab_new_account_subtitle),
                             onClick = {
                                 onExpandedChange(false)
                                 onAddAccount()

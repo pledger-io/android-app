@@ -109,6 +109,11 @@ interface PledgerApiService {
         @Query("destination") destination: String? = null,
     ): Response<TransactionClassificationSuggestionDto>
 
+    @POST("v2/api/ai/extract")
+    suspend fun extractTransactionFromText(
+        @Body request: TransactionExtract,
+    ): Response<Map<String, @JvmSuppressWildcards Any?>>
+
     // Categories
     @GET("v2/api/categories")
     suspend fun getCategories(

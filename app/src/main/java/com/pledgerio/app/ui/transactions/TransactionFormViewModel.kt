@@ -173,6 +173,16 @@ data class TransactionFormUiState(
     }
 }
 
+private data class PrefillDraft(
+    val description: String?,
+    val amount: String?,
+    val currency: String?,
+    val date: LocalDate?,
+    val type: TransactionType?,
+    val sourceName: String?,
+    val targetName: String?,
+)
+
 @OptIn(FlowPreview::class, kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TransactionFormViewModel @Inject constructor(
@@ -189,6 +199,11 @@ class TransactionFormViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val editTransactionId: Long? = savedStateHandle.get<Long>("transactionId")
+    private val prefillDraft: PrefillDraft? = if (editTransactionId == null) {
+        savedStateHandle.toPrefillDraft()
+    } else {
+        null
+    }
 
     private val _uiState = MutableStateFlow(
         TransactionFormUiState(
@@ -1332,6 +1347,7 @@ class TransactionFormViewModel @Inject constructor(
                     _uiState.update { it.copy(ownedAccounts = result.data) }
                     if (editTransactionId == null) {
                         applyLastTransactionType()
+                        applyPrefillIfPresent()
                     } else {
                         _uiState.update { it.copy(isLoading = false) }
                     }
@@ -1353,6 +1369,47 @@ class TransactionFormViewModel @Inject constructor(
                 isLoading = false,
                 type = lastType ?: state.type,
             )
+        }
+    }
+
+    private fun applyPrefillIfPresent() {
+        val prefill = prefillDraft ?: return
+        _uiState.update { state ->
+            val type = prefill.type ?: state.type
+            state.copy(
+                type = type,
+                description = prefill.description ?: state.description,
+                amount = prefill.amount ?: state.amount,
+                currency = prefill.currency
+                    ?.takeIf { state.currencies.contains(it) }
+                    ?: state.currency,
+                date = prefill.date ?: state.date,
+                sourceAccountId = null,
+                sourceSelected = null,
+                sourceQuery = prefill.sourceName.orEmpty(),
+                sourceSuggestions = emptyList(),
+                targetAccountId = null,
+                targetSelected = null,
+                targetQuery = prefill.targetName.orEmpty(),
+                targetSuggestions = emptyList(),
+                error = null,
+            )
+        }
+
+        viewModelScope.launch {
+            val current = _uiState.value
+            if (
+                current.sourceInputKind != AccountInputKind.OWNED_DROPDOWN &&
+                current.sourceQuery.isNotBlank()
+            ) {
+                searchSourceAccounts(current.sourceQuery)
+            }
+            if (
+                current.targetInputKind != AccountInputKind.OWNED_DROPDOWN &&
+                current.targetQuery.isNotBlank()
+            ) {
+                searchTargetAccounts(current.targetQuery)
+            }
         }
     }
 
@@ -1421,5 +1478,52 @@ internal fun List<TransactionSplitLineUi>.toDomainSplits(): List<TransactionSpli
         val description = line.description.trim()
         if (description.isBlank()) return@mapNotNull null
         TransactionSplit(description = description, amount = amountValue)
+    }
+}
+
+private fun SavedStateHandle.toPrefillDraft(): PrefillDraft? {
+    val description = get<String>("prefillDescription")?.trim().orEmpty().ifBlank { null }
+    val amount = get<String>("prefillAmount")?.trim().orEmpty().ifBlank { null }
+    val currency = get<String>("prefillCurrency")?.trim().orEmpty().ifBlank { null }
+    val date = get<String>("prefillDate")
+        ?.trim()
+        ?.takeIf { it.isNotBlank() }
+        ?.let { value -> runCatching { LocalDate.parse(value) }.getOrNull() }
+    val type = get<String>("prefillType")
+        ?.trim()
+        ?.takeIf { it.isNotBlank() }
+        ?.let(::toTransactionTypeOrNull)
+    val source = get<String>("prefillSource")?.trim().orEmpty().ifBlank { null }
+    val target = get<String>("prefillTarget")?.trim().orEmpty().ifBlank { null }
+
+    return if (
+        description == null &&
+        amount == null &&
+        currency == null &&
+        date == null &&
+        type == null &&
+        source == null &&
+        target == null
+    ) {
+        null
+    } else {
+        PrefillDraft(
+            description = description,
+            amount = amount,
+            currency = currency,
+            date = date,
+            type = type,
+            sourceName = source,
+            targetName = target,
+        )
+    }
+}
+
+private fun toTransactionTypeOrNull(raw: String): TransactionType? {
+    return when (raw.uppercase()) {
+        "CREDIT", "EXPENSE" -> TransactionType.CREDIT
+        "DEBIT", "INCOME" -> TransactionType.DEBIT
+        "TRANSFER" -> TransactionType.TRANSFER
+        else -> null
     }
 }
