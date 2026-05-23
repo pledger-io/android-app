@@ -40,7 +40,7 @@ data class AccountEntity(
             description = account.description,
             currency = account.currency,
             balance = account.balance,
-            type = account.typeCode,
+            type = account.typeCode.lowercase(),
             iconFileCode = account.iconFileCode,
             iban = account.iban,
             bic = account.bic,

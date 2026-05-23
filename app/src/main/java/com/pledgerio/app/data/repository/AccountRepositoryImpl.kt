@@ -75,7 +75,7 @@ class AccountRepositoryImpl @Inject constructor(
                 if (accounts != null) {
                     val enriched = enrichWithBalances(accounts)
                     accountDao.replaceByTypes(
-                        types = ownedTypeCodesFromAccounts(enriched),
+                        types = ownedTypesForCacheReplace(enriched),
                         items = enriched.map { AccountEntity.fromDomain(it) },
                     )
                     Resource.Success(enriched)
@@ -95,24 +95,24 @@ class AccountRepositoryImpl @Inject constructor(
         pageSize: Int,
         nameQuery: String,
     ): Resource<PagedAccounts> {
-        // Cache-first: serve a page from Room while we maybe refresh in the background.
+        // Cache-first when the local store actually holds the requested slice. A single row
+        // from an earlier total probe must not short-circuit paging (see fetchCounterpartyPageFromApi).
         val trimmedQuery = nameQuery.trim()
+        val cachedTotal = accountDao.countByTypes(counterpartyTypes, trimmedQuery)
         val cachedPage = accountDao.searchByTypes(
             types = counterpartyTypes,
             query = trimmedQuery,
             offset = offset,
             limit = pageSize,
         ).map { it.toDomain() }
-        val cachedTotal = accountDao.countByTypes(counterpartyTypes, trimmedQuery)
 
         cacheRefresher.launchIfStale(
             key = SyncKeys.COUNTERPARTY_ACCOUNTS,
             ttlMs = CachePolicy.COUNTERPARTY_ACCOUNTS_TTL_MS,
         ) { refreshCounterpartyAccounts() }
 
-        if (cachedPage.isNotEmpty()) {
+        if (cachedPage.isNotEmpty() && cacheCoversPage(cachedPage.size, cachedTotal, offset, pageSize)) {
             val enrichedPage = enrichWithBalances(cachedPage)
-            persistAccountBalances(enrichedPage)
             return Resource.Success(
                 PagedAccounts(
                     items = enrichedPage,
@@ -123,7 +123,7 @@ class AccountRepositoryImpl @Inject constructor(
             )
         }
 
-        // No cache yet — fall through to the network so the UI doesn't sit on an empty list.
+        // Incomplete or empty cache — fetch this page from the API.
         return fetchCounterpartyPageFromApi(offset, pageSize, trimmedQuery)
     }
 
@@ -172,8 +172,8 @@ class AccountRepositoryImpl @Inject constructor(
     private suspend fun fetchOwnedAccountsFromApi(): List<Account>? {
         val ownedTypes = resolveOwnedTypeCodes()
         val dtos = when {
-            ownedTypes.isNotEmpty() -> fetchAccountDtos(ownedTypes)
-            else -> fetchAccountDtos(types = null)
+            ownedTypes.isNotEmpty() -> fetchAccountDtosPaged(types = ownedTypes)
+            else -> fetchAccountDtosPaged(types = null)
         } ?: return null
 
         return dtos
@@ -189,30 +189,80 @@ class AccountRepositoryImpl @Inject constructor(
             key = SyncKeys.ACCOUNT_TYPES,
             ttlMs = CachePolicy.ACCOUNT_TYPES_TTL_MS,
         ) { refreshAccountTypes() }
-        if (cached.isNotEmpty()) {
-            return cached.filter { it !in AccountTypeCodes.counterpartyTypeCodes }
+        val fromApi = if (cached.isNotEmpty()) {
+            cached
+        } else {
+            // First-run or cache empty: do a synchronous fetch so refreshOwnedAccounts() has a
+            // type list to query against.
+            when (val refreshed = refreshAccountTypes()) {
+                is Resource.Success -> refreshed.data
+                else -> emptyList()
+            }
         }
-        // First-run or cache empty: do a synchronous fetch so refreshOwnedAccounts() has a
-        // type list to query against.
-        return when (val refreshed = refreshAccountTypes()) {
-            is Resource.Success -> refreshed.data.filter { it !in AccountTypeCodes.counterpartyTypeCodes }
-            else -> emptyList()
-        }
+        return mergeOwnedTypeCodes(fromApi)
     }
 
-    private fun ownedTypeCodesFromAccounts(accounts: List<Account>): List<String> {
-        val codes = accounts.map { it.typeCode.lowercase() }.toSet()
-        return if (codes.isEmpty()) listOf("default") else codes.toList()
+    /**
+     * Types used when replacing owned rows in Room. Uses the full owned-type set so stale
+     * accounts are cleared even when the latest API page only returned a subset of types.
+     */
+    private suspend fun ownedTypesForCacheReplace(accounts: List<Account>): List<String> {
+        val resolved = resolveOwnedTypeCodes()
+        if (resolved.isNotEmpty()) return resolved
+        val fromAccounts = accounts.map { it.typeCode.lowercase() }.distinct()
+        return fromAccounts.ifEmpty { listOf("default") }
     }
 
-    private suspend fun fetchAccountDtos(types: List<String>?): List<com.pledgerio.app.data.remote.dto.AccountDto>? {
-        val response = apiService.getAccounts(
-            type = types?.takeIf { it.isNotEmpty() },
-            offset = 0,
-            numberOfResults = 200,
-        )
-        if (!response.isSuccessful) return null
-        return response.body()?.content ?: emptyList()
+    private suspend fun mergeOwnedTypeCodes(apiTypeCodes: List<String>): List<String> {
+        val fromApi = apiTypeCodes
+            .map { it.lowercase() }
+            .filter { it !in AccountTypeCodes.counterpartyTypeCodes }
+        val fromCache = accountDao.getAll().first()
+            .map { it.type.lowercase() }
+            .filter { it !in AccountTypeCodes.counterpartyTypeCodes }
+        return (fromApi + fromCache).distinct()
+    }
+
+    private suspend fun fetchAccountDtosPaged(
+        types: List<String>?,
+    ): List<com.pledgerio.app.data.remote.dto.AccountDto>? {
+        val collected = mutableListOf<com.pledgerio.app.data.remote.dto.AccountDto>()
+        var offset = 0
+        val pageSize = 200
+        while (true) {
+            val response = apiService.getAccounts(
+                type = types?.takeIf { it.isNotEmpty() },
+                offset = offset,
+                numberOfResults = pageSize,
+            )
+            if (!response.isSuccessful) {
+                return if (collected.isEmpty()) null else collected
+            }
+            val body = response.body()
+            val items = body?.content.orEmpty()
+            collected.addAll(items)
+            val totalRecords = body?.info?.records ?: 0L
+            if (items.isEmpty()) break
+            if (totalRecords > 0 && collected.size.toLong() >= totalRecords) break
+            if (totalRecords == 0L && items.size < pageSize) break
+            offset = collected.size
+        }
+        return collected.distinctBy { it.id }
+    }
+
+    /**
+     * True when [cachedPageSize] rows in Room cover the slice `[offset, offset + pageSize)`.
+     */
+    private fun cacheCoversPage(
+        cachedPageSize: Int,
+        cachedTotal: Long,
+        offset: Int,
+        pageSize: Int,
+    ): Boolean {
+        if (cachedPageSize <= 0 || cachedTotal <= 0L) return false
+        val remaining = (cachedTotal - offset).coerceAtLeast(0L)
+        val expected = minOf(pageSize.toLong(), remaining).toInt()
+        return cachedPageSize >= expected
     }
 
     private suspend fun fetchCounterpartyPageFromApi(
@@ -232,7 +282,6 @@ class AccountRepositoryImpl @Inject constructor(
                 val items = body?.content?.map { it.toDomain() }?.distinctBy { it.id } ?: emptyList()
                 val enriched = enrichWithBalances(items)
                 val total = body?.info?.records ?: enriched.size.toLong()
-                persistAccountBalances(enriched)
                 Resource.Success(
                     PagedAccounts(
                         items = enriched,
@@ -247,11 +296,6 @@ class AccountRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Network error")
         }
-    }
-
-    private suspend fun persistAccountBalances(accounts: List<Account>) {
-        if (accounts.isEmpty()) return
-        accountDao.insertAll(accounts.map { AccountEntity.fromDomain(it) })
     }
 
     private suspend fun enrichWithBalances(accounts: List<Account>): List<Account> {
@@ -512,7 +556,7 @@ class AccountRepositoryImpl @Inject constructor(
             name = name,
             description = description ?: "",
             currency = account?.currency ?: "EUR",
-            typeCode = type,
+            typeCode = type.lowercase(),
             iconFileCode = iconFileCode,
             iban = account?.iban,
             bic = account?.bic,
