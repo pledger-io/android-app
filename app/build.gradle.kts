@@ -6,6 +6,12 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+    arg("room.incremental", "true")
+    arg("room.generateKotlin", "true")
+}
+
 android {
     namespace = "com.pledgerio.app"
     compileSdk = libs.versions.compileSdk.get().toInt()
@@ -57,6 +63,10 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    lint {
+        baseline = file("lint-baseline.xml")
     }
 }
 

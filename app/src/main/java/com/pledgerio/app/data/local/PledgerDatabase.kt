@@ -38,7 +38,7 @@ import com.pledgerio.app.data.local.entity.TransactionEntity
         SyncMetadataEntity::class,
     ],
     version = 6,
-    exportSchema = false,
+    exportSchema = true,
 )
 @TypeConverters(Converters::class)
 abstract class PledgerDatabase : RoomDatabase() {
