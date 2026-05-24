@@ -1,46 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="120dp"
-    android:height="120dp"
+    android:width="108dp"
+    android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Full-size mark for splash / in-app (no adaptive-icon inset) -->
     <path
         android:fillColor="@color/pledger_navy"
-        android:pathData="M24,18h60c6.6,0 12,5.4 12,12v48c0,6.6 -5.4,12 -12,12H24c-6.6,0 -12,-5.4 -12,-12V30c0,-6.6 5.4,-12 12,-12z" />
+        android:pathData="M30,20h48c4.4,0 8,3.6 8,8v52c0,4.4 -3.6,8 -8,8h-48c-4.4,0 -8,-3.6 -8,-8v-52c0,-4.4 3.6,-8 8,-8z" />
     <path
         android:fillColor="@color/pledger_white"
-        android:pathData="M30,28h48c2.2,0 4,1.8 4,4v14c0,2.2 -1.8,4 -4,4H30c-2.2,0 -4,-1.8 -4,-4V32c0,-2.2 1.8,-4 4,-4z" />
+        android:pathData="M34,26h40c3,0 5,2 5,5v11c0,3 -2,5 -5,5h-40c-3,0 -5,-2 -5,-5v-11c0,-3 2,-5 5,-5z" />
     <path
         android:fillColor="@color/pledger_white"
-        android:pathData="M34,56m3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
-    <path
-        android:fillColor="@color/pledger_white"
-        android:pathData="M46,56m3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
-    <path
-        android:fillColor="@color/pledger_white"
-        android:pathData="M58,56m3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
-    <path
-        android:fillColor="@color/pledger_white"
-        android:pathData="M34,68m3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
-    <path
-        android:fillColor="@color/pledger_white"
-        android:pathData="M46,68m3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
-    <path
-        android:fillColor="@color/pledger_white"
-        android:pathData="M58,68m3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
-    <path
-        android:fillColor="@color/pledger_white"
-        android:pathData="M34,80m3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
-    <path
-        android:fillColor="@color/pledger_white"
-        android:pathData="M46,80m3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
-    <path
-        android:fillColor="@color/pledger_white"
-        android:pathData="M58,80m3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+        android:pathData="M36,50h7v7h-7zM45,50h7v7h-7zM54,50h7v7h-7zM36,61h7v7h-7zM45,61h7v7h-7zM54,61h7v7h-7z" />
     <path
         android:fillColor="@color/pledger_blue"
-        android:pathData="M68,54h12c2.2,0 4,1.8 4,4v26c0,2.2 -1.8,4 -4,4H68c-2.2,0 -4,-1.8 -4,-4V58c0,-2.2 1.8,-4 4,-4z" />
+        android:pathData="M65,48h11c2.2,0 4,1.8 4,4v30c0,2.2 -1.8,4 -4,4h-11c-2.2,0 -4,-1.8 -4,-4v-30c0,-2.2 1.8,-4 4,-4z" />
     <path
         android:fillColor="@color/pledger_green"
-        android:pathData="M62,34 L70,42 L82,28 L86,32 L70,50 L58,38 Z" />
+        android:pathData="M57,30 L63,36 L73,27 L76,30 L63,43 L54,34 Z" />
 </vector>

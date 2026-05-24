@@ -59,15 +59,9 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        PledgerLogo(modifier = Modifier.padding(bottom = 8.dp))
+        PledgerLogo(markSize = 80.dp)
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Welcome Back",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
+        Spacer(modifier = Modifier.height(24.dp))
 
         Spacer(modifier = Modifier.height(8.dp))
 

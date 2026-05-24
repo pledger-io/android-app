@@ -67,19 +67,9 @@ fun ServerSetupScreen(
             }
         }
 
-        PledgerLogo(modifier = Modifier.padding(bottom = 8.dp))
+        PledgerLogo(markSize = 80.dp)
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = if (changeServerMode) {
-                stringResource(R.string.server_setup_change_title)
-            } else {
-                "Connect to Pledger.io"
-            },
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
+        Spacer(modifier = Modifier.height(24.dp))
 
         Spacer(modifier = Modifier.height(8.dp))
 
