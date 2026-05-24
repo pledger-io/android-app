@@ -66,15 +66,11 @@ class SyncWorker @AssistedInject constructor(
         } catch (e: CancellationException) {
             throw e
         } catch (e: IOException) {
-            Result.retry()
+            classifyFailure(e)
         } catch (e: HttpException) {
-            if (e.code() == 401 || e.code() == 403) {
-                Result.failure()
-            } else {
-                Result.retry()
-            }
+            classifyFailure(e)
         } catch (e: Exception) {
-            Result.failure()
+            classifyFailure(e)
         }
     }
 
@@ -115,6 +111,16 @@ class SyncWorker @AssistedInject constructor(
         private const val CHANNEL_ID = "budget_alerts"
         private const val NOTIFICATION_ID = 1001
         private const val WORK_NAME = "pledger_sync"
+
+        internal fun classifyFailure(error: Throwable): Result = when (error) {
+            is IOException -> Result.retry()
+            is HttpException -> if (error.code() == 401 || error.code() == 403) {
+                Result.failure()
+            } else {
+                Result.retry()
+            }
+            else -> Result.failure()
+        }
 
         fun cancel(context: Context) {
             WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)

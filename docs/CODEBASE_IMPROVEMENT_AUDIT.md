@@ -29,6 +29,7 @@ Legend: `[x]` done, `[~]` in progress, `[ ]` not started.
 - [x] Test expansion #1: added `AuthInterceptor` tests.
 - [x] Test expansion #2: added `ReportsViewModel` cache/refresh unit coverage.
 - [x] Test expansion #3 (partial): login flow now executes through `LoginUseCase` in production code paths.
+- [x] Test expansion #4 (partial): added `SyncWorker` failure-classification unit coverage.
 - [x] Test expansion #6 (initial): added first Compose `androidTest` smoke test (`MainActivitySmokeTest`).
 - [x] Test expansion #5 (initial): added migration test scaffolding for 5→6.
 
