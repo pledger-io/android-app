@@ -25,7 +25,7 @@ Legend: `[x]` done, `[~]` in progress, `[ ]` not started.
 - [~] Medium #12: transaction offline fallback improved for date/type/text filters; full filter-faithful offline parity still pending.
 - [x] Medium #13: `SyncWorker` now classifies transient vs permanent failures (`IOException` retry, auth failures fail).
 - [x] Medium #14: CI lint gate added (`lintDebug`) with baseline to enforce no new lint debt.
-- [~] Low #15: docs/ADR drift corrected (schema/CI/security updates); release versioning/signing policy hardening still pending.
+- [x] Low #15: release hygiene improved (non-static `versionCode` via env/CI and required release signing in release workflow); docs aligned.
 - [x] Test expansion #1: added `AuthInterceptor` tests.
 - [x] Test expansion #3 (partial): login flow now executes through `LoginUseCase` in production code paths.
 - [x] Test expansion #6 (initial): added first Compose `androidTest` smoke test (`MainActivitySmokeTest`).

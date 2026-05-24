@@ -159,7 +159,7 @@ To test the release build without publishing: **Actions → Release → Run work
 
 Users can report problems from **Settings → About → Report a problem**. The app collects sanitized recent logs, prefills the org [bug report form](https://github.com/pledger-io/.github/issues/new?template=bug_report.yml) in the browser (summary, description, environment, logs), and the user taps **Submit** on GitHub — no app credentials required. Sign in to GitHub only if the repository requires it to open issues.
 
-**Optional production signing** — add these repository secrets; if omitted, CI signs the release APK with the debug keystore (fine for sideloading, not for Play Store):
+**Production signing is required for release builds** — configure these repository secrets:
 
 | Secret | Description |
 |--------|-------------|

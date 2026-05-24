@@ -6,6 +6,19 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val appVersionCode = System.getenv("APP_VERSION_CODE")?.toIntOrNull() ?: 1
+val releaseKeystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+val isCi = !System.getenv("CI").isNullOrBlank()
+val buildingReleaseTask = gradle.startParameter.taskNames.any { task ->
+    task.contains("Release", ignoreCase = true)
+}
+
+if (isCi && buildingReleaseTask && releaseKeystorePath.isNullOrBlank()) {
+    throw GradleException(
+        "Release signing is required in CI for release builds. Set ANDROID_KEYSTORE_PATH and signing env vars.",
+    )
+}
+
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
     arg("room.incremental", "true")
@@ -20,17 +33,16 @@ android {
         applicationId = "com.pledgerio.app"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 1
+        versionCode = appVersionCode
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
-        val keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
-        if (!keystorePath.isNullOrBlank()) {
+        if (!releaseKeystorePath.isNullOrBlank()) {
             create("release") {
-                storeFile = file(keystorePath)
+                storeFile = file(releaseKeystorePath)
                 storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
                 keyAlias = System.getenv("ANDROID_KEY_ALIAS")
                 keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
@@ -47,7 +59,6 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.findByName("release")
-                ?: signingConfigs.getByName("debug")
         }
     }
 
