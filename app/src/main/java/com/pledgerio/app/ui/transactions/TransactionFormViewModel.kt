@@ -806,99 +806,30 @@ class TransactionFormViewModel @Inject constructor(
             ) {
                 is Resource.Success -> {
                     val suggestion = result.data
-                    val suggestedCategory = suggestion.category?.trim().orEmpty()
-                    val suggestedExpense = suggestion.budget?.trim().orEmpty()
-                    val suggestedTags = suggestion.tags
-                        .map { it.trim() }
-                        .filter { it.isNotBlank() }
+                    val suggestedCategory = suggestion.category
+                    val suggestedExpense = suggestion.budget
 
                     val categoryOption = suggestedCategory
+                        .orEmpty()
+                        .trim()
                         .takeIf { it.isNotBlank() }
                         ?.let { resolveCategoryOptionByName(it) }
                     val expenseOption = suggestedExpense
+                        .orEmpty()
+                        .trim()
                         .takeIf { it.isNotBlank() }
                         ?.let { resolveExpenseOptionByName(it) }
-
-                    val appliedParts = buildList {
-                        if (categoryOption != null) {
-                            add(com.pledgerio.app.ui.transactions.form.ClassifyPart.CATEGORY)
-                        }
-                        if (expenseOption != null) {
-                            add(com.pledgerio.app.ui.transactions.form.ClassifyPart.EXPENSE_GROUP)
-                        }
-                        if (suggestedTags.isNotEmpty()) {
-                            add(com.pledgerio.app.ui.transactions.form.ClassifyPart.TAGS)
-                        }
-                    }
-                    val unresolvedParts = buildList {
-                        if (suggestedCategory.isNotBlank() && categoryOption == null) {
-                            add(com.pledgerio.app.ui.transactions.form.ClassifyPart.CATEGORY)
-                        }
-                        if (suggestedExpense.isNotBlank() && expenseOption == null) {
-                            add(com.pledgerio.app.ui.transactions.form.ClassifyPart.EXPENSE_GROUP)
-                        }
-                    }
-                    val status = when {
-                        appliedParts.isEmpty() && unresolvedParts.isEmpty() ->
-                            com.pledgerio.app.ui.transactions.form.AutoClassifyStatus.NoSuggestions
-                        appliedParts.isNotEmpty() && unresolvedParts.isEmpty() ->
-                            com.pledgerio.app.ui.transactions.form.AutoClassifyStatus.Applied(appliedParts)
-                        appliedParts.isEmpty() ->
-                            com.pledgerio.app.ui.transactions.form.AutoClassifyStatus.Unresolved(unresolvedParts)
-                        else ->
-                            com.pledgerio.app.ui.transactions.form.AutoClassifyStatus.Partial(
-                                applied = appliedParts,
-                                unresolved = unresolvedParts,
-                            )
-                    }
-
-                    _uiState.update { current ->
-                        val mergedTags = if (suggestedTags.isNotEmpty()) {
-                            (current.tags + suggestedTags)
-                                .distinctBy { it.lowercase() }
-                        } else {
-                            current.tags
-                        }
-                        val shouldExpand = suggestedCategory.isNotBlank() ||
-                            suggestedExpense.isNotBlank() ||
-                            suggestedTags.isNotEmpty()
-                        current.copy(
-                            isAutoClassifying = false,
-                            autoClassifyStatus = status,
-                            categorySelected = when {
-                                categoryOption != null -> categoryOption
-                                suggestedCategory.isNotBlank() -> null
-                                else -> current.categorySelected
-                            },
-                            categoryQuery = when {
-                                categoryOption != null -> categoryOption.label
-                                suggestedCategory.isNotBlank() -> suggestedCategory
-                                else -> current.categoryQuery
-                            },
-                            categorySuggestions = emptyList(),
-                            expenseSelected = when {
-                                expenseOption != null -> expenseOption
-                                suggestedExpense.isNotBlank() -> null
-                                else -> current.expenseSelected
-                            },
-                            expenseQuery = when {
-                                expenseOption != null -> expenseOption.label
-                                suggestedExpense.isNotBlank() -> suggestedExpense
-                                else -> current.expenseQuery
-                            },
-                            expenseSuggestions = emptyList(),
-                            tags = mergedTags,
-                            tagInput = "",
-                            moreOptionsExpanded = if (shouldExpand) true else current.moreOptionsExpanded,
-                            moreOptionsManuallyToggled = shouldExpand || current.moreOptionsManuallyToggled,
-                        )
-                    }
-                    if (suggestedCategory.isNotBlank() && categoryOption == null) {
-                        categoryQueryFlow.value = suggestedCategory
-                    }
-                    if (suggestedExpense.isNotBlank() && expenseOption == null) {
-                        expenseQueryFlow.value = suggestedExpense
-                    }
+                    val applyResult = applyAutoClassifySuggestion(
+                        current = _uiState.value,
+                        suggestedCategoryRaw = suggestedCategory,
+                        suggestedExpenseRaw = suggestedExpense,
+                        suggestedTagsRaw = suggestion.tags,
+                        categoryOption = categoryOption,
+                        expenseOption = expenseOption,
+                    )
+                    _uiState.update { applyResult.updatedState }
+                    applyResult.unresolvedCategoryQuery?.let { categoryQueryFlow.value = it }
+                    applyResult.unresolvedExpenseQuery?.let { expenseQueryFlow.value = it }
                 }
 
                 is Resource.Error -> {
