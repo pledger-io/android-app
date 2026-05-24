@@ -3,6 +3,7 @@ package com.pledgerio.app.di
 import android.content.Context
 import androidx.room.Room
 import com.pledgerio.app.data.local.PledgerDatabase
+import com.pledgerio.app.data.local.PledgerDatabaseMigrations
 import com.pledgerio.app.data.local.dao.AccountDao
 import com.pledgerio.app.data.local.dao.AccountTypeDao
 import com.pledgerio.app.data.local.dao.BudgetDao
@@ -32,7 +33,7 @@ object DatabaseModule {
             PledgerDatabase::class.java,
             "pledger_database"
         )
-            .fallbackToDestructiveMigration()
+            .addMigrations(*PledgerDatabaseMigrations.ALL)
             .build()
 
     @Provides

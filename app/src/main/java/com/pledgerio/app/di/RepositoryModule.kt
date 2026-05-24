@@ -10,6 +10,7 @@ import com.pledgerio.app.data.repository.IssueReportRepositoryImpl
 import com.pledgerio.app.data.repository.ReportRepositoryImpl
 import com.pledgerio.app.data.repository.TagRepositoryImpl
 import com.pledgerio.app.data.repository.TransactionRepositoryImpl
+import com.pledgerio.app.data.cache.ReportsOverviewCache
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.AuthRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
@@ -18,6 +19,7 @@ import com.pledgerio.app.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.repository.IssueReportRepository
 import com.pledgerio.app.domain.repository.ReportRepository
+import com.pledgerio.app.domain.repository.ReportsOverviewStore
 import com.pledgerio.app.domain.repository.TagRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import dagger.Binds
@@ -69,4 +71,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindReportRepository(impl: ReportRepositoryImpl): ReportRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindReportsOverviewStore(impl: ReportsOverviewCache): ReportsOverviewStore
 }
