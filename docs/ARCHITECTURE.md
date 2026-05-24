@@ -198,6 +198,8 @@ Repositories return `Resource<T>`:
 - `Resource.Error(message)`
 - `Resource.Loading`
 
+`Resource` is defined in `domain/common` (with a temporary compatibility alias in `util` while imports are migrated).
+
 ## Offline Strategy
 
 ### Room cache
