@@ -85,15 +85,20 @@ class TransactionRepositoryImpl @Inject constructor(
                 Resource.Error("Failed to fetch transactions: ${response.code()}")
             }
         } catch (e: Exception) {
+            val hasIdBasedFilters = filters.categoryId != null ||
+                filters.expenseId != null ||
+                filters.contractId != null
+            if (hasIdBasedFilters) {
+                return Resource.Error(
+                    "Filtered offline search is not available yet. Reconnect to apply category/expense/contract filters.",
+                )
+            }
             if (page == 0) {
                 val cached = transactionDao.getAllOnce()
                     .map { it.toDomain() }
                     .filter { tx ->
                         !tx.date.isBefore(startDate) && !tx.date.isAfter(endDate) &&
                             (type == null || tx.type == type) &&
-                            (filters.categoryId == null || tx.categoryId == null || tx.categoryId == filters.categoryId) &&
-                            (filters.expenseId == null || tx.expenseId == null || tx.expenseId == filters.expenseId) &&
-                            (filters.contractId == null || tx.contractId == null || tx.contractId == filters.contractId) &&
                             (
                                 filters.description.isNullOrBlank() ||
                                     tx.description.contains(filters.description, ignoreCase = true)

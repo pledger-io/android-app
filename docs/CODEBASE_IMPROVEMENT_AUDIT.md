@@ -22,7 +22,7 @@ Legend: `[x]` done, `[~]` in progress, `[ ]` not started.
 - [x] Medium #9: `allowBackup` hardened (`false`).
 - [x] Medium #10: `CurrencyProvider` singleton access removed (`getInstance`/`setInstance` retired; formatting no longer relies on static provider state).
 - [~] Medium #11: migration bridge added (`domain/common/Resource` alias), enabling phased import migration away from `util.Resource`.
-- [~] Medium #12: transaction offline fallback improved for date/type/text filters; full filter-faithful offline parity still pending.
+- [~] Medium #12: transaction offline fallback improved for date/type/text filters and now explicitly errors for unsupported offline ID filters (category/expense/contract); full offline parity still pending schema/API alignment.
 - [x] Medium #13: `SyncWorker` now classifies transient vs permanent failures (`IOException` retry, auth failures fail).
 - [x] Medium #14: CI lint gate added (`lintDebug`) with baseline to enforce no new lint debt.
 - [x] Low #15: release hygiene improved (non-static `versionCode` via env/CI and required release signing in release workflow); docs aligned.
