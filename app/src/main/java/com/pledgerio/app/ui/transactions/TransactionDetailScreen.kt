@@ -31,7 +31,6 @@ import com.pledgerio.app.ui.transactions.detail.TransactionDetailFlowCard
 import com.pledgerio.app.ui.transactions.detail.TransactionDetailHeroCard
 import com.pledgerio.app.ui.transactions.detail.TransactionDetailSplitCard
 import com.pledgerio.app.ui.transactions.detail.TransactionDetailTagsCard
-import com.pledgerio.app.util.CurrencyProvider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,9 +71,6 @@ fun TransactionDetailScreen(
                 modifier = Modifier.padding(paddingValues),
             )
             transaction != null -> {
-                val currencyInfo = CurrencyProvider.getInstance()?.get(transaction.currency)
-                val currencyDisplay = currencyInfo?.let { "${it.name} (${it.symbol})" }
-                    ?: transaction.currency
                 val hasClassification = transaction.budgetName != null ||
                     transaction.categoryName != null ||
                     transaction.contractName != null

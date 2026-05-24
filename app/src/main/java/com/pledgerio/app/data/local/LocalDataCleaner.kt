@@ -28,6 +28,7 @@ class LocalDataCleaner @Inject constructor(
     private val database: PledgerDatabase,
     @ApplicationContext private val context: Context,
     @ApplicationScope private val applicationScope: CoroutineScope,
+    private val currencyProvider: Lazy<CurrencyProvider>,
     private val userPreferences: Lazy<UserPreferences>,
     private val transactionTemplateStore: Lazy<TransactionTemplateStore>,
     private val reportsOverviewCache: ReportsOverviewCache,
@@ -39,7 +40,7 @@ class LocalDataCleaner @Inject constructor(
             database.withTransaction {
                 database.clearAllTables()
             }
-            CurrencyProvider.getInstance()?.clearCache()
+            currencyProvider.get().clearCache()
             userPreferences.get().clearSessionData()
             transactionTemplateStore.get().clearAll()
             reportsOverviewCache.clearAll()

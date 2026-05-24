@@ -23,9 +23,12 @@ import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.repository.TagRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import java.io.IOException
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CancellationException
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
+import retrofit2.HttpException
 
 @HiltWorker
 class SyncWorker @AssistedInject constructor(
@@ -60,8 +63,18 @@ class SyncWorker @AssistedInject constructor(
             }
 
             Result.success()
-        } catch (e: Exception) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IOException) {
             Result.retry()
+        } catch (e: HttpException) {
+            if (e.code() == 401 || e.code() == 403) {
+                Result.failure()
+            } else {
+                Result.retry()
+            }
+        } catch (e: Exception) {
+            Result.failure()
         }
     }
 

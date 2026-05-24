@@ -75,8 +75,8 @@ Room version bumped to **5**. New entities:
 counterparties can live in the same table as owned accounts without wiping each other on
 refresh.
 
-`fallbackToDestructiveMigration()` remains acceptable because the cache is always rehydrated
-from the server.
+Database migrations are explicitly versioned; destructive fallback is not used in production
+paths so cache/index evolution stays predictable across upgrades.
 
 ## Consequences
 

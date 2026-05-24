@@ -51,7 +51,6 @@ class PledgerApp : Application(), Configuration.Provider {
             LocaleManager.apply(userPreferences.appLocaleOnce())
         }
         appLog.install()
-        CurrencyProvider.setInstance(currencyProvider)
         Coil.setImageLoader(imageLoader)
         SyncWorker.schedule(this)
         ProcessLifecycleOwner.get().lifecycle.addObserver(biometricLockManager)

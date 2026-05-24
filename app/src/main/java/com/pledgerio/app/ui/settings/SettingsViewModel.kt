@@ -12,7 +12,6 @@ import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.util.BiometricAuthenticator
 import com.pledgerio.app.util.BiometricAvailability
 import com.pledgerio.app.util.BiometricLockManager
-import com.pledgerio.app.util.CurrencyProvider
 import com.pledgerio.app.util.SessionManager
 import com.pledgerio.app.util.UserPreferences
 import androidx.fragment.app.FragmentActivity
@@ -214,7 +213,6 @@ class SettingsViewModel @Inject constructor(
         currencies: List<Currency> = _uiState.value.currencies,
     ): String {
         val currency = currencies.find { it.code == code }
-            ?: CurrencyProvider.getInstance()?.get(code)
         return if (currency != null) {
             "${currency.code} — ${currency.name} (${currency.symbol})"
         } else {

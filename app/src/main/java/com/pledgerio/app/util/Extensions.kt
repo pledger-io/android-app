@@ -2,15 +2,15 @@ package com.pledgerio.app.util
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Currency
 
 fun Double.formatCurrency(currencyCode: String? = null): String {
     val code = currencyCode ?: UserPreferences.defaultDisplayCurrency
-    val provider = CurrencyProvider.getInstance()
-    if (provider != null) {
-        return provider.formatAmount(this, code)
-    }
-    val formatted = String.format("%,.2f", this)
-    return "$code $formatted"
+    val javaCurrency = runCatching { Currency.getInstance(code) }.getOrNull()
+    val decimalPlaces = javaCurrency?.defaultFractionDigits?.takeIf { it >= 0 } ?: 2
+    val symbol = javaCurrency?.symbol ?: code
+    val formatted = String.format("%,.${decimalPlaces}f", this)
+    return "$symbol $formatted"
 }
 
 fun LocalDate.formatDisplay(): String {

@@ -43,15 +43,4 @@ class CurrencyProvider @Inject constructor(
             "$currencyCode $formatted"
         }
     }
-
-    companion object {
-        @Volatile
-        private var instance: CurrencyProvider? = null
-
-        fun getInstance(): CurrencyProvider? = instance
-
-        internal fun setInstance(provider: CurrencyProvider) {
-            instance = provider
-        }
-    }
 }

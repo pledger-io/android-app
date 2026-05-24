@@ -46,9 +46,9 @@ import com.pledgerio.app.ui.theme.IncomeGreen
 import com.pledgerio.app.ui.theme.PledgerGreen
 import com.pledgerio.app.ui.theme.PledgerThemeExt
 import com.pledgerio.app.ui.transactions.form.TransactionFormLabels
-import com.pledgerio.app.util.CurrencyProvider
 import com.pledgerio.app.util.formatCurrency
 import com.pledgerio.app.util.formatDisplay
+import java.util.Currency
 
 data class TransactionTypeStyle(
     val label: String,
@@ -73,8 +73,8 @@ fun TransactionDetailHeroCard(
     modifier: Modifier = Modifier,
 ) {
     val style = transactionTypeStyle(transaction.type)
-    val currencyInfo = CurrencyProvider.getInstance()?.get(transaction.currency)
-    val currencyLabel = currencyInfo?.let { "${it.symbol} · ${it.code}" } ?: transaction.currency
+    val currency = runCatching { Currency.getInstance(transaction.currency) }.getOrNull()
+    val currencyLabel = currency?.let { "${it.symbol} · ${it.currencyCode}" } ?: transaction.currency
 
     PledgerCard(modifier = modifier) {
         Column(

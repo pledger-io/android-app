@@ -5,9 +5,8 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.R
-import com.pledgerio.app.data.ocr.InvoiceTextExtractor
 import com.pledgerio.app.domain.model.TransactionExtractionDraft
-import com.pledgerio.app.domain.repository.TransactionRepository
+import com.pledgerio.app.domain.usecase.ProcessInvoiceScanUseCase
 import com.pledgerio.app.util.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,8 +37,7 @@ data class InvoiceScanUiState(
 @HiltViewModel
 class InvoiceScanViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val invoiceTextExtractor: InvoiceTextExtractor,
-    private val transactionRepository: TransactionRepository,
+    private val processInvoiceScanUseCase: ProcessInvoiceScanUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(InvoiceScanUiState())
@@ -65,7 +63,7 @@ class InvoiceScanViewModel @Inject constructor(
                     draft = null,
                 )
             }
-            when (val ocrResult = invoiceTextExtractor.extractText(uri)) {
+            when (val ocrResult = processInvoiceScanUseCase.extractTextFromImage(uri.toString())) {
                 is Resource.Success -> {
                     _uiState.update {
                         it.copy(
@@ -124,12 +122,12 @@ class InvoiceScanViewModel @Inject constructor(
                     draft = null,
                 )
             }
-            when (val result = transactionRepository.extractTransactionFromText(text)) {
+            when (val result = processInvoiceScanUseCase.extractDraftFromText(text)) {
                 is Resource.Success -> {
                     _uiState.update {
                         it.copy(
                             stage = InvoiceScanStage.IDLE,
-                            draft = result.data.copy(rawText = text),
+                            draft = result.data,
                         )
                     }
                 }

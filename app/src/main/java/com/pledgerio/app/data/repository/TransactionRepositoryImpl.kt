@@ -87,10 +87,22 @@ class TransactionRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             if (page == 0) {
                 val cached = transactionDao.getAllOnce()
+                    .map { it.toDomain() }
+                    .filter { tx ->
+                        !tx.date.isBefore(startDate) && !tx.date.isAfter(endDate) &&
+                            (type == null || tx.type == type) &&
+                            (filters.categoryId == null || tx.categoryId == null || tx.categoryId == filters.categoryId) &&
+                            (filters.expenseId == null || tx.expenseId == null || tx.expenseId == filters.expenseId) &&
+                            (filters.contractId == null || tx.contractId == null || tx.contractId == filters.contractId) &&
+                            (
+                                filters.description.isNullOrBlank() ||
+                                    tx.description.contains(filters.description, ignoreCase = true)
+                                )
+                    }
                 if (cached.isNotEmpty()) {
                     return Resource.Success(
                         PagedResult(
-                            items = cached.map { it.toDomain() },
+                            items = cached,
                             totalRecords = cached.size.toLong(),
                             totalPages = 1,
                             pageSize = cached.size,
