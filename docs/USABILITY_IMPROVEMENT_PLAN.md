@@ -35,7 +35,7 @@ The app already provides:
 
 | Area | Severity | Issue |
 |------|----------|--------|
-| Reports | High | Tab shows placeholder charts only |
+| Reports | Medium | Overview hub added; Vico charts still optional follow-up |
 | Settings access | Medium | Only reachable from Dashboard |
 | Offline UX | Medium | Banner hidden on forms and detail screens |
 | Error recovery | Medium | Detail screens lack Retry |

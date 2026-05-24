@@ -62,6 +62,7 @@ fun AppLocale.localizedName(): String = stringResource(
 @Composable
 fun ReportType.localizedTitle(): String = stringResource(
     when (this) {
+        ReportType.OVERVIEW -> R.string.report_type_overview
         ReportType.INCOME_EXPENSE -> R.string.report_type_income_expense
         ReportType.CATEGORY -> R.string.report_type_category
         ReportType.BUDGET -> R.string.report_type_budget
