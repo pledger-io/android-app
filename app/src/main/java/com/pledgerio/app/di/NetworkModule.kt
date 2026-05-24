@@ -2,6 +2,7 @@ package com.pledgerio.app.di
 
 import android.content.Context
 import coil.ImageLoader
+import com.pledgerio.app.BuildConfig
 import com.pledgerio.app.data.remote.api.AuthInterceptor
 import com.pledgerio.app.data.remote.api.DynamicBaseUrlInterceptor
 import com.pledgerio.app.data.remote.api.IssueLogInterceptor
@@ -59,7 +60,11 @@ object NetworkModule {
             .addInterceptor(authInterceptor)
             .addInterceptor(issueLogInterceptor)
             .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
+                level = if (BuildConfig.DEBUG) {
+                    HttpLoggingInterceptor.Level.BODY
+                } else {
+                    HttpLoggingInterceptor.Level.NONE
+                }
             })
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
