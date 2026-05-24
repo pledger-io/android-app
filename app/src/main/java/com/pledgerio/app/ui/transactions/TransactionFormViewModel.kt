@@ -1221,12 +1221,7 @@ class TransactionFormViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferences.financeExperienceMode.collect { mode ->
                 val previous = _uiState.value
-                val shouldExpandMoreOptions = when {
-                    previous.isEditing -> previous.moreOptionsExpanded
-                    previous.moreOptionsManuallyToggled -> previous.moreOptionsExpanded
-                    mode == FinanceExperienceMode.POWER -> true
-                    else -> false
-                }
+                val shouldExpandMoreOptions = resolveMoreOptionsExpansion(previous, mode)
                 if (
                     previous.financeExperienceMode == mode &&
                     previous.moreOptionsExpanded == shouldExpandMoreOptions
