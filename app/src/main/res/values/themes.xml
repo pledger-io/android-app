@@ -9,5 +9,8 @@
 
     <style name="Theme.PledgerIO.Splash" parent="Theme.SplashScreen">
         <item name="postSplashScreenTheme">@style/Theme.PledgerIO</item>
+        <item name="windowSplashScreenBackground">@color/pledger_cream</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_pledger_mark</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/pledger_cream</item>
     </style>
 </resources>

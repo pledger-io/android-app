@@ -8,22 +8,23 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = EmeraldGreen,
-    onPrimary = DeepNavy,
-    primaryContainer = EmeraldGreenDark,
+    primary = PledgerGreen,
+    onPrimary = Color.White,
+    primaryContainer = PledgerGreenDark,
     onPrimaryContainer = TextPrimary,
-    secondary = EmeraldGreen,
-    onSecondary = DeepNavy,
-    secondaryContainer = Card,
+    secondary = PledgerBlue,
+    onSecondary = Color.White,
+    secondaryContainer = PledgerNavyLight,
     onSecondaryContainer = TextPrimary,
-    tertiary = WarningAmber,
-    onTertiary = DeepNavy,
-    background = DeepNavy,
+    tertiary = PledgerNavyLight,
+    onTertiary = TextPrimary,
+    background = PledgerNavyDark,
     onBackground = TextPrimary,
     surface = Surface,
     onSurface = TextPrimary,
@@ -35,31 +36,31 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = EmeraldGreen,
-    onPrimary = LightBackground,
-    primaryContainer = EmeraldGreenDark,
-    onPrimaryContainer = LightTextPrimary,
-    secondary = EmeraldGreen,
-    onSecondary = LightBackground,
-    secondaryContainer = LightCard,
-    onSecondaryContainer = LightTextPrimary,
-    tertiary = WarningAmber,
-    onTertiary = LightTextPrimary,
+    primary = PledgerNavy,
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFDCE8F5),
+    onPrimaryContainer = PledgerNavy,
+    secondary = PledgerBlue,
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFFE3EDF8),
+    onSecondaryContainer = PledgerNavy,
+    tertiary = PledgerGreen,
+    onTertiary = Color.White,
     background = LightBackground,
     onBackground = LightTextPrimary,
     surface = LightSurface,
     onSurface = LightTextPrimary,
     surfaceVariant = LightCard,
     onSurfaceVariant = LightTextSecondary,
-    outline = LightTextSecondary,
+    outline = Color(0xFFC5D0DE),
     error = ExpenseRed,
-    onError = LightBackground,
+    onError = Color.White,
 )
 
 @Composable
 fun PledgerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
@@ -84,6 +85,7 @@ fun PledgerTheme(
         MaterialTheme(
             colorScheme = colorScheme,
             typography = PledgerTypography,
+            shapes = PledgerShapes,
             content = content,
         )
     }

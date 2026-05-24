@@ -22,11 +22,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
-import com.pledgerio.app.ui.theme.EmeraldGreen
 import com.pledgerio.app.ui.theme.HeaderGradientBottomDark
 import com.pledgerio.app.ui.theme.HeaderGradientBottomLight
 import com.pledgerio.app.ui.theme.HeaderGradientTopDark
 import com.pledgerio.app.ui.theme.HeaderGradientTopLight
+import com.pledgerio.app.ui.theme.PledgerBlue
+import com.pledgerio.app.ui.theme.PledgerGreen
+import com.pledgerio.app.ui.theme.PledgerNavy
+import com.pledgerio.app.ui.theme.PledgerNavyDark
 import com.pledgerio.app.ui.theme.HeaderOnGradient
 import com.pledgerio.app.ui.theme.HeaderOnGradientMuted
 import com.pledgerio.app.ui.theme.LocalPledgerDarkTheme
@@ -52,7 +55,7 @@ fun PledgerTopBar(
                     Brush.verticalGradient(
                         colors = listOf(
                             HeaderGradientTopDark,
-                            Color(0xFF0D1B2A),
+                            PledgerNavyDark,
                             HeaderGradientBottomDark,
                         ),
                     )
@@ -60,16 +63,21 @@ fun PledgerTopBar(
                     Brush.verticalGradient(
                         colors = listOf(
                             HeaderGradientTopLight,
-                            Color(0xFF00897B),
+                            PledgerNavy,
                             HeaderGradientBottomLight,
                         ),
                     )
                 }
                 drawRect(gradient)
                 drawCircle(
-                    color = EmeraldGreen.copy(alpha = if (darkTheme) 0.18f else 0.25f),
+                    color = PledgerGreen.copy(alpha = if (darkTheme) 0.2f else 0.22f),
                     radius = size.width * 0.42f,
                     center = Offset(size.width * 0.92f, size.height * 0.15f),
+                )
+                drawCircle(
+                    color = PledgerBlue.copy(alpha = if (darkTheme) 0.12f else 0.18f),
+                    radius = size.width * 0.28f,
+                    center = Offset(size.width * 0.12f, size.height * 0.85f),
                 )
                 drawCircle(
                     color = Color.White.copy(alpha = if (darkTheme) 0.06f else 0.12f),

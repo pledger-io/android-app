@@ -8,13 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.Button
@@ -36,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.R
-import com.pledgerio.app.ui.theme.EmeraldGreen
+import com.pledgerio.app.ui.components.PledgerLogo
 import com.pledgerio.app.ui.theme.IncomeGreen
 
 @Composable
@@ -68,14 +67,9 @@ fun ServerSetupScreen(
             }
         }
 
-        Icon(
-            imageVector = Icons.Default.Cloud,
-            contentDescription = null,
-            modifier = Modifier.size(80.dp),
-            tint = EmeraldGreen,
-        )
+        PledgerLogo(modifier = Modifier.padding(bottom = 8.dp))
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = if (changeServerMode) {

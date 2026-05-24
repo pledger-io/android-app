@@ -44,7 +44,7 @@ import com.pledgerio.app.ui.components.OfflineBanner
 import com.pledgerio.app.ui.navigation.DeepLink
 import com.pledgerio.app.ui.navigation.NavGraph
 import com.pledgerio.app.ui.navigation.Screen
-import com.pledgerio.app.ui.theme.EmeraldGreen
+import com.pledgerio.app.ui.theme.PledgerGreen
 import com.pledgerio.app.ui.theme.PledgerTheme
 import com.pledgerio.app.ui.theme.TextSecondary
 data class BottomNavItem(
@@ -225,8 +225,8 @@ private fun PledgerAppContent(
                                     )
                                 },
                                 colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = EmeraldGreen,
-                                    selectedTextColor = EmeraldGreen,
+                                    selectedIconColor = PledgerGreen,
+                                    selectedTextColor = PledgerGreen,
                                     unselectedIconColor = TextSecondary,
                                     unselectedTextColor = TextSecondary,
                                 ),
