@@ -1085,40 +1085,21 @@ class TransactionFormViewModel @Inject constructor(
         isSource: Boolean,
     ) {
         if (query.isBlank()) {
-            _uiState.update {
-                if (isSource) {
-                    it.copy(sourceSuggestions = emptyList(), isSearchingSource = false)
-                } else {
-                    it.copy(targetSuggestions = emptyList(), isSearchingTarget = false)
-                }
-            }
+            _uiState.update { clearCounterpartySearchState(it, isSource = isSource) }
             return
         }
 
-        _uiState.update {
-            if (isSource) it.copy(isSearchingSource = true)
-            else it.copy(isSearchingTarget = true)
-        }
+        _uiState.update { markCounterpartySearchInProgress(it, isSource = isSource) }
 
         when (val result = accountRepository.searchAccounts(typeCode, query)) {
             is Resource.Success -> {
                 val options = result.data.map { account -> FilterOption(account.id, account.name) }
                 _uiState.update {
-                    if (isSource) {
-                        it.copy(isSearchingSource = false, sourceSuggestions = options)
-                    } else {
-                        it.copy(isSearchingTarget = false, targetSuggestions = options)
-                    }
+                    applyCounterpartySearchSuccess(it, isSource = isSource, options = options)
                 }
             }
             is Resource.Error -> {
-                _uiState.update {
-                    if (isSource) {
-                        it.copy(isSearchingSource = false, sourceSuggestions = emptyList())
-                    } else {
-                        it.copy(isSearchingTarget = false, targetSuggestions = emptyList())
-                    }
-                }
+                _uiState.update { clearCounterpartySearchState(it, isSource = isSource) }
             }
             is Resource.Loading -> {}
         }
