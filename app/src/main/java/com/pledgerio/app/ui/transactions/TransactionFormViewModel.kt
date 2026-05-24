@@ -1123,50 +1123,15 @@ class TransactionFormViewModel @Inject constructor(
                     val sourceKind = TransactionFormUiState.inputKindForSource(tx.type)
                     val targetKind = TransactionFormUiState.inputKindForTarget(tx.type)
                     _uiState.update { state ->
-                        val sourceSelected = if (
-                            sourceKind != AccountInputKind.OWNED_DROPDOWN &&
-                            tx.sourceAccountId != null
-                        ) {
-                            FilterOption(tx.sourceAccountId, tx.sourceAccountName)
-                        } else {
-                            null
-                        }
-                        val targetSelected = if (
-                            targetKind != AccountInputKind.OWNED_DROPDOWN &&
-                            tx.destinationAccountId != null
-                        ) {
-                            FilterOption(tx.destinationAccountId, tx.destinationAccountName)
-                        } else {
-                            null
-                        }
-                        state.copy(
-                            isLoading = false,
-                            type = tx.type,
-                            description = tx.description,
-                            amount = tx.amount.toString(),
-                            currency = tx.currency,
-                            date = tx.date,
-                            sourceAccountId = tx.sourceAccountId,
-                            sourceSelected = sourceSelected,
-                            sourceQuery = tx.sourceAccountName,
-                            targetAccountId = tx.destinationAccountId,
-                            targetSelected = targetSelected,
-                            targetQuery = tx.destinationAccountName,
+                        buildStateAfterEditLoad(
+                            current = state,
+                            tx = tx,
+                            sourceKind = sourceKind,
+                            targetKind = targetKind,
                             categorySelected = categorySelected,
-                            categoryQuery = categorySelected?.label ?: tx.categoryName.orEmpty(),
                             expenseSelected = expenseSelected,
-                            expenseQuery = expenseSelected?.label ?: tx.budgetName.orEmpty(),
                             contractSelected = contractSelected,
-                            contractQuery = contractSelected?.label ?: tx.contractName.orEmpty(),
-                            tags = tx.tags,
                             splitLines = tx.split.toSplitLineUi(),
-                            originalSplitSnapshot = tx.split,
-                            splitSectionExpanded = tx.split.isNotEmpty(),
-                            moreOptionsExpanded = tx.tags.isNotEmpty() ||
-                                tx.categoryName != null ||
-                                tx.budgetName != null ||
-                                tx.contractName != null,
-                            moreOptionsManuallyToggled = true,
                         )
                     }
                 }
