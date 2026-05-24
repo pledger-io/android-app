@@ -601,13 +601,13 @@ class TransactionFormViewModel @Inject constructor(
                 type = state.type.name,
                 currency = state.currency,
                 sourceAccountId = state.sourceAccountId,
-                sourceAccountName = resolveAccountName(
+                sourceAccountName = resolveAccountDisplayName(
                     state.sourceAccountId,
                     state.sourceSelected,
                     state.ownedAccounts,
                 ),
                 targetAccountId = state.targetAccountId,
-                targetAccountName = resolveAccountName(
+                targetAccountName = resolveAccountDisplayName(
                     state.targetAccountId,
                     state.targetSelected,
                     state.ownedAccounts,
@@ -783,12 +783,12 @@ class TransactionFormViewModel @Inject constructor(
             return
         }
 
-        val sourceName = resolveAccountName(
+        val sourceName = resolveAccountDisplayName(
             accountId = state.sourceAccountId,
             selected = state.sourceSelected,
             ownedAccounts = state.ownedAccounts,
         ).ifBlank { state.sourceQuery.trim() }.takeIf { it.isNotBlank() }
-        val targetName = resolveAccountName(
+        val targetName = resolveAccountDisplayName(
             accountId = state.targetAccountId,
             selected = state.targetSelected,
             ownedAccounts = state.ownedAccounts,
@@ -999,32 +999,26 @@ class TransactionFormViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, error = null) }
 
-            val sourceName = resolveAccountName(
+            val sourceName = resolveAccountDisplayName(
                 accountId = state.sourceAccountId,
                 selected = state.sourceSelected,
                 ownedAccounts = state.ownedAccounts,
             )
-            val targetName = resolveAccountName(
+            val targetName = resolveAccountDisplayName(
                 accountId = state.targetAccountId,
                 selected = state.targetSelected,
                 ownedAccounts = state.ownedAccounts,
             )
-
-            val transaction = Transaction(
-                id = state.editingTransactionId ?: 0,
-                description = state.description.trim(),
-                amount = state.amount.toDouble(),
-                currency = state.currency,
-                type = state.type,
-                date = state.date,
-                sourceAccountId = state.sourceAccountId,
-                sourceAccountName = sourceName,
-                destinationAccountId = state.targetAccountId,
-                destinationAccountName = targetName,
-                categoryId = resolveCategoryId(state),
-                expenseId = resolveExpenseId(state),
-                contractId = resolveContractId(state),
-                tags = state.tags,
+            val categoryId = resolveCategoryId(state)
+            val expenseId = resolveExpenseId(state)
+            val contractId = resolveContractId(state)
+            val transaction = buildTransactionForSubmit(
+                state = state,
+                sourceName = sourceName,
+                targetName = targetName,
+                categoryId = categoryId,
+                expenseId = expenseId,
+                contractId = contractId,
             )
 
             if (state.isEditing && state.editingTransactionId != null) {
@@ -1072,15 +1066,6 @@ class TransactionFormViewModel @Inject constructor(
         _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
     }
 
-    private fun resolveAccountName(
-        accountId: Long?,
-        selected: FilterOption?,
-        ownedAccounts: List<Account>,
-    ): String {
-        selected?.label?.let { return it }
-        return ownedAccounts.find { it.id == accountId }?.name ?: ""
-    }
-
     private suspend fun resolveCategoryOptionByName(name: String): FilterOption? {
         return when (val result = categoryRepository.searchCategories(name)) {
             is Resource.Success -> {
@@ -1115,24 +1100,27 @@ class TransactionFormViewModel @Inject constructor(
     }
 
     private suspend fun resolveCategoryId(state: TransactionFormUiState): Long? {
-        state.categorySelected?.id?.let { return it }
-        val name = state.categoryQuery.trim()
-        if (name.isEmpty()) return null
-        return resolveCategoryOptionByName(name)?.id
+        return resolveOptionalSelectionId(
+            selected = state.categorySelected,
+            query = state.categoryQuery,
+            resolveByName = ::resolveCategoryOptionByName,
+        )
     }
 
     private suspend fun resolveExpenseId(state: TransactionFormUiState): Long? {
-        state.expenseSelected?.id?.let { return it }
-        val name = state.expenseQuery.trim()
-        if (name.isEmpty()) return null
-        return resolveExpenseOptionByName(name)?.id
+        return resolveOptionalSelectionId(
+            selected = state.expenseSelected,
+            query = state.expenseQuery,
+            resolveByName = ::resolveExpenseOptionByName,
+        )
     }
 
     private suspend fun resolveContractId(state: TransactionFormUiState): Long? {
-        state.contractSelected?.id?.let { return it }
-        val name = state.contractQuery.trim()
-        if (name.isEmpty()) return null
-        return resolveContractOptionByName(name)?.id
+        return resolveOptionalSelectionId(
+            selected = state.contractSelected,
+            query = state.contractQuery,
+            resolveByName = ::resolveContractOptionByName,
+        )
     }
 
     private fun bestMatchOption(name: String, options: List<FilterOption>): FilterOption? {
