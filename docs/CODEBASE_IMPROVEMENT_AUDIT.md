@@ -17,7 +17,7 @@ Legend: `[x]` done, `[~]` in progress, `[ ]` not started.
 - [x] High #3: destructive migration fallback removed; explicit migration scaffold added; Room schema export enabled.
 - [x] High #4: blocking interceptor cleanup removed (`clearAllUserDataAsync` on app scope).
 - [x] High #6: UI/data layering tightened for reports and invoice-scan (`ReportsOverviewStore`, `ProcessInvoiceScanUseCase`, `InvoiceTextReader`).
-- [~] High #7: major use-case consistency cleanup completed (`LoginUseCase`, `GetDashboardDataUseCase`, `GetBudgetsUseCase`, `GetTransactionsUseCase` wired in ViewModels); additional decomposition still possible.
+- [~] High #5/#7: major use-case consistency cleanup completed (`LoginUseCase`, `GetDashboardDataUseCase`, `GetBudgetsUseCase`, `GetTransactionsUseCase` wired in ViewModels) and transaction-form account-preservation logic extracted to a dedicated helper; additional decomposition still possible.
 - [x] High #8: instrumented/UI test coverage started (`androidTest` smoke test + CI instrumented job).
 - [x] Medium #9: `allowBackup` hardened (`false`).
 - [x] Medium #10: `CurrencyProvider` singleton access removed (`getInstance`/`setInstance` retired; formatting no longer relies on static provider state).

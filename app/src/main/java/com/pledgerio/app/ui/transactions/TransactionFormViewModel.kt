@@ -367,13 +367,19 @@ class TransactionFormViewModel @Inject constructor(
             val newSourceKind = TransactionFormUiState.inputKindForSource(type)
             val newTargetKind = TransactionFormUiState.inputKindForTarget(type)
 
-            val source = preserveSourceSelection(
-                current = current,
+            val source = preserveAccountSelection(
+                accountId = current.sourceAccountId,
+                selected = current.sourceSelected,
+                query = current.sourceQuery,
+                ownedAccounts = current.ownedAccounts,
                 oldKind = oldSourceKind,
                 newKind = newSourceKind,
             )
-            val target = preserveTargetSelection(
-                current = current,
+            val target = preserveAccountSelection(
+                accountId = current.targetAccountId,
+                selected = current.targetSelected,
+                query = current.targetQuery,
+                ownedAccounts = current.ownedAccounts,
                 oldKind = oldTargetKind,
                 newKind = newTargetKind,
             )
@@ -1064,74 +1070,6 @@ class TransactionFormViewModel @Inject constructor(
     private suspend fun finishSave(type: TransactionType) {
         userPreferences.setLastTransactionType(type)
         _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
-    }
-
-    private data class PreservedSide(
-        val accountId: Long?,
-        val selected: FilterOption?,
-        val query: String,
-    )
-
-    private fun preserveSourceSelection(
-        current: TransactionFormUiState,
-        oldKind: AccountInputKind,
-        newKind: AccountInputKind,
-    ): PreservedSide {
-        if (oldKind != newKind) return PreservedSide(null, null, "")
-        return when (newKind) {
-            AccountInputKind.OWNED_DROPDOWN -> {
-                val id = current.sourceAccountId
-                if (id != null && current.ownedAccounts.any { it.id == id }) {
-                    PreservedSide(id, null, "")
-                } else {
-                    PreservedSide(null, null, "")
-                }
-            }
-            AccountInputKind.CREDITOR_AUTOCOMPLETE,
-            AccountInputKind.DEBTOR_AUTOCOMPLETE,
-            -> {
-                if (current.sourceSelected != null && current.sourceAccountId != null) {
-                    PreservedSide(
-                        current.sourceAccountId,
-                        current.sourceSelected,
-                        current.sourceQuery,
-                    )
-                } else {
-                    PreservedSide(null, null, "")
-                }
-            }
-        }
-    }
-
-    private fun preserveTargetSelection(
-        current: TransactionFormUiState,
-        oldKind: AccountInputKind,
-        newKind: AccountInputKind,
-    ): PreservedSide {
-        if (oldKind != newKind) return PreservedSide(null, null, "")
-        return when (newKind) {
-            AccountInputKind.OWNED_DROPDOWN -> {
-                val id = current.targetAccountId
-                if (id != null && current.ownedAccounts.any { it.id == id }) {
-                    PreservedSide(id, null, "")
-                } else {
-                    PreservedSide(null, null, "")
-                }
-            }
-            AccountInputKind.CREDITOR_AUTOCOMPLETE,
-            AccountInputKind.DEBTOR_AUTOCOMPLETE,
-            -> {
-                if (current.targetSelected != null && current.targetAccountId != null) {
-                    PreservedSide(
-                        current.targetAccountId,
-                        current.targetSelected,
-                        current.targetQuery,
-                    )
-                } else {
-                    PreservedSide(null, null, "")
-                }
-            }
-        }
     }
 
     private fun resolveAccountName(
