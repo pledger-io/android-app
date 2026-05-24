@@ -12,6 +12,7 @@ import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
+import com.pledgerio.app.domain.usecase.GetTransactionsUseCase
 import com.pledgerio.app.util.Resource
 import com.pledgerio.app.util.SearchDefaults
 import com.pledgerio.app.util.UserPreferences
@@ -81,6 +82,7 @@ data class TransactionsUiState(
 @HiltViewModel
 class TransactionsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    private val getTransactionsUseCase: GetTransactionsUseCase,
     private val transactionRepository: TransactionRepository,
     private val categoryRepository: CategoryRepository,
     private val budgetRepository: BudgetRepository,
@@ -362,7 +364,7 @@ class TransactionsViewModel @Inject constructor(
             val startDate = state.currentMonth.atDay(1)
             val endDate = state.currentMonth.atEndOfMonth()
 
-            val result = transactionRepository.getTransactionsPage(
+            val result = getTransactionsUseCase(
                 startDate = startDate,
                 endDate = endDate,
                 type = state.selectedType,
@@ -411,7 +413,7 @@ class TransactionsViewModel @Inject constructor(
             val startDate = state.currentMonth.atDay(1)
             val endDate = state.currentMonth.atEndOfMonth()
 
-            val result = transactionRepository.getTransactionsPage(
+            val result = getTransactionsUseCase(
                 startDate = startDate,
                 endDate = endDate,
                 type = state.selectedType,

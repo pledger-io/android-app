@@ -7,6 +7,7 @@ import com.pledgerio.app.domain.repository.PagedResult
 import com.pledgerio.app.domain.repository.TransactionRepository
 import androidx.lifecycle.SavedStateHandle
 import com.pledgerio.app.domain.model.FinanceExperienceMode
+import com.pledgerio.app.domain.usecase.GetTransactionsUseCase
 import com.pledgerio.app.util.MainDispatcherRule
 import com.pledgerio.app.util.Resource
 import com.pledgerio.app.util.UserPreferences
@@ -32,6 +33,7 @@ class TransactionsViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val transactionRepository = mockk<TransactionRepository>()
+    private val getTransactionsUseCase = mockk<GetTransactionsUseCase>()
     private val categoryRepository = mockk<CategoryRepository>(relaxed = true)
     private val budgetRepository = mockk<BudgetRepository>(relaxed = true)
     private val contractRepository = mockk<ContractRepository>(relaxed = true)
@@ -47,6 +49,7 @@ class TransactionsViewModelTest {
 
     private fun createViewModel() = TransactionsViewModel(
         savedStateHandle = savedStateHandle,
+        getTransactionsUseCase = getTransactionsUseCase,
         transactionRepository = transactionRepository,
         categoryRepository = categoryRepository,
         budgetRepository = budgetRepository,
@@ -58,7 +61,7 @@ class TransactionsViewModelTest {
     fun `navigateToMonth keeps selected month when API returns no transactions`() = runTest {
         val target = YearMonth.of(2024, 3)
         coEvery {
-            transactionRepository.getTransactionsPage(
+            getTransactionsUseCase(
                 startDate = any(),
                 endDate = any(),
                 accountId = any(),
@@ -88,7 +91,7 @@ class TransactionsViewModelTest {
     @Test
     fun `nextMonth from previous month keeps current month when empty`() = runTest {
         coEvery {
-            transactionRepository.getTransactionsPage(
+            getTransactionsUseCase(
                 startDate = any(),
                 endDate = any(),
                 accountId = any(),

@@ -4,15 +4,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Budget
+import com.pledgerio.app.domain.model.BudgetListState
 import com.pledgerio.app.domain.usecase.CreateInitialBudgetUseCase
-import com.pledgerio.app.domain.repository.BudgetRepository
+import com.pledgerio.app.domain.usecase.GetBudgetsUseCase
 import com.pledgerio.app.domain.usecase.SaveBudgetExpenseUseCase
 import com.pledgerio.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import com.pledgerio.app.domain.model.BudgetListState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -53,7 +53,7 @@ data class BudgetsUiState(
 @HiltViewModel
 class BudgetsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val budgetRepository: BudgetRepository,
+    private val getBudgetsUseCase: GetBudgetsUseCase,
     private val createInitialBudgetUseCase: CreateInitialBudgetUseCase,
     private val saveBudgetExpenseUseCase: SaveBudgetExpenseUseCase,
 ) : ViewModel() {
@@ -248,7 +248,7 @@ class BudgetsViewModel @Inject constructor(
         val month = _uiState.value.currentMonth
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
-            budgetRepository.getBudgets(month.year, month.monthValue).collect { result ->
+            getBudgetsUseCase(month.year, month.monthValue).collect { result ->
                 when (result) {
                     is Resource.Loading -> _uiState.update { it.copy(isLoading = true) }
                     is Resource.Success -> {

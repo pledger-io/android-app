@@ -5,12 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.Transaction
-import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
-import com.pledgerio.app.domain.repository.TransactionRepository
+import com.pledgerio.app.domain.usecase.GetDashboardDataUseCase
 import com.pledgerio.app.util.Resource
 import com.pledgerio.app.util.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,14 +34,14 @@ data class DashboardUiState(
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val accountRepository: AccountRepository,
-    private val transactionRepository: TransactionRepository,
+    private val getDashboardDataUseCase: GetDashboardDataUseCase,
     private val currencyRepository: CurrencyRepository,
     private val userPreferences: UserPreferences,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
+    private var dashboardJob: Job? = null
 
     init {
         viewModelScope.launch { currencyRepository.sync() }
@@ -65,32 +65,27 @@ class DashboardViewModel @Inject constructor(
 
     /** Reload recent transactions when returning to the dashboard (e.g. after creating one). */
     fun refreshRecentTransactions() {
-        viewModelScope.launch {
-            transactionRepository.getRecentTransactions(5).collect { result ->
-                when (result) {
-                    is Resource.Success -> applyRecentTransactions(result.data)
-                    else -> Unit
-                }
-            }
-        }
+        loadDashboard()
     }
 
     private fun loadDashboard() {
-        viewModelScope.launch {
-            accountRepository.getAccounts().collect { result ->
+        dashboardJob?.cancel()
+        dashboardJob = viewModelScope.launch {
+            getDashboardDataUseCase().collect { result ->
                 when (result) {
                     is Resource.Loading -> {
                         _uiState.update { it.copy(isLoading = true) }
                     }
                     is Resource.Success -> {
-                        val accounts = result.data
-                        val netWorth = accounts.sumOf { it.balance }
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
                                 isRefreshing = false,
-                                accounts = accounts,
-                                netWorth = netWorth,
+                                accounts = result.data.accounts,
+                                recentTransactions = result.data.recentTransactions,
+                                netWorth = result.data.netWorth,
+                                monthlyIncome = result.data.monthlyIncome,
+                                monthlyExpense = result.data.monthlyExpense,
                                 currency = userPreferences.displayCurrencyCode.value,
                                 error = null,
                                 lastUpdatedAtMillis = System.currentTimeMillis(),
@@ -108,31 +103,6 @@ class DashboardViewModel @Inject constructor(
                     }
                 }
             }
-        }
-
-        viewModelScope.launch {
-            transactionRepository.getRecentTransactions(5).collect { result ->
-                when (result) {
-                    is Resource.Success -> applyRecentTransactions(result.data)
-                    else -> Unit
-                }
-            }
-        }
-    }
-
-    private fun applyRecentTransactions(transactions: List<Transaction>) {
-        val income = transactions
-            .filter { it.type == com.pledgerio.app.domain.model.TransactionType.DEBIT }
-            .sumOf { it.amount }
-        val expense = transactions
-            .filter { it.type == com.pledgerio.app.domain.model.TransactionType.CREDIT }
-            .sumOf { it.amount }
-        _uiState.update {
-            it.copy(
-                recentTransactions = transactions,
-                monthlyIncome = income,
-                monthlyExpense = expense,
-            )
         }
     }
 }
