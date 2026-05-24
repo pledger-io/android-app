@@ -12,7 +12,7 @@ A native Android client for [Pledger.io](https://github.com/pledger-io) — a se
 | DI | Hilt (KSP) |
 | Networking | Retrofit + OkHttp + Moshi |
 | Images | Coil (authenticated via shared OkHttp client) |
-| Database | Room (offline cache, v3 schema) |
+| Database | Room (offline cache, v6 schema with explicit migrations) |
 | Async | Coroutines + Flow |
 | Navigation | Jetpack Navigation Compose |
 | Background work | WorkManager |
@@ -144,7 +144,7 @@ Requires **JDK 21**.
 
 | Workflow | Trigger | Result |
 |----------|---------|--------|
-| [CI](.github/workflows/ci.yml) | Push / PR to `main` or `master` | Unit tests + debug APK artifact |
+| [CI](.github/workflows/ci.yml) | Push / PR to `main` or `master` | Unit tests + lint + instrumented smoke test + debug APK artifact |
 | [Release](.github/workflows/release.yml) | **Publish** a GitHub Release, or manual run | Release APK attached to the release |
 
 **Distributing an APK on GitHub Release**
@@ -159,7 +159,7 @@ To test the release build without publishing: **Actions → Release → Run work
 
 Users can report problems from **Settings → About → Report a problem**. The app collects sanitized recent logs, prefills the org [bug report form](https://github.com/pledger-io/.github/issues/new?template=bug_report.yml) in the browser (summary, description, environment, logs), and the user taps **Submit** on GitHub — no app credentials required. Sign in to GitHub only if the repository requires it to open issues.
 
-**Optional production signing** — add these repository secrets; if omitted, CI signs the release APK with the debug keystore (fine for sideloading, not for Play Store):
+**Production signing is required for release builds** — configure these repository secrets:
 
 | Secret | Description |
 |--------|-------------|

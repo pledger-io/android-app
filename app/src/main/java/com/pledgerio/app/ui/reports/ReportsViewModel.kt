@@ -2,13 +2,13 @@ package com.pledgerio.app.ui.reports
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pledgerio.app.data.cache.ReportsOverviewCache
 import com.pledgerio.app.domain.model.BudgetPerformanceItem
 import com.pledgerio.app.domain.model.DatedAmount
 import com.pledgerio.app.domain.model.IncomeExpenseSummary
 import com.pledgerio.app.domain.model.PartitionAmount
 import com.pledgerio.app.domain.model.ReportsOverview
 import com.pledgerio.app.domain.repository.ReportRepository
+import com.pledgerio.app.domain.repository.ReportsOverviewStore
 import com.pledgerio.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -45,7 +45,7 @@ data class ReportsUiState(
 @HiltViewModel
 class ReportsViewModel @Inject constructor(
     private val reportRepository: ReportRepository,
-    private val overviewCache: ReportsOverviewCache,
+    private val overviewCache: ReportsOverviewStore,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReportsUiState())

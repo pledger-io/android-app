@@ -2,8 +2,8 @@ package com.pledgerio.app.ui.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pledgerio.app.domain.repository.AuthRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
+import com.pledgerio.app.domain.usecase.LoginUseCase
 import com.pledgerio.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +22,7 @@ data class LoginUiState(
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
+    private val loginUseCase: LoginUseCase,
     private val currencyRepository: CurrencyRepository,
 ) : ViewModel() {
 
@@ -47,7 +47,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            when (val result = authRepository.login(state.username, state.password)) {
+            when (val result = loginUseCase(state.username, state.password)) {
                 is Resource.Success -> {
                     currencyRepository.sync()
                     _uiState.update { it.copy(isLoading = false) }

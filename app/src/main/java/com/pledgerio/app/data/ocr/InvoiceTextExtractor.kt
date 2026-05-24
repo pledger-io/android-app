@@ -8,6 +8,7 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.pledgerio.app.R
+import com.pledgerio.app.domain.repository.InvoiceTextReader
 import com.pledgerio.app.util.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -19,9 +20,10 @@ import kotlin.coroutines.resume
 @Singleton
 class InvoiceTextExtractor @Inject constructor(
     @ApplicationContext private val context: Context,
-) {
-    suspend fun extractText(uri: Uri): Resource<String> {
+) : InvoiceTextReader {
+    override suspend fun extractText(imageUri: String): Resource<String> {
         return try {
+            val uri = Uri.parse(imageUri)
             val image = InputImage.fromFilePath(context, uri)
             val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
             val result = recognizer.process(image).awaitResult()

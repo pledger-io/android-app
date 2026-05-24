@@ -2,7 +2,7 @@ package com.pledgerio.app.domain.usecase
 
 import com.pledgerio.app.domain.model.BudgetListState
 import com.pledgerio.app.domain.repository.BudgetRepository
-import com.pledgerio.app.util.Resource
+import com.pledgerio.app.domain.common.Resource
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 

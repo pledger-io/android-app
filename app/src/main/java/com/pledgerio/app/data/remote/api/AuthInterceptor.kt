@@ -45,7 +45,7 @@ class AuthInterceptor @Inject constructor(
                     return chain.proceed(retryRequest)
                 }
             }
-            localDataCleaner.clearAllUserDataBlocking()
+            localDataCleaner.clearAllUserDataAsync()
             sessionManager.clearAuthTokens()
         }
 

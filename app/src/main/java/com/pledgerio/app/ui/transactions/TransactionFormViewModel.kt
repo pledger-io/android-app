@@ -367,13 +367,19 @@ class TransactionFormViewModel @Inject constructor(
             val newSourceKind = TransactionFormUiState.inputKindForSource(type)
             val newTargetKind = TransactionFormUiState.inputKindForTarget(type)
 
-            val source = preserveSourceSelection(
-                current = current,
+            val source = preserveAccountSelection(
+                accountId = current.sourceAccountId,
+                selected = current.sourceSelected,
+                query = current.sourceQuery,
+                ownedAccounts = current.ownedAccounts,
                 oldKind = oldSourceKind,
                 newKind = newSourceKind,
             )
-            val target = preserveTargetSelection(
-                current = current,
+            val target = preserveAccountSelection(
+                accountId = current.targetAccountId,
+                selected = current.targetSelected,
+                query = current.targetQuery,
+                ownedAccounts = current.ownedAccounts,
                 oldKind = oldTargetKind,
                 newKind = newTargetKind,
             )
@@ -595,13 +601,13 @@ class TransactionFormViewModel @Inject constructor(
                 type = state.type.name,
                 currency = state.currency,
                 sourceAccountId = state.sourceAccountId,
-                sourceAccountName = resolveAccountName(
+                sourceAccountName = resolveAccountDisplayName(
                     state.sourceAccountId,
                     state.sourceSelected,
                     state.ownedAccounts,
                 ),
                 targetAccountId = state.targetAccountId,
-                targetAccountName = resolveAccountName(
+                targetAccountName = resolveAccountDisplayName(
                     state.targetAccountId,
                     state.targetSelected,
                     state.ownedAccounts,
@@ -777,12 +783,12 @@ class TransactionFormViewModel @Inject constructor(
             return
         }
 
-        val sourceName = resolveAccountName(
+        val sourceName = resolveAccountDisplayName(
             accountId = state.sourceAccountId,
             selected = state.sourceSelected,
             ownedAccounts = state.ownedAccounts,
         ).ifBlank { state.sourceQuery.trim() }.takeIf { it.isNotBlank() }
-        val targetName = resolveAccountName(
+        val targetName = resolveAccountDisplayName(
             accountId = state.targetAccountId,
             selected = state.targetSelected,
             ownedAccounts = state.ownedAccounts,
@@ -800,99 +806,30 @@ class TransactionFormViewModel @Inject constructor(
             ) {
                 is Resource.Success -> {
                     val suggestion = result.data
-                    val suggestedCategory = suggestion.category?.trim().orEmpty()
-                    val suggestedExpense = suggestion.budget?.trim().orEmpty()
-                    val suggestedTags = suggestion.tags
-                        .map { it.trim() }
-                        .filter { it.isNotBlank() }
+                    val suggestedCategory = suggestion.category
+                    val suggestedExpense = suggestion.budget
 
                     val categoryOption = suggestedCategory
+                        .orEmpty()
+                        .trim()
                         .takeIf { it.isNotBlank() }
                         ?.let { resolveCategoryOptionByName(it) }
                     val expenseOption = suggestedExpense
+                        .orEmpty()
+                        .trim()
                         .takeIf { it.isNotBlank() }
                         ?.let { resolveExpenseOptionByName(it) }
-
-                    val appliedParts = buildList {
-                        if (categoryOption != null) {
-                            add(com.pledgerio.app.ui.transactions.form.ClassifyPart.CATEGORY)
-                        }
-                        if (expenseOption != null) {
-                            add(com.pledgerio.app.ui.transactions.form.ClassifyPart.EXPENSE_GROUP)
-                        }
-                        if (suggestedTags.isNotEmpty()) {
-                            add(com.pledgerio.app.ui.transactions.form.ClassifyPart.TAGS)
-                        }
-                    }
-                    val unresolvedParts = buildList {
-                        if (suggestedCategory.isNotBlank() && categoryOption == null) {
-                            add(com.pledgerio.app.ui.transactions.form.ClassifyPart.CATEGORY)
-                        }
-                        if (suggestedExpense.isNotBlank() && expenseOption == null) {
-                            add(com.pledgerio.app.ui.transactions.form.ClassifyPart.EXPENSE_GROUP)
-                        }
-                    }
-                    val status = when {
-                        appliedParts.isEmpty() && unresolvedParts.isEmpty() ->
-                            com.pledgerio.app.ui.transactions.form.AutoClassifyStatus.NoSuggestions
-                        appliedParts.isNotEmpty() && unresolvedParts.isEmpty() ->
-                            com.pledgerio.app.ui.transactions.form.AutoClassifyStatus.Applied(appliedParts)
-                        appliedParts.isEmpty() ->
-                            com.pledgerio.app.ui.transactions.form.AutoClassifyStatus.Unresolved(unresolvedParts)
-                        else ->
-                            com.pledgerio.app.ui.transactions.form.AutoClassifyStatus.Partial(
-                                applied = appliedParts,
-                                unresolved = unresolvedParts,
-                            )
-                    }
-
-                    _uiState.update { current ->
-                        val mergedTags = if (suggestedTags.isNotEmpty()) {
-                            (current.tags + suggestedTags)
-                                .distinctBy { it.lowercase() }
-                        } else {
-                            current.tags
-                        }
-                        val shouldExpand = suggestedCategory.isNotBlank() ||
-                            suggestedExpense.isNotBlank() ||
-                            suggestedTags.isNotEmpty()
-                        current.copy(
-                            isAutoClassifying = false,
-                            autoClassifyStatus = status,
-                            categorySelected = when {
-                                categoryOption != null -> categoryOption
-                                suggestedCategory.isNotBlank() -> null
-                                else -> current.categorySelected
-                            },
-                            categoryQuery = when {
-                                categoryOption != null -> categoryOption.label
-                                suggestedCategory.isNotBlank() -> suggestedCategory
-                                else -> current.categoryQuery
-                            },
-                            categorySuggestions = emptyList(),
-                            expenseSelected = when {
-                                expenseOption != null -> expenseOption
-                                suggestedExpense.isNotBlank() -> null
-                                else -> current.expenseSelected
-                            },
-                            expenseQuery = when {
-                                expenseOption != null -> expenseOption.label
-                                suggestedExpense.isNotBlank() -> suggestedExpense
-                                else -> current.expenseQuery
-                            },
-                            expenseSuggestions = emptyList(),
-                            tags = mergedTags,
-                            tagInput = "",
-                            moreOptionsExpanded = if (shouldExpand) true else current.moreOptionsExpanded,
-                            moreOptionsManuallyToggled = shouldExpand || current.moreOptionsManuallyToggled,
-                        )
-                    }
-                    if (suggestedCategory.isNotBlank() && categoryOption == null) {
-                        categoryQueryFlow.value = suggestedCategory
-                    }
-                    if (suggestedExpense.isNotBlank() && expenseOption == null) {
-                        expenseQueryFlow.value = suggestedExpense
-                    }
+                    val applyResult = applyAutoClassifySuggestion(
+                        current = _uiState.value,
+                        suggestedCategoryRaw = suggestedCategory,
+                        suggestedExpenseRaw = suggestedExpense,
+                        suggestedTagsRaw = suggestion.tags,
+                        categoryOption = categoryOption,
+                        expenseOption = expenseOption,
+                    )
+                    _uiState.update { applyResult.updatedState }
+                    applyResult.unresolvedCategoryQuery?.let { categoryQueryFlow.value = it }
+                    applyResult.unresolvedExpenseQuery?.let { expenseQueryFlow.value = it }
                 }
 
                 is Resource.Error -> {
@@ -993,32 +930,26 @@ class TransactionFormViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, error = null) }
 
-            val sourceName = resolveAccountName(
+            val sourceName = resolveAccountDisplayName(
                 accountId = state.sourceAccountId,
                 selected = state.sourceSelected,
                 ownedAccounts = state.ownedAccounts,
             )
-            val targetName = resolveAccountName(
+            val targetName = resolveAccountDisplayName(
                 accountId = state.targetAccountId,
                 selected = state.targetSelected,
                 ownedAccounts = state.ownedAccounts,
             )
-
-            val transaction = Transaction(
-                id = state.editingTransactionId ?: 0,
-                description = state.description.trim(),
-                amount = state.amount.toDouble(),
-                currency = state.currency,
-                type = state.type,
-                date = state.date,
-                sourceAccountId = state.sourceAccountId,
-                sourceAccountName = sourceName,
-                destinationAccountId = state.targetAccountId,
-                destinationAccountName = targetName,
-                categoryId = resolveCategoryId(state),
-                expenseId = resolveExpenseId(state),
-                contractId = resolveContractId(state),
-                tags = state.tags,
+            val categoryId = resolveCategoryId(state)
+            val expenseId = resolveExpenseId(state)
+            val contractId = resolveContractId(state)
+            val transaction = buildTransactionForSubmit(
+                state = state,
+                sourceName = sourceName,
+                targetName = targetName,
+                categoryId = categoryId,
+                expenseId = expenseId,
+                contractId = contractId,
             )
 
             if (state.isEditing && state.editingTransactionId != null) {
@@ -1066,83 +997,6 @@ class TransactionFormViewModel @Inject constructor(
         _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
     }
 
-    private data class PreservedSide(
-        val accountId: Long?,
-        val selected: FilterOption?,
-        val query: String,
-    )
-
-    private fun preserveSourceSelection(
-        current: TransactionFormUiState,
-        oldKind: AccountInputKind,
-        newKind: AccountInputKind,
-    ): PreservedSide {
-        if (oldKind != newKind) return PreservedSide(null, null, "")
-        return when (newKind) {
-            AccountInputKind.OWNED_DROPDOWN -> {
-                val id = current.sourceAccountId
-                if (id != null && current.ownedAccounts.any { it.id == id }) {
-                    PreservedSide(id, null, "")
-                } else {
-                    PreservedSide(null, null, "")
-                }
-            }
-            AccountInputKind.CREDITOR_AUTOCOMPLETE,
-            AccountInputKind.DEBTOR_AUTOCOMPLETE,
-            -> {
-                if (current.sourceSelected != null && current.sourceAccountId != null) {
-                    PreservedSide(
-                        current.sourceAccountId,
-                        current.sourceSelected,
-                        current.sourceQuery,
-                    )
-                } else {
-                    PreservedSide(null, null, "")
-                }
-            }
-        }
-    }
-
-    private fun preserveTargetSelection(
-        current: TransactionFormUiState,
-        oldKind: AccountInputKind,
-        newKind: AccountInputKind,
-    ): PreservedSide {
-        if (oldKind != newKind) return PreservedSide(null, null, "")
-        return when (newKind) {
-            AccountInputKind.OWNED_DROPDOWN -> {
-                val id = current.targetAccountId
-                if (id != null && current.ownedAccounts.any { it.id == id }) {
-                    PreservedSide(id, null, "")
-                } else {
-                    PreservedSide(null, null, "")
-                }
-            }
-            AccountInputKind.CREDITOR_AUTOCOMPLETE,
-            AccountInputKind.DEBTOR_AUTOCOMPLETE,
-            -> {
-                if (current.targetSelected != null && current.targetAccountId != null) {
-                    PreservedSide(
-                        current.targetAccountId,
-                        current.targetSelected,
-                        current.targetQuery,
-                    )
-                } else {
-                    PreservedSide(null, null, "")
-                }
-            }
-        }
-    }
-
-    private fun resolveAccountName(
-        accountId: Long?,
-        selected: FilterOption?,
-        ownedAccounts: List<Account>,
-    ): String {
-        selected?.label?.let { return it }
-        return ownedAccounts.find { it.id == accountId }?.name ?: ""
-    }
-
     private suspend fun resolveCategoryOptionByName(name: String): FilterOption? {
         return when (val result = categoryRepository.searchCategories(name)) {
             is Resource.Success -> {
@@ -1177,24 +1031,27 @@ class TransactionFormViewModel @Inject constructor(
     }
 
     private suspend fun resolveCategoryId(state: TransactionFormUiState): Long? {
-        state.categorySelected?.id?.let { return it }
-        val name = state.categoryQuery.trim()
-        if (name.isEmpty()) return null
-        return resolveCategoryOptionByName(name)?.id
+        return resolveOptionalSelectionId(
+            selected = state.categorySelected,
+            query = state.categoryQuery,
+            resolveByName = ::resolveCategoryOptionByName,
+        )
     }
 
     private suspend fun resolveExpenseId(state: TransactionFormUiState): Long? {
-        state.expenseSelected?.id?.let { return it }
-        val name = state.expenseQuery.trim()
-        if (name.isEmpty()) return null
-        return resolveExpenseOptionByName(name)?.id
+        return resolveOptionalSelectionId(
+            selected = state.expenseSelected,
+            query = state.expenseQuery,
+            resolveByName = ::resolveExpenseOptionByName,
+        )
     }
 
     private suspend fun resolveContractId(state: TransactionFormUiState): Long? {
-        state.contractSelected?.id?.let { return it }
-        val name = state.contractQuery.trim()
-        if (name.isEmpty()) return null
-        return resolveContractOptionByName(name)?.id
+        return resolveOptionalSelectionId(
+            selected = state.contractSelected,
+            query = state.contractQuery,
+            resolveByName = ::resolveContractOptionByName,
+        )
     }
 
     private fun bestMatchOption(name: String, options: List<FilterOption>): FilterOption? {
@@ -1228,40 +1085,21 @@ class TransactionFormViewModel @Inject constructor(
         isSource: Boolean,
     ) {
         if (query.isBlank()) {
-            _uiState.update {
-                if (isSource) {
-                    it.copy(sourceSuggestions = emptyList(), isSearchingSource = false)
-                } else {
-                    it.copy(targetSuggestions = emptyList(), isSearchingTarget = false)
-                }
-            }
+            _uiState.update { clearCounterpartySearchState(it, isSource = isSource) }
             return
         }
 
-        _uiState.update {
-            if (isSource) it.copy(isSearchingSource = true)
-            else it.copy(isSearchingTarget = true)
-        }
+        _uiState.update { markCounterpartySearchInProgress(it, isSource = isSource) }
 
         when (val result = accountRepository.searchAccounts(typeCode, query)) {
             is Resource.Success -> {
                 val options = result.data.map { account -> FilterOption(account.id, account.name) }
                 _uiState.update {
-                    if (isSource) {
-                        it.copy(isSearchingSource = false, sourceSuggestions = options)
-                    } else {
-                        it.copy(isSearchingTarget = false, targetSuggestions = options)
-                    }
+                    applyCounterpartySearchSuccess(it, isSource = isSource, options = options)
                 }
             }
             is Resource.Error -> {
-                _uiState.update {
-                    if (isSource) {
-                        it.copy(isSearchingSource = false, sourceSuggestions = emptyList())
-                    } else {
-                        it.copy(isSearchingTarget = false, targetSuggestions = emptyList())
-                    }
-                }
+                _uiState.update { clearCounterpartySearchState(it, isSource = isSource) }
             }
             is Resource.Loading -> {}
         }
@@ -1285,50 +1123,15 @@ class TransactionFormViewModel @Inject constructor(
                     val sourceKind = TransactionFormUiState.inputKindForSource(tx.type)
                     val targetKind = TransactionFormUiState.inputKindForTarget(tx.type)
                     _uiState.update { state ->
-                        val sourceSelected = if (
-                            sourceKind != AccountInputKind.OWNED_DROPDOWN &&
-                            tx.sourceAccountId != null
-                        ) {
-                            FilterOption(tx.sourceAccountId, tx.sourceAccountName)
-                        } else {
-                            null
-                        }
-                        val targetSelected = if (
-                            targetKind != AccountInputKind.OWNED_DROPDOWN &&
-                            tx.destinationAccountId != null
-                        ) {
-                            FilterOption(tx.destinationAccountId, tx.destinationAccountName)
-                        } else {
-                            null
-                        }
-                        state.copy(
-                            isLoading = false,
-                            type = tx.type,
-                            description = tx.description,
-                            amount = tx.amount.toString(),
-                            currency = tx.currency,
-                            date = tx.date,
-                            sourceAccountId = tx.sourceAccountId,
-                            sourceSelected = sourceSelected,
-                            sourceQuery = tx.sourceAccountName,
-                            targetAccountId = tx.destinationAccountId,
-                            targetSelected = targetSelected,
-                            targetQuery = tx.destinationAccountName,
+                        buildStateAfterEditLoad(
+                            current = state,
+                            tx = tx,
+                            sourceKind = sourceKind,
+                            targetKind = targetKind,
                             categorySelected = categorySelected,
-                            categoryQuery = categorySelected?.label ?: tx.categoryName.orEmpty(),
                             expenseSelected = expenseSelected,
-                            expenseQuery = expenseSelected?.label ?: tx.budgetName.orEmpty(),
                             contractSelected = contractSelected,
-                            contractQuery = contractSelected?.label ?: tx.contractName.orEmpty(),
-                            tags = tx.tags,
                             splitLines = tx.split.toSplitLineUi(),
-                            originalSplitSnapshot = tx.split,
-                            splitSectionExpanded = tx.split.isNotEmpty(),
-                            moreOptionsExpanded = tx.tags.isNotEmpty() ||
-                                tx.categoryName != null ||
-                                tx.budgetName != null ||
-                                tx.contractName != null,
-                            moreOptionsManuallyToggled = true,
                         )
                     }
                 }
@@ -1418,12 +1221,7 @@ class TransactionFormViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferences.financeExperienceMode.collect { mode ->
                 val previous = _uiState.value
-                val shouldExpandMoreOptions = when {
-                    previous.isEditing -> previous.moreOptionsExpanded
-                    previous.moreOptionsManuallyToggled -> previous.moreOptionsExpanded
-                    mode == FinanceExperienceMode.POWER -> true
-                    else -> false
-                }
+                val shouldExpandMoreOptions = resolveMoreOptionsExpansion(previous, mode)
                 if (
                     previous.financeExperienceMode == mode &&
                     previous.moreOptionsExpanded == shouldExpandMoreOptions

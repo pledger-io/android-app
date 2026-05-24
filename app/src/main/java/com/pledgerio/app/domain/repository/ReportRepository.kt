@@ -4,7 +4,7 @@ import com.pledgerio.app.domain.model.BudgetPerformanceItem
 import com.pledgerio.app.domain.model.DatedAmount
 import com.pledgerio.app.domain.model.IncomeExpenseSummary
 import com.pledgerio.app.domain.model.PartitionAmount
-import com.pledgerio.app.util.Resource
+import com.pledgerio.app.domain.common.Resource
 import java.time.YearMonth
 
 interface ReportRepository {

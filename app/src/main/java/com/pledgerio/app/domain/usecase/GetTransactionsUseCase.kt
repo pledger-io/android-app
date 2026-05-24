@@ -5,7 +5,7 @@ import com.pledgerio.app.domain.model.TransactionFilters
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.PagedResult
 import com.pledgerio.app.domain.repository.TransactionRepository
-import com.pledgerio.app.util.Resource
+import com.pledgerio.app.domain.common.Resource
 import java.time.LocalDate
 import javax.inject.Inject
 

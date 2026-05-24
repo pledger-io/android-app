@@ -125,7 +125,7 @@ See [Budgets](BUDGETS.md) for API and screen details.
 ### Data Layer (`data/`)
 
 - **Remote** — `PledgerApiService`, Moshi DTOs (`@JsonClass(generateAdapter = true)`).
-- **Local** — Room (`PledgerDatabase` v5): accounts, transactions, budgets, categories, currencies, contracts, expense groups, account types, sync metadata.
+- **Local** — Room (`PledgerDatabase` v6): accounts, transactions, budgets, categories, currencies, contracts, expense groups, account types, sync metadata.
 - **Repositories** — Stale-while-revalidate cache for reference data, network-first for paged data:
 
   1. Read returns cached values from Room immediately (via Flow or one-shot query).
@@ -198,6 +198,8 @@ Repositories return `Resource<T>`:
 - `Resource.Error(message)`
 - `Resource.Loading`
 
+`Resource` is defined in `domain/common` (with a temporary compatibility alias in `util` while imports are migrated).
+
 ## Offline Strategy
 
 ### Room cache
@@ -236,7 +238,7 @@ Transactions are refreshed on screen load rather than in the worker.
 | Concern | Implementation |
 |---------|----------------|
 | Token storage | `EncryptedSharedPreferences` (AES-256-GCM) |
-| Transport | User-supplied URL; cleartext permitted in debug config for dev servers |
+| Transport | User-supplied URL; cleartext denied by default and enabled only in debug override config |
 | Biometric | Optional via settings (`BiometricPrompt`) |
 | Session expiry | Proactive JWT refresh + 401 retry; `clearAuthTokens` keeps server URL |
 | Platform | compile/target SDK 36 (Android 16); edge-to-edge in `MainActivity` |
@@ -274,7 +276,7 @@ Navigation arguments via `SavedStateHandle`. No Android framework types inside V
 | Use cases | JUnit, MockK, coroutines-test |
 | ViewModels | JUnit, MockK, Turbine |
 | Repositories | JUnit, MockK |
-| UI | Compose UI tests for critical flows |
+| UI | Compose UI tests for critical flows (`androidTest` smoke coverage in CI) |
 
 ## Module Boundaries
 
