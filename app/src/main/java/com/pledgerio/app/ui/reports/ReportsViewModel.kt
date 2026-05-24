@@ -2,6 +2,7 @@ package com.pledgerio.app.ui.reports
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pledgerio.app.data.cache.ReportsOverviewCache
 import com.pledgerio.app.domain.model.BudgetPerformanceItem
 import com.pledgerio.app.domain.model.DatedAmount
 import com.pledgerio.app.domain.model.IncomeExpenseSummary
@@ -44,6 +45,7 @@ data class ReportsUiState(
 @HiltViewModel
 class ReportsViewModel @Inject constructor(
     private val reportRepository: ReportRepository,
+    private val overviewCache: ReportsOverviewCache,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReportsUiState())
@@ -85,68 +87,111 @@ class ReportsViewModel @Inject constructor(
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
             val state = _uiState.value
-            if (!state.isRefreshing) {
-                _uiState.update { it.copy(isLoading = true, error = null) }
-            }
             when (state.selectedType) {
                 ReportType.OVERVIEW -> loadOverview(state.currentMonth, state.isRefreshing)
-                else -> loadSingleReport(state.selectedType, state.currentMonth, state.isRefreshing)
+                else -> {
+                    if (!state.isRefreshing) {
+                        _uiState.update { it.copy(isLoading = true, error = null) }
+                    }
+                    loadSingleReport(state.selectedType, state.currentMonth)
+                }
             }
         }
     }
 
-    private suspend fun loadOverview(month: YearMonth, isRefreshing: Boolean) {
-        coroutineScope {
-            val incomeDeferred = async { reportRepository.getIncomeExpenseSummary(month) }
-            val categoryDeferred = async { reportRepository.getCategoryBreakdown(month) }
-            val balanceDeferred = async { reportRepository.getAccountBalances(month) }
-            val budgetDeferred = async { reportRepository.getBudgetPerformance(month) }
-            val netWorthDeferred = async { reportRepository.getNetWorthTrend(month) }
+    private suspend fun loadOverview(month: YearMonth, forceRefresh: Boolean) {
+        if (forceRefresh) {
+            overviewCache.invalidate(month)
+        }
 
-            val income = incomeDeferred.await()
-            val categories = categoryDeferred.await()
-            val balances = balanceDeferred.await()
-            val budgets = budgetDeferred.await()
-            val netWorth = netWorthDeferred.await()
+        val cached = if (!forceRefresh) overviewCache.get(month) else null
+        if (cached != null) {
+            applyOverviewToState(cached.overview, cached.fetchedAtMillis)
+            if (cached.isFresh(month)) {
+                _uiState.update { it.copy(isLoading = false, isRefreshing = false) }
+                return
+            }
+            _uiState.update { it.copy(isLoading = false, isRefreshing = true, error = null) }
+        } else {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+        }
 
-            val errors = listOf(income, categories, balances, budgets, netWorth)
-                .filterIsInstance<Resource.Error>()
-                .map { it.message }
-
-            val overview = ReportsOverview(
-                incomeExpense = (income as? Resource.Success)?.data,
-                topCategories = (categories as? Resource.Success)?.data.orEmpty().take(5),
-                accountBalances = (balances as? Resource.Success)?.data.orEmpty(),
-                budgetItems = (budgets as? Resource.Success)?.data.orEmpty(),
-                netWorthInMonth = (netWorth as? Resource.Success)?.data.orEmpty().inMonth(month),
-            )
-
-            val hasAnyData = overview.incomeExpense != null ||
-                overview.topCategories.isNotEmpty() ||
-                overview.accountBalances.isNotEmpty() ||
-                overview.budgetItems.isNotEmpty() ||
-                overview.netWorthInMonth.isNotEmpty()
-
+        val fetch = fetchOverviewFromNetwork(month)
+        if (fetch.overview != null && fetch.hasAnyData) {
+            overviewCache.put(month, fetch.overview)
+            applyOverviewToState(fetch.overview, System.currentTimeMillis())
             _uiState.update {
                 it.copy(
                     isLoading = false,
                     isRefreshing = false,
-                    overview = overview,
-                    incomeExpense = null,
-                    partitions = emptyList(),
-                    budgetItems = emptyList(),
-                    netWorthTrend = emptyList(),
-                    error = if (!hasAnyData && errors.isNotEmpty()) errors.firstOrNull() else null,
-                    lastUpdatedAtMillis = if (hasAnyData) System.currentTimeMillis() else it.lastUpdatedAtMillis,
+                    error = null,
                 )
             }
+        } else {
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    isRefreshing = false,
+                    error = if (cached == null) fetch.firstError else it.error,
+                )
+            }
+        }
+    }
+
+    private suspend fun fetchOverviewFromNetwork(month: YearMonth): OverviewFetchResult = coroutineScope {
+        val incomeDeferred = async { reportRepository.getIncomeExpenseSummary(month) }
+        val categoryDeferred = async { reportRepository.getCategoryBreakdown(month) }
+        val balanceDeferred = async { reportRepository.getAccountBalances(month) }
+        val budgetDeferred = async { reportRepository.getBudgetPerformance(month) }
+        val netWorthDeferred = async { reportRepository.getNetWorthTrend(month) }
+
+        val income = incomeDeferred.await()
+        val categories = categoryDeferred.await()
+        val balances = balanceDeferred.await()
+        val budgets = budgetDeferred.await()
+        val netWorth = netWorthDeferred.await()
+
+        val errors = listOf(income, categories, balances, budgets, netWorth)
+            .filterIsInstance<Resource.Error>()
+            .map { it.message }
+
+        val overview = ReportsOverview(
+            incomeExpense = (income as? Resource.Success)?.data,
+            topCategories = (categories as? Resource.Success)?.data.orEmpty().take(5),
+            accountBalances = (balances as? Resource.Success)?.data.orEmpty(),
+            budgetItems = (budgets as? Resource.Success)?.data.orEmpty(),
+            netWorthInMonth = (netWorth as? Resource.Success)?.data.orEmpty().inMonth(month),
+        )
+
+        val hasAnyData = overview.incomeExpense != null ||
+            overview.topCategories.isNotEmpty() ||
+            overview.accountBalances.isNotEmpty() ||
+            overview.budgetItems.isNotEmpty() ||
+            overview.netWorthInMonth.isNotEmpty()
+
+        OverviewFetchResult(
+            overview = if (hasAnyData) overview else null,
+            hasAnyData = hasAnyData,
+            firstError = errors.firstOrNull(),
+        )
+    }
+
+    private fun applyOverviewToState(overview: ReportsOverview, lastUpdatedAtMillis: Long) {
+        _uiState.update {
+            it.copy(
+                overview = overview,
+                incomeExpense = null,
+                partitions = emptyList(),
+                budgetItems = emptyList(),
+                netWorthTrend = emptyList(),
+                lastUpdatedAtMillis = lastUpdatedAtMillis,
+            )
         }
     }
 
     private suspend fun loadSingleReport(
         type: ReportType,
         month: YearMonth,
-        isRefreshing: Boolean,
     ) {
         val result = when (type) {
             ReportType.INCOME_EXPENSE -> reportRepository.getIncomeExpenseSummary(month)
@@ -197,4 +242,10 @@ class ReportsViewModel @Inject constructor(
             is Resource.Loading -> Unit
         }
     }
+
+    private data class OverviewFetchResult(
+        val overview: ReportsOverview?,
+        val hasAnyData: Boolean,
+        val firstError: String?,
+    )
 }

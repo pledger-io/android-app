@@ -56,6 +56,25 @@ Detail report types reuse improved shared components (`IncomeExpenseCard`, `Part
 - **Overview:** `ReportsViewModel` loads five repository calls in parallel (`async` + `awaitAll`). Partial success is allowed; error is shown only when every call fails.
 - **Net worth:** Points filtered client-side to the selected `YearMonth` (API returns daily series from 1970; UI previously showed arbitrary first 15 rows).
 
+## Overview cache (in-memory)
+
+`ReportsOverviewCache` stores assembled `ReportsOverview` snapshots per `YearMonth`:
+
+| Month | TTL | Rationale |
+|-------|-----|-----------|
+| Current | 15 min | Transactions and balances change often |
+| Previous | 1 hour | May still receive back-dated edits |
+| Older | 7 days | Historical months rarely change |
+
+**Behaviour (stale-while-revalidate):**
+
+1. Navigate to a month → if a **fresh** cache hit exists, show immediately (no network).
+2. If **stale** → show cached data, refresh in the background (`isRefreshing`).
+3. Pull-to-refresh → invalidate that month and force a network load.
+4. Logout → `LocalDataCleaner` clears the cache (avoids cross-user leakage).
+
+TTLs live in `ReportsCachePolicy`. Room persistence is a possible follow-up if offline report viewing is required.
+
 ## Future enhancements (out of scope)
 
 - Vico line/bar charts for net worth and category donut
