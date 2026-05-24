@@ -153,12 +153,6 @@ fun DashboardScreen(
                             )
                         }
 
-                        if (uiState.financeExperienceMode == FinanceExperienceMode.GUIDED) {
-                            item {
-                                ExperienceModeCard()
-                            }
-                        }
-
                         // Net Worth Card
                         item {
                             NetWorthCard(
