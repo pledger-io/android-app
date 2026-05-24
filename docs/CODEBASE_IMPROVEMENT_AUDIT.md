@@ -21,7 +21,7 @@ Legend: `[x]` done, `[~]` in progress, `[ ]` not started.
 - [x] High #8: instrumented/UI test coverage started (`androidTest` smoke test + CI instrumented job).
 - [x] Medium #9: `allowBackup` hardened (`false`).
 - [x] Medium #10: `CurrencyProvider` singleton access removed (`getInstance`/`setInstance` retired; formatting no longer relies on static provider state).
-- [~] Medium #11: migration bridge added (`domain/common/Resource` alias), enabling phased import migration away from `util.Resource`.
+- [~] Medium #11: migration bridge added and domain-layer imports moved to `domain/common/Resource`; data/ui layers still pending for full completion.
 - [~] Medium #12: transaction offline fallback improved for date/type/text filters and now explicitly errors for unsupported offline ID filters (category/expense/contract); full offline parity still pending schema/API alignment.
 - [x] Medium #13: `SyncWorker` now classifies transient vs permanent failures (`IOException` retry, auth failures fail).
 - [x] Medium #14: CI lint gate added (`lintDebug`) with baseline to enforce no new lint debt.

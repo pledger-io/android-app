@@ -1,7 +1,7 @@
 package com.pledgerio.app.domain.repository
 
 import com.pledgerio.app.domain.model.Contract
-import com.pledgerio.app.util.Resource
+import com.pledgerio.app.domain.common.Resource
 import kotlinx.coroutines.flow.Flow
 
 interface ContractRepository {
