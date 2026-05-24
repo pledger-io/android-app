@@ -13,6 +13,7 @@ import coil.ImageLoader
 import coil.Coil
 import com.pledgerio.app.util.AppLog
 import com.pledgerio.app.util.CurrencyProvider
+import com.pledgerio.app.util.DebugLogcatNoiseFilter
 import com.pledgerio.app.util.SyncWorker
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -45,6 +46,7 @@ class PledgerApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        DebugLogcatNoiseFilter.installIfDebug()
         runBlocking(Dispatchers.IO) {
             LocaleManager.apply(userPreferences.appLocaleOnce())
         }
