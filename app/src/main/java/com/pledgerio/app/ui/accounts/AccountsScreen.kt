@@ -33,9 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,10 +59,11 @@ import com.pledgerio.app.ui.components.LastUpdatedIndicator
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
+import com.pledgerio.app.ui.components.LazyListPaginationEffect
 import com.pledgerio.app.ui.components.PledgerTopBar
-import com.pledgerio.app.ui.theme.EmeraldGreen
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.IncomeGreen
+import com.pledgerio.app.ui.theme.PledgerThemeExt
 import com.pledgerio.app.util.formatCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,23 +89,14 @@ fun AccountsScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    val shouldLoadMoreCounterparties by remember {
-        derivedStateOf {
-            if (uiState.filter != AccountListFilter.COUNTERPARTY) return@derivedStateOf false
-            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            val total = listState.layoutInfo.totalItemsCount
-            lastVisible >= total - 5 &&
-                !uiState.isLoadingCounterparties &&
-                !uiState.isLoadingMoreCounterparties &&
-                uiState.hasMoreCounterparties
-        }
-    }
-
-    LaunchedEffect(shouldLoadMoreCounterparties) {
-        if (shouldLoadMoreCounterparties) {
-            viewModel.loadMoreCounterparties()
-        }
-    }
+    LazyListPaginationEffect(
+        listState = listState,
+        enabled = uiState.filter == AccountListFilter.COUNTERPARTY &&
+            !uiState.isLoadingCounterparties &&
+            !uiState.isLoadingMoreCounterparties &&
+            uiState.hasMoreCounterparties,
+        onLoadMore = viewModel::loadMoreCounterparties,
+    )
 
     val accountsSubtitle = accountsListSubtitle(uiState)
     val hasOwned = uiState.ownedAccounts.isNotEmpty()
@@ -250,7 +240,7 @@ fun AccountsScreen(
                                                         .padding(32.dp),
                                                     contentAlignment = Alignment.Center,
                                                 ) {
-                                                    CircularProgressIndicator(color = EmeraldGreen)
+                                                    CircularProgressIndicator(color = PledgerThemeExt.brandAccent)
                                                 }
                                             }
                                         }
@@ -321,7 +311,7 @@ fun AccountsScreen(
                                         CircularProgressIndicator(
                                             modifier = Modifier.size(24.dp),
                                             strokeWidth = 2.dp,
-                                            color = EmeraldGreen,
+                                            color = PledgerThemeExt.brandAccent,
                                         )
                                     }
                                 }
@@ -493,7 +483,7 @@ private fun CounterpartiesBrowseCard(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = stringResource(R.string.content_description_browse_parties),
-                tint = EmeraldGreen,
+                tint = PledgerThemeExt.brandAccent,
             )
         }
     }
@@ -552,7 +542,7 @@ private fun AccountSectionHeader(section: AccountSection) {
             Icon(
                 imageVector = section.group.icon(),
                 contentDescription = null,
-                tint = EmeraldGreen,
+                tint = PledgerThemeExt.brandAccent,
             )
             Spacer(modifier = Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {

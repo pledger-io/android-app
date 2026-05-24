@@ -40,17 +40,19 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.Category
 import com.pledgerio.app.ui.components.EmptyScreen
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar
-import com.pledgerio.app.ui.theme.EmeraldGreen
 import com.pledgerio.app.ui.theme.ExpenseRed
+import com.pledgerio.app.ui.theme.PledgerThemeExt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,6 +61,11 @@ fun CategoriesScreen(
     viewModel: CategoriesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val screenSubtitle = if (uiState.categoryCount == 0) {
+        stringResource(R.string.categories_subtitle_empty)
+    } else {
+        stringResource(R.string.categories_count_available, uiState.categoryCount)
+    }
 
     uiState.editor?.let { editor ->
         CategoryEditorDialog(
@@ -74,14 +81,14 @@ fun CategoriesScreen(
     uiState.pendingDelete?.let { category ->
         AlertDialog(
             onDismissRequest = viewModel::dismissDeleteDialog,
-            title = { Text("Delete category?") },
-            text = { Text("This removes \"${category.name}\" from your category list.") },
+            title = { Text(stringResource(R.string.categories_delete_title)) },
+            text = { Text(stringResource(R.string.categories_delete_message, category.name)) },
             confirmButton = {
                 TextButton(
                     onClick = viewModel::confirmDelete,
                     enabled = !uiState.isSaving,
                 ) {
-                    Text("Delete", color = ExpenseRed)
+                    Text(stringResource(R.string.action_delete), color = ExpenseRed)
                 }
             },
             dismissButton = {
@@ -89,7 +96,7 @@ fun CategoriesScreen(
                     onClick = viewModel::dismissDeleteDialog,
                     enabled = !uiState.isSaving,
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             },
         )
@@ -98,8 +105,8 @@ fun CategoriesScreen(
     Scaffold(
         topBar = {
             PledgerTopBar(
-                title = "Manage categories",
-                subtitle = uiState.subtitle,
+                title = stringResource(R.string.categories_title),
+                subtitle = screenSubtitle,
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -110,8 +117,8 @@ fun CategoriesScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = viewModel::openCreateEditor,
-                containerColor = EmeraldGreen,
-                text = { Text("New category") },
+                containerColor = PledgerThemeExt.brandAccent,
+                text = { Text(stringResource(R.string.categories_new)) },
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
             )
         },
@@ -160,17 +167,17 @@ fun CategoriesScreen(
                                 EmptyScreen(
                                     icon = Icons.Default.Category,
                                     title = if (uiState.searchQuery.isBlank()) {
-                                        "No categories yet"
+                                        stringResource(R.string.categories_empty_title)
                                     } else {
-                                        "No categories found"
+                                        stringResource(R.string.categories_empty_search_title)
                                     },
                                     message = if (uiState.searchQuery.isBlank()) {
-                                        "Create your first category to keep transactions organized."
+                                        stringResource(R.string.categories_empty_body)
                                     } else {
-                                        "Try a different search term or add a new category."
+                                        stringResource(R.string.categories_empty_search_body)
                                     },
                                     actionLabel = if (uiState.searchQuery.isBlank()) {
-                                        "Create category"
+                                        stringResource(R.string.categories_create_first)
                                     } else {
                                         null
                                     },
@@ -215,7 +222,7 @@ private fun CategoriesSummaryCard(total: Int) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Category library",
+                    text = stringResource(R.string.categories_library_title),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -225,7 +232,7 @@ private fun CategoriesSummaryCard(total: Int) {
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = "Use concise names for faster search in transaction forms.",
+                    text = stringResource(R.string.categories_library_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -234,7 +241,7 @@ private fun CategoriesSummaryCard(total: Int) {
                 modifier = Modifier
                     .size(40.dp)
                     .background(
-                        color = EmeraldGreen.copy(alpha = 0.16f),
+                        color = PledgerThemeExt.brandAccent.copy(alpha = 0.16f),
                         shape = CircleShape,
                     ),
                 contentAlignment = Alignment.Center,
@@ -242,7 +249,7 @@ private fun CategoriesSummaryCard(total: Int) {
                 Icon(
                     imageVector = Icons.Default.Category,
                     contentDescription = null,
-                    tint = EmeraldGreen,
+                    tint = PledgerThemeExt.brandAccent,
                 )
             }
         }
@@ -258,7 +265,7 @@ private fun CategorySearchField(
         value = query,
         onValueChange = onQueryChange,
         modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text("Search categories…") },
+        placeholder = { Text(stringResource(R.string.categories_search)) },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
         trailingIcon = {
             if (query.isNotBlank()) {
@@ -344,24 +351,36 @@ private fun CategoryEditorDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(state.title) },
+        title = {
+            Text(
+                if (state.isEditing) {
+                    stringResource(R.string.categories_edit_title)
+                } else {
+                    stringResource(R.string.categories_new)
+                },
+            )
+        },
         text = {
             Column {
                 OutlinedTextField(
                     value = state.name,
                     onValueChange = onNameChange,
-                    label = { Text("Name") },
-                    placeholder = { Text("Groceries, Transport, Utilities…") },
+                    label = { Text(stringResource(R.string.categories_name_label)) },
+                    placeholder = { Text(stringResource(R.string.categories_name_hint)) },
                     singleLine = true,
-                    isError = state.nameError != null,
-                    supportingText = state.nameError?.let { { Text(it) } },
+                    isError = state.hasNameError,
+                    supportingText = if (state.hasNameError) {
+                        { Text(stringResource(R.string.categories_name_required)) }
+                    } else {
+                        null
+                    },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedTextField(
                     value = state.description,
                     onValueChange = onDescriptionChange,
-                    label = { Text("Description (optional)") },
-                    placeholder = { Text("Helps teammates understand when to use it") },
+                    label = { Text(stringResource(R.string.categories_description_label)) },
+                    placeholder = { Text(stringResource(R.string.categories_description_hint)) },
                     minLines = 2,
                     maxLines = 3,
                     modifier = Modifier
@@ -389,7 +408,13 @@ private fun CategoryEditorDialog(
                         strokeWidth = 2.dp,
                     )
                 } else {
-                    Text(state.confirmLabel)
+                    Text(
+                        if (state.isEditing) {
+                            stringResource(R.string.action_save)
+                        } else {
+                            stringResource(R.string.action_create)
+                        },
+                    )
                 }
             }
         },

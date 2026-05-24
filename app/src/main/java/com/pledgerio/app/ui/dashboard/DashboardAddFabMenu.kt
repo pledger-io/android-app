@@ -46,7 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.pledgerio.app.R
-import com.pledgerio.app.ui.theme.EmeraldGreen
+import com.pledgerio.app.ui.theme.PledgerThemeExt
 
 @Composable
 fun DashboardAddFabMenu(
@@ -107,7 +107,7 @@ fun DashboardAddFabMenu(
                     ) {
                         AddMenuActionRow(
                             icon = Icons.Default.Receipt,
-                            iconTint = EmeraldGreen,
+                            iconTint = PledgerThemeExt.brandAccent,
                             title = stringResource(R.string.fab_new_transaction),
                             subtitle = stringResource(R.string.fab_new_transaction_subtitle),
                             onClick = {
@@ -141,7 +141,7 @@ fun DashboardAddFabMenu(
 
             FloatingActionButton(
                 onClick = { onExpandedChange(!expanded) },
-                containerColor = EmeraldGreen,
+                containerColor = PledgerThemeExt.brandAccent,
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,

@@ -36,11 +36,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -53,9 +50,10 @@ import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.ui.components.EmptyScreen
 import com.pledgerio.app.ui.components.LastUpdatedIndicator
+import com.pledgerio.app.ui.components.LazyListPaginationEffect
 import com.pledgerio.app.ui.components.MonthNavigator
 import com.pledgerio.app.ui.components.PledgerTopBar
-import com.pledgerio.app.ui.theme.EmeraldGreen
+import com.pledgerio.app.ui.theme.PledgerThemeExt
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.dashboard.TransactionItem
@@ -73,23 +71,11 @@ fun TransactionsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
 
-    val shouldLoadMore by remember {
-        derivedStateOf {
-            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            val totalItems = listState.layoutInfo.totalItemsCount
-            totalItems > 0 &&
-                lastVisibleItem >= totalItems - 5 &&
-                !uiState.isLoadingMore &&
-                uiState.hasMoreInMonth &&
-                !uiState.isLoading
-        }
-    }
-
-    LaunchedEffect(shouldLoadMore) {
-        if (shouldLoadMore) {
-            viewModel.loadMore()
-        }
-    }
+    LazyListPaginationEffect(
+        listState = listState,
+        enabled = !uiState.isLoadingMore && uiState.hasMoreInMonth && !uiState.isLoading,
+        onLoadMore = viewModel::loadMore,
+    )
 
     Scaffold(
         topBar = {
@@ -109,7 +95,7 @@ fun TransactionsScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onNavigateToAdd,
-                containerColor = EmeraldGreen,
+                containerColor = PledgerThemeExt.brandAccent,
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add transaction")
             }

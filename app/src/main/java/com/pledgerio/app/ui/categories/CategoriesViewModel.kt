@@ -4,16 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Category
 import com.pledgerio.app.domain.repository.CategoryRepository
+import com.pledgerio.app.ui.catalog.observeCatalogSearch
 import com.pledgerio.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,12 +18,10 @@ data class CategoryEditorUiState(
     val id: Long? = null,
     val name: String = "",
     val description: String = "",
-    val nameError: String? = null,
+    val hasNameError: Boolean = false,
     val serverError: String? = null,
 ) {
     val isEditing: Boolean get() = id != null
-    val title: String get() = if (isEditing) "Edit category" else "New category"
-    val confirmLabel: String get() = if (isEditing) "Save" else "Create"
 }
 
 data class CategoriesUiState(
@@ -40,15 +34,9 @@ data class CategoriesUiState(
     val editor: CategoryEditorUiState? = null,
     val pendingDelete: Category? = null,
 ) {
-    val subtitle: String
-        get() = if (categories.isEmpty()) {
-            "Create categories for cleaner transaction insights"
-        } else {
-            "${categories.size} available"
-        }
+    val categoryCount: Int get() = categories.size
 }
 
-@OptIn(FlowPreview::class, kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class CategoriesViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
@@ -121,7 +109,7 @@ class CategoriesViewModel @Inject constructor(
             state.copy(
                 editor = editor.copy(
                     name = value,
-                    nameError = null,
+                    hasNameError = false,
                     serverError = null,
                 ),
             )
@@ -145,7 +133,7 @@ class CategoriesViewModel @Inject constructor(
         val cleanName = editor.name.trim()
         if (cleanName.isBlank()) {
             _uiState.update { state ->
-                state.copy(editor = editor.copy(nameError = "Name is required"))
+                state.copy(editor = editor.copy(hasNameError = true))
             }
             return
         }
@@ -220,22 +208,17 @@ class CategoriesViewModel @Inject constructor(
     }
 
     private fun observeCategories() {
-        viewModelScope.launch {
-            searchQueryFlow
-                .debounce(250L)
-                .distinctUntilChanged()
-                .flatMapLatest { query ->
-                    if (query.isBlank()) categoryRepository.observeCategories()
-                    else categoryRepository.observeMatching(query)
-                }
-                .collect { categories ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            categories = categories,
-                        )
-                    }
-                }
+        observeCatalogSearch(
+            searchQueryFlow = searchQueryFlow,
+            observeAll = categoryRepository::observeCategories,
+            observeMatching = categoryRepository::observeMatching,
+        ) { categories ->
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    categories = categories,
+                )
+            }
         }
     }
 }

@@ -206,14 +206,6 @@ fun TransactionFormScreen(
                             onSelected = viewModel::onTypeChanged,
                         )
 
-                        if (uiState.financeExperienceMode == FinanceExperienceMode.GUIDED) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            ExperienceModeBanner(
-                                title = uiState.financeExperienceMode.formBannerTitle(),
-                                hint = uiState.financeExperienceMode.formBannerHint(),
-                            )
-                        }
-
                         if (uiState.showTemplatesSection) {
                             Spacer(modifier = Modifier.height(12.dp))
                             TransactionTemplatesSection(

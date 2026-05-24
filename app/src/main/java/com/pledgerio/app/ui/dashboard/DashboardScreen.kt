@@ -65,7 +65,7 @@ import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar
-import com.pledgerio.app.ui.theme.EmeraldGreen
+import com.pledgerio.app.ui.theme.PledgerThemeExt
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.IncomeGreen
 import com.pledgerio.app.util.formatCurrency
@@ -375,7 +375,7 @@ fun TransactionItem(
                     when (transaction.type) {
                         TransactionType.DEBIT -> IncomeGreen.copy(alpha = 0.15f)
                         TransactionType.CREDIT -> ExpenseRed.copy(alpha = 0.15f)
-                        TransactionType.TRANSFER -> EmeraldGreen.copy(alpha = 0.15f)
+                        TransactionType.TRANSFER -> PledgerThemeExt.brandAccent.copy(alpha = 0.15f)
                     }
                 ),
             contentAlignment = Alignment.Center,
@@ -390,7 +390,7 @@ fun TransactionItem(
                 tint = when (transaction.type) {
                     TransactionType.DEBIT -> IncomeGreen
                     TransactionType.CREDIT -> ExpenseRed
-                    TransactionType.TRANSFER -> EmeraldGreen
+                    TransactionType.TRANSFER -> PledgerThemeExt.brandAccent
                 },
                 modifier = Modifier.size(20.dp),
             )

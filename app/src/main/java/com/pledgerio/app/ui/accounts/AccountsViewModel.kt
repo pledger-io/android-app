@@ -10,13 +10,13 @@ import com.pledgerio.app.domain.model.AccountTypeCatalog
 import com.pledgerio.app.domain.model.AccountTypeOption
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.util.Resource
+import com.pledgerio.app.util.SearchDefaults
 import com.pledgerio.app.util.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -185,7 +185,7 @@ class AccountsViewModel @Inject constructor(
         _uiState.update { it.copy(counterpartySearchQuery = query) }
         counterpartySearchJob?.cancel()
         counterpartySearchJob = viewModelScope.launch {
-            delay(SEARCH_DEBOUNCE_MS)
+            delay(SearchDefaults.ACCOUNT_SEARCH_DEBOUNCE_MS)
             loadCounterpartyPage(reset = true)
         }
     }
@@ -308,6 +308,5 @@ class AccountsViewModel @Inject constructor(
 
     companion object {
         private const val COUNTERPARTY_PAGE_SIZE = 50
-        private const val SEARCH_DEBOUNCE_MS = 350L
     }
 }

@@ -13,6 +13,7 @@ import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.util.Resource
+import com.pledgerio.app.util.SearchDefaults
 import com.pledgerio.app.util.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
@@ -98,7 +99,6 @@ class TransactionsViewModel @Inject constructor(
 
     companion object {
         private const val PAGE_SIZE = 25
-        private const val SEARCH_DEBOUNCE_MS = 250L
     }
 
     init {
@@ -175,7 +175,7 @@ class TransactionsViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             queryFlow
-                .debounce(SEARCH_DEBOUNCE_MS)
+                .debounce(SearchDefaults.DEBOUNCE_MS)
                 .distinctUntilChanged()
                 .onEach { if (it.isNotBlank()) onLoading() }
                 .flatMapLatest { query ->

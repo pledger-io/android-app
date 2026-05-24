@@ -4,15 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Tag
 import com.pledgerio.app.domain.repository.TagRepository
+import com.pledgerio.app.ui.catalog.observeCatalogSearch
 import com.pledgerio.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -46,7 +43,6 @@ data class TagsUiState(
         }
 }
 
-@OptIn(FlowPreview::class, kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class TagsViewModel @Inject constructor(
     private val tagRepository: TagRepository,
@@ -188,22 +184,17 @@ class TagsViewModel @Inject constructor(
     }
 
     private fun observeTags() {
-        viewModelScope.launch {
-            searchQueryFlow
-                .debounce(250L)
-                .distinctUntilChanged()
-                .flatMapLatest { query ->
-                    if (query.isBlank()) tagRepository.observeTags()
-                    else tagRepository.observeMatching(query)
-                }
-                .collect { tags ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            tags = tags,
-                        )
-                    }
-                }
+        observeCatalogSearch(
+            searchQueryFlow = searchQueryFlow,
+            observeAll = tagRepository::observeTags,
+            observeMatching = tagRepository::observeMatching,
+        ) { tags ->
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    tags = tags,
+                )
+            }
         }
     }
 }

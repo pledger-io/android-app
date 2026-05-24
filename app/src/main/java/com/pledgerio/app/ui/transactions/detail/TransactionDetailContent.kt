@@ -41,9 +41,10 @@ import com.pledgerio.app.domain.model.TransactionSplit
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.ui.components.AccountIcon
 import com.pledgerio.app.ui.components.PledgerCard
-import com.pledgerio.app.ui.theme.EmeraldGreen
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.IncomeGreen
+import com.pledgerio.app.ui.theme.PledgerGreen
+import com.pledgerio.app.ui.theme.PledgerThemeExt
 import com.pledgerio.app.ui.transactions.form.TransactionFormLabels
 import com.pledgerio.app.util.CurrencyProvider
 import com.pledgerio.app.util.formatCurrency
@@ -58,7 +59,7 @@ data class TransactionTypeStyle(
 fun transactionTypeStyle(type: TransactionType): TransactionTypeStyle = when (type) {
     TransactionType.DEBIT -> TransactionTypeStyle("Income", Icons.Default.TrendingUp, IncomeGreen)
     TransactionType.CREDIT -> TransactionTypeStyle("Expense", Icons.Default.TrendingDown, ExpenseRed)
-    TransactionType.TRANSFER -> TransactionTypeStyle("Transfer", Icons.Default.SwapHoriz, EmeraldGreen)
+    TransactionType.TRANSFER -> TransactionTypeStyle("Transfer", Icons.Default.SwapHoriz, PledgerGreen)
 }
 
 fun transactionAmountPrefix(type: TransactionType): String = when (type) {
@@ -277,12 +278,12 @@ fun TransactionDetailTagsCard(
             tags.forEach { tag ->
                 Surface(
                     shape = RoundedCornerShape(20.dp),
-                    color = EmeraldGreen.copy(alpha = 0.12f),
+                    color = PledgerThemeExt.brandAccent.copy(alpha = 0.12f),
                 ) {
                     Text(
                         text = tag,
                         style = MaterialTheme.typography.labelLarge,
-                        color = EmeraldGreen,
+                        color = PledgerThemeExt.brandAccent,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     )
                 }

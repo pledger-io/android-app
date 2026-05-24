@@ -30,7 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +46,7 @@ import com.pledgerio.app.ui.components.AccountIcon
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
+import com.pledgerio.app.ui.components.LazyListPaginationEffect
 import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.util.formatDisplay
 import com.pledgerio.app.ui.dashboard.TransactionItem
@@ -72,28 +72,19 @@ fun AccountDetailScreen(
         }
     }
 
-    val shouldLoadMore by remember {
-        derivedStateOf {
-            if (uiState.transactions.isEmpty() || !uiState.hasMore || uiState.isLoadingMore || uiState.isLoading) {
-                return@derivedStateOf false
-            }
-            val layoutInfo = listState.layoutInfo
-            val totalItems = layoutInfo.totalItemsCount
-            if (totalItems == 0) return@derivedStateOf false
-            val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            val nearEndOfList = lastVisibleItem >= totalItems - 5
-            // Short lists may not scroll; still fetch the next page when more exist server-side.
-            val shortListWithMoreRemaining =
-                uiState.transactions.size < 25 && totalItems < 20 && uiState.hasMore
-            nearEndOfList || shortListWithMoreRemaining
-        }
-    }
-
-    LaunchedEffect(shouldLoadMore) {
-        if (shouldLoadMore) {
-            viewModel.loadNextPage()
-        }
-    }
+    LazyListPaginationEffect(
+        listState = listState,
+        enabled = uiState.transactions.isNotEmpty() &&
+            uiState.hasMore &&
+            !uiState.isLoadingMore &&
+            !uiState.isLoading,
+        alsoLoadWhen = {
+            uiState.transactions.size < 25 &&
+                listState.layoutInfo.totalItemsCount < 20 &&
+                uiState.hasMore
+        },
+        onLoadMore = viewModel::loadNextPage,
+    )
 
     Scaffold(
         topBar = {

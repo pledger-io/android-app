@@ -8,12 +8,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
@@ -27,21 +25,15 @@ import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import com.pledgerio.app.domain.model.FinanceExperienceMode
-import com.pledgerio.app.domain.model.ThemeMode
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
@@ -57,7 +49,6 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -66,7 +57,6 @@ import androidx.core.content.ContextCompat
 import androidx.activity.compose.LocalActivity
 import androidx.appcompat.app.AppCompatActivity
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.pledgerio.app.domain.model.AppLocale
 import com.pledgerio.app.ui.util.localizedDescription
 import com.pledgerio.app.ui.util.localizedName
 import com.pledgerio.app.util.BiometricAvailability
@@ -119,189 +109,49 @@ fun SettingsScreen(
     )
 
     if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Sign Out") },
-            text = { Text("Are you sure you want to sign out?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showLogoutDialog = false
-                        viewModel.logout(onLoggedOut = onLogout)
-                    }
-                ) {
-                    Text("Sign Out", color = ExpenseRed)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Cancel")
-                }
+        SettingsLogoutDialog(
+            onDismiss = { showLogoutDialog = false },
+            onConfirm = {
+                showLogoutDialog = false
+                viewModel.logout(onLoggedOut = onLogout)
             },
         )
     }
 
     if (uiState.showCurrencyPicker) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissCurrencyPicker,
-            title = { Text("Display currency") },
-            text = {
-                if (uiState.currencies.isEmpty()) {
-                    Text("Loading currencies…")
-                } else {
-                    LazyColumn(modifier = Modifier.heightIn(max = 360.dp)) {
-                        items(uiState.currencies, key = { it.code }) { currency ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { viewModel.selectCurrency(currency.code) }
-                                    .padding(vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                RadioButton(
-                                    selected = currency.code == uiState.displayCurrencyCode,
-                                    onClick = { viewModel.selectCurrency(currency.code) },
-                                )
-                                Column {
-                                    Text(
-                                        text = currency.code,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.Medium,
-                                    )
-                                    Text(
-                                        text = "${currency.name} (${currency.symbol})",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = viewModel::dismissCurrencyPicker) {
-                    Text("Cancel")
-                }
-            },
+        SettingsCurrencyPickerDialog(
+            uiState = uiState,
+            onDismiss = viewModel::dismissCurrencyPicker,
+            onSelectCurrency = viewModel::selectCurrency,
         )
     }
 
     if (uiState.showThemePicker) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissThemePicker,
-            title = { Text(stringResource(R.string.settings_theme)) },
-            text = {
-                Column {
-                    ThemeMode.entries.forEach { mode ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { viewModel.selectTheme(mode) }
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            RadioButton(
-                                selected = uiState.themeMode == mode,
-                                onClick = { viewModel.selectTheme(mode) },
-                            )
-                            Text(
-                                text = mode.localizedName(),
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = viewModel::dismissThemePicker) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
+        SettingsThemePickerDialog(
+            selected = uiState.themeMode,
+            onDismiss = viewModel::dismissThemePicker,
+            onSelect = viewModel::selectTheme,
         )
     }
 
     if (uiState.showLanguagePicker) {
         val activity = LocalActivity.current as? AppCompatActivity
-        AlertDialog(
-            onDismissRequest = viewModel::dismissLanguagePicker,
-            title = { Text(stringResource(R.string.settings_language)) },
-            text = {
-                Column {
-                    AppLocale.entries.forEach { locale ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    viewModel.selectAppLocale(locale) {
-                                        activity?.recreate()
-                                    }
-                                }
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            RadioButton(
-                                selected = uiState.appLocale == locale,
-                                onClick = {
-                                    viewModel.selectAppLocale(locale) {
-                                        activity?.recreate()
-                                    }
-                                },
-                            )
-                            Text(
-                                text = locale.localizedName(),
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = viewModel::dismissLanguagePicker) {
-                    Text(stringResource(R.string.cancel))
+        SettingsLanguagePickerDialog(
+            selected = uiState.appLocale,
+            onDismiss = viewModel::dismissLanguagePicker,
+            onSelect = { locale ->
+                viewModel.selectAppLocale(locale) {
+                    activity?.recreate()
                 }
             },
         )
     }
 
     if (uiState.showExperiencePicker) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissExperiencePicker,
-            title = { Text(stringResource(R.string.settings_experience)) },
-            text = {
-                Column {
-                    FinanceExperienceMode.entries.forEach { mode ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { viewModel.selectFinanceExperienceMode(mode) }
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            RadioButton(
-                                selected = uiState.financeExperienceMode == mode,
-                                onClick = { viewModel.selectFinanceExperienceMode(mode) },
-                            )
-                            Column {
-                                Text(
-                                    text = mode.localizedName(),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                )
-                                Text(
-                                    text = mode.localizedDescription(),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = viewModel::dismissExperiencePicker) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
+        SettingsExperiencePickerDialog(
+            selected = uiState.financeExperienceMode,
+            onDismiss = viewModel::dismissExperiencePicker,
+            onSelect = viewModel::selectFinanceExperienceMode,
         )
     }
 
@@ -486,98 +336,5 @@ fun SettingsScreen(
 
             item { Spacer(modifier = Modifier.height(80.dp)) }
         }
-    }
-}
-
-@Composable
-private fun SettingsSection(
-    title: String,
-    content: @Composable () -> Unit,
-) {
-    Column(modifier = Modifier.padding(vertical = 8.dp)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        )
-        content()
-    }
-}
-
-@Composable
-private fun SettingsItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-    enabled: Boolean = true,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = title,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(24.dp),
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun SettingsToggle(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    enabled: Boolean = true,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = title,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(24.dp),
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            enabled = enabled,
-        )
     }
 }

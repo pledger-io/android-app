@@ -31,7 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.TransactionType
-import com.pledgerio.app.ui.theme.EmeraldGreen
+import com.pledgerio.app.ui.theme.PledgerThemeExt
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.IncomeGreen
 
@@ -67,7 +67,7 @@ fun TransactionTypeSelector(
                 label = stringResource(R.string.transaction_type_transfer),
                 icon = Icons.Default.SwapHoriz,
                 selected = selected == TransactionType.TRANSFER,
-                accent = EmeraldGreen,
+                accent = PledgerThemeExt.brandAccent,
                 onClick = { onSelected(TransactionType.TRANSFER) },
                 modifier = Modifier.weight(1f),
             )

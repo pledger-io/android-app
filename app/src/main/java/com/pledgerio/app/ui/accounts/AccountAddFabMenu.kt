@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.AccountTypeGroup
 import com.pledgerio.app.domain.model.AccountTypeOption
-import com.pledgerio.app.ui.theme.EmeraldGreen
+import com.pledgerio.app.ui.theme.PledgerThemeExt
 
 @Composable
 fun AccountAddFabMenu(
@@ -135,7 +135,7 @@ fun AccountAddFabMenu(
 
             FloatingActionButton(
                 onClick = { onExpandedChange(!expanded) },
-                containerColor = EmeraldGreen,
+                containerColor = PledgerThemeExt.brandAccent,
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -176,13 +176,13 @@ private fun AddPickerEntryRow(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(EmeraldGreen.copy(alpha = 0.15f)),
+                .background(PledgerThemeExt.brandAccent.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = accountTypeIcon(entry.iconTypeCode),
                 contentDescription = null,
-                tint = EmeraldGreen,
+                tint = PledgerThemeExt.brandAccent,
                 modifier = Modifier.size(22.dp),
             )
         }
@@ -225,13 +225,13 @@ private fun AddTypeRow(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(EmeraldGreen.copy(alpha = 0.15f)),
+                .background(PledgerThemeExt.brandAccent.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = accountTypeIcon(option.code),
                 contentDescription = null,
-                tint = EmeraldGreen,
+                tint = PledgerThemeExt.brandAccent,
                 modifier = Modifier.size(22.dp),
             )
         }

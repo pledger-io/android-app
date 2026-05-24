@@ -38,7 +38,7 @@ import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar
-import com.pledgerio.app.ui.theme.EmeraldGreen
+import com.pledgerio.app.ui.theme.PledgerThemeExt
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.WarningAmber
 import com.pledgerio.app.util.formatCurrency
@@ -149,7 +149,7 @@ fun BudgetDetailScreen(
                                 color = when {
                                     budget.percentUsed > 0.9f -> ExpenseRed
                                     budget.percentUsed > 0.7f -> WarningAmber
-                                    else -> EmeraldGreen
+                                    else -> PledgerThemeExt.brandAccent
                                 },
                             )
                         }

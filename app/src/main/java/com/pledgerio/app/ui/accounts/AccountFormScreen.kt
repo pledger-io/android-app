@@ -48,7 +48,7 @@ import com.pledgerio.app.domain.model.AccountTypeOption
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar
-import com.pledgerio.app.ui.theme.EmeraldGreen
+import com.pledgerio.app.ui.theme.PledgerThemeExt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -144,7 +144,7 @@ fun AccountFormScreen(
                             Icon(
                                 imageVector = accountTypeIcon(uiState.typeCode),
                                 contentDescription = null,
-                                tint = EmeraldGreen,
+                                tint = PledgerThemeExt.brandAccent,
                                 modifier = Modifier.size(28.dp),
                             )
                             Spacer(modifier = Modifier.width(12.dp))

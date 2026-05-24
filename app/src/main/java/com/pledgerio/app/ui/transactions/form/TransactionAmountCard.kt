@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pledgerio.app.R
 import com.pledgerio.app.ui.components.PledgerCard
-import com.pledgerio.app.ui.theme.EmeraldGreen
+import com.pledgerio.app.ui.theme.PledgerThemeExt
 import com.pledgerio.app.util.formatDisplay
 import java.time.LocalDate
 
@@ -138,8 +138,8 @@ private fun CompactCurrencySelector(
                 )
             },
             colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = EmeraldGreen.copy(alpha = 0.18f),
-                selectedLabelColor = EmeraldGreen,
+                selectedContainerColor = PledgerThemeExt.brandAccent.copy(alpha = 0.18f),
+                selectedLabelColor = PledgerThemeExt.brandAccent,
             ),
         )
         DropdownMenu(

@@ -49,7 +49,7 @@ import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar
-import com.pledgerio.app.ui.theme.EmeraldGreen
+import com.pledgerio.app.ui.theme.PledgerThemeExt
 import com.pledgerio.app.ui.theme.ExpenseRed
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -114,7 +114,7 @@ fun TagsScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = viewModel::openCreateEditor,
-                containerColor = EmeraldGreen,
+                containerColor = PledgerThemeExt.brandAccent,
                 text = { Text("New tag") },
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
             )
@@ -238,7 +238,7 @@ private fun TagsSummaryCard(total: Int) {
                 modifier = Modifier
                     .size(40.dp)
                     .background(
-                        color = EmeraldGreen.copy(alpha = 0.16f),
+                        color = PledgerThemeExt.brandAccent.copy(alpha = 0.16f),
                         shape = CircleShape,
                     ),
                 contentAlignment = Alignment.Center,
@@ -246,7 +246,7 @@ private fun TagsSummaryCard(total: Int) {
                 Icon(
                     imageVector = Icons.Default.Tag,
                     contentDescription = null,
-                    tint = EmeraldGreen,
+                    tint = PledgerThemeExt.brandAccent,
                 )
             }
         }

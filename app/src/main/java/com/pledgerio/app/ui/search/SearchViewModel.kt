@@ -9,6 +9,7 @@ import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.util.Resource
+import com.pledgerio.app.util.SearchDefaults
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
@@ -48,7 +49,7 @@ class SearchViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             queryFlow
-                .debounce(300)
+                .debounce(SearchDefaults.DEBOUNCE_MS)
                 .distinctUntilChanged()
                 .collect { query ->
                     _uiState.update { it.copy(query = query) }

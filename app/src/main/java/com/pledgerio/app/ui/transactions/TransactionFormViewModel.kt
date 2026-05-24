@@ -22,6 +22,7 @@ import com.pledgerio.app.domain.repository.TagRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.ui.transactions.form.splitValidationIssue
 import com.pledgerio.app.util.Resource
+import com.pledgerio.app.util.SearchDefaults
 import com.pledgerio.app.util.TransactionTemplateStore
 import com.pledgerio.app.util.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -265,7 +266,7 @@ class TransactionFormViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             queryFlow
-                .debounce(SEARCH_DEBOUNCE_MS)
+                .debounce(SearchDefaults.DEBOUNCE_MS)
                 .distinctUntilChanged()
                 .onEach { if (it.isNotBlank()) onLoading() }
                 .flatMapLatest { query ->
@@ -287,7 +288,7 @@ class TransactionFormViewModel @Inject constructor(
     private fun observeTagSuggestions() {
         viewModelScope.launch {
             tagQueryFlow
-                .debounce(SEARCH_DEBOUNCE_MS)
+                .debounce(SearchDefaults.DEBOUNCE_MS)
                 .distinctUntilChanged()
                 .onEach { query ->
                     if (query.isNotBlank()) {
@@ -686,7 +687,7 @@ class TransactionFormViewModel @Inject constructor(
         _uiState.update { it.copy(sourceQuery = query, error = null, autoClassifyStatus = null) }
         sourceSearchJob?.cancel()
         sourceSearchJob = viewModelScope.launch {
-            delay(SEARCH_DEBOUNCE_MS)
+            delay(SearchDefaults.DEBOUNCE_MS)
             searchSourceAccounts(query)
         }
     }
@@ -695,7 +696,7 @@ class TransactionFormViewModel @Inject constructor(
         _uiState.update { it.copy(targetQuery = query, error = null, autoClassifyStatus = null) }
         targetSearchJob?.cancel()
         targetSearchJob = viewModelScope.launch {
-            delay(SEARCH_DEBOUNCE_MS)
+            delay(SearchDefaults.DEBOUNCE_MS)
             searchTargetAccounts(query)
         }
     }
@@ -1467,9 +1468,6 @@ class TransactionFormViewModel @Inject constructor(
         }
     }
 
-    companion object {
-        private const val SEARCH_DEBOUNCE_MS = 300L
-    }
 }
 
 internal fun List<TransactionSplitLineUi>.toDomainSplits(): List<TransactionSplit> {
