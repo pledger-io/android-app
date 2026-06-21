@@ -1,14 +1,14 @@
 package com.pledgerio.app.ui.accounts
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.Store
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.pledgerio.app.domain.model.Account
@@ -23,8 +23,8 @@ fun accountTypeIcon(typeCode: String): ImageVector {
         AccountType.CASH -> Icons.Default.Wallet
         AccountType.CREDITOR -> Icons.Default.Store
         AccountType.DEBTOR -> Icons.Default.Payments
-        AccountType.LOAN, AccountType.MORTGAGE, AccountType.LIABILITY -> Icons.Default.TrendingDown
-        AccountType.INVESTMENT -> Icons.Default.TrendingUp
+        AccountType.LOAN, AccountType.MORTGAGE, AccountType.LIABILITY -> Icons.AutoMirrored.Filled.TrendingDown
+        AccountType.INVESTMENT -> Icons.AutoMirrored.Filled.TrendingUp
         AccountType.CHECKING -> when (typeCode.lowercase()) {
             "joined", "joined_savings" -> Icons.Default.Group
             else -> Icons.Default.AccountBalance
@@ -39,7 +39,7 @@ fun AccountTypeGroup.icon(): ImageVector = when (this) {
     AccountTypeGroup.EVERYDAY -> Icons.Default.AccountBalance
     AccountTypeGroup.SAVINGS -> Icons.Default.Savings
     AccountTypeGroup.CREDIT -> Icons.Default.CreditCard
-    AccountTypeGroup.LIABILITIES -> Icons.Default.TrendingDown
+    AccountTypeGroup.LIABILITIES -> Icons.AutoMirrored.Filled.TrendingDown
     AccountTypeGroup.COUNTERPARTY -> Icons.Default.Payments
     AccountTypeGroup.OTHER -> Icons.Default.AccountBalance
 }

@@ -193,42 +193,58 @@ class ReportsViewModel @Inject constructor(
         type: ReportType,
         month: YearMonth,
     ) {
-        val result = when (type) {
-            ReportType.INCOME_EXPENSE -> reportRepository.getIncomeExpenseSummary(month)
-            ReportType.CATEGORY -> reportRepository.getCategoryBreakdown(month)
-            ReportType.BUDGET -> reportRepository.getBudgetPerformance(month)
-            ReportType.NET_WORTH -> reportRepository.getNetWorthTrend(month)
-            ReportType.BALANCE -> reportRepository.getAccountBalances(month)
+        when (type) {
+            ReportType.INCOME_EXPENSE -> applySingleReportResult(
+                result = reportRepository.getIncomeExpenseSummary(month),
+            ) { cleared, data ->
+                cleared.copy(incomeExpense = data)
+            }
+            ReportType.CATEGORY -> applySingleReportResult(
+                result = reportRepository.getCategoryBreakdown(month),
+            ) { cleared, data ->
+                cleared.copy(partitions = data)
+            }
+            ReportType.BALANCE -> applySingleReportResult(
+                result = reportRepository.getAccountBalances(month),
+            ) { cleared, data ->
+                cleared.copy(partitions = data)
+            }
+            ReportType.BUDGET -> applySingleReportResult(
+                result = reportRepository.getBudgetPerformance(month),
+            ) { cleared, data ->
+                cleared.copy(budgetItems = data)
+            }
+            ReportType.NET_WORTH -> applySingleReportResult(
+                result = reportRepository.getNetWorthTrend(month),
+            ) { cleared, data ->
+                cleared.copy(netWorthTrend = data.inMonth(month))
+            }
             ReportType.OVERVIEW -> return
         }
+    }
+
+    private fun baseSingleReportState(): ReportsUiState {
+        return _uiState.value.copy(
+            isLoading = false,
+            isRefreshing = false,
+            error = null,
+            overview = null,
+            lastUpdatedAtMillis = System.currentTimeMillis(),
+            incomeExpense = null,
+            partitions = emptyList(),
+            budgetItems = emptyList(),
+            netWorthTrend = emptyList(),
+        )
+    }
+
+    private inline fun <T> applySingleReportResult(
+        result: Resource<T>,
+        mapSuccess: (ReportsUiState, T) -> ReportsUiState,
+    ) {
         when (result) {
             is Resource.Success -> {
-                val cleared = _uiState.value.copy(
-                    isLoading = false,
-                    isRefreshing = false,
-                    error = null,
-                    overview = null,
-                    lastUpdatedAtMillis = System.currentTimeMillis(),
-                    incomeExpense = null,
-                    partitions = emptyList(),
-                    budgetItems = emptyList(),
-                    netWorthTrend = emptyList(),
-                )
-                _uiState.value = when (type) {
-                    ReportType.INCOME_EXPENSE -> cleared.copy(
-                        incomeExpense = result.data as IncomeExpenseSummary,
-                    )
-                    ReportType.CATEGORY, ReportType.BALANCE -> cleared.copy(
-                        partitions = result.data as List<PartitionAmount>,
-                    )
-                    ReportType.BUDGET -> cleared.copy(
-                        budgetItems = result.data as List<BudgetPerformanceItem>,
-                    )
-                    ReportType.NET_WORTH -> cleared.copy(
-                        netWorthTrend = (result.data as List<DatedAmount>).inMonth(month),
-                    )
-                    ReportType.OVERVIEW -> cleared
-                }
+                val cleared = baseSingleReportState()
+                _uiState.value = mapSuccess(cleared, result.data)
             }
             is Resource.Error -> {
                 _uiState.update {

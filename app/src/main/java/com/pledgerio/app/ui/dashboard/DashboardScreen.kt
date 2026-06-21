@@ -21,14 +21,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -376,9 +376,9 @@ fun TransactionItem(
         ) {
             Icon(
                 imageVector = when (transaction.type) {
-                    TransactionType.DEBIT -> Icons.Default.TrendingUp
-                    TransactionType.CREDIT -> Icons.Default.TrendingDown
-                    TransactionType.TRANSFER -> Icons.Default.TrendingUp
+                    TransactionType.DEBIT -> Icons.AutoMirrored.Filled.TrendingUp
+                    TransactionType.CREDIT -> Icons.AutoMirrored.Filled.TrendingDown
+                    TransactionType.TRANSFER -> Icons.AutoMirrored.Filled.TrendingUp
                 },
                 contentDescription = null,
                 tint = when (transaction.type) {

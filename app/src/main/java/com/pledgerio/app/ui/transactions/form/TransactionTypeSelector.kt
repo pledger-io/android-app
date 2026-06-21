@@ -11,9 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -49,7 +49,7 @@ fun TransactionTypeSelector(
         ) {
             TypeSegment(
                 label = stringResource(R.string.transaction_type_income),
-                icon = Icons.Default.TrendingUp,
+                icon = Icons.AutoMirrored.Filled.TrendingUp,
                 selected = selected == TransactionType.DEBIT,
                 accent = IncomeGreen,
                 onClick = { onSelected(TransactionType.DEBIT) },
@@ -57,7 +57,7 @@ fun TransactionTypeSelector(
             )
             TypeSegment(
                 label = stringResource(R.string.transaction_type_expense),
-                icon = Icons.Default.TrendingDown,
+                icon = Icons.AutoMirrored.Filled.TrendingDown,
                 selected = selected == TransactionType.CREDIT,
                 accent = ExpenseRed,
                 onClick = { onSelected(TransactionType.CREDIT) },
