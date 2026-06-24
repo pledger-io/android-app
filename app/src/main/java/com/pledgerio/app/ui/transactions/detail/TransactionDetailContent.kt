@@ -16,10 +16,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.South
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -57,8 +57,8 @@ data class TransactionTypeStyle(
 )
 
 fun transactionTypeStyle(type: TransactionType): TransactionTypeStyle = when (type) {
-    TransactionType.DEBIT -> TransactionTypeStyle("Income", Icons.Default.TrendingUp, IncomeGreen)
-    TransactionType.CREDIT -> TransactionTypeStyle("Expense", Icons.Default.TrendingDown, ExpenseRed)
+    TransactionType.DEBIT -> TransactionTypeStyle("Income", Icons.AutoMirrored.Filled.TrendingUp, IncomeGreen)
+    TransactionType.CREDIT -> TransactionTypeStyle("Expense", Icons.AutoMirrored.Filled.TrendingDown, ExpenseRed)
     TransactionType.TRANSFER -> TransactionTypeStyle("Transfer", Icons.Default.SwapHoriz, PledgerGreen)
 }
 

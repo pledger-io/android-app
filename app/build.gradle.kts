@@ -19,6 +19,12 @@ if (isCi && buildingReleaseTask && releaseKeystorePath.isNullOrBlank()) {
     )
 }
 
+configurations.matching { configuration ->
+    configuration.name.startsWith("hiltAnnotationProcessor")
+}.configureEach {
+    exclude(group = "com.squareup.moshi", module = "moshi-kotlin-codegen")
+}
+
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
     arg("room.incremental", "true")
