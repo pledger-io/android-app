@@ -28,6 +28,10 @@
     <string name="budget_expense_save">Speichern</string>
     <string name="budget_expense_cancel">Abbrechen</string>
     <string name="budget_expense_remaining">%1$s verbleibend</string>
+    <string name="budget_overview_title">Monatsübersicht</string>
+    <string name="budget_overview_income">Erwartetes Einkommen</string>
+    <string name="budget_income_edit">Einkommen bearbeiten</string>
+    <string name="budget_income_edit_title">Monatliches Einkommen bearbeiten</string>
 
     <string name="offline_banner">Du bist offline. Zwischengespeicherte Daten werden angezeigt.</string>
 

@@ -37,9 +37,17 @@ class BudgetRepositoryImpl @Inject constructor(
 
     override fun getBudgets(year: Int, month: Int): Flow<Resource<BudgetListState>> = flow {
         emit(Resource.Loading)
-        val cached = budgetDao.getAll().first()
-        if (cached.isNotEmpty()) {
-            emit(Resource.Success(BudgetListState(budgets = cached.map { it.toDomain() })))
+        val requested = YearMonth.of(year, month)
+        if (isRoomSnapshotFor(requested)) {
+            val cached = budgetDao.getAll().first()
+            emit(
+                Resource.Success(
+                    BudgetListState(
+                        budgets = cached.map { it.toDomain() },
+                        income = null,
+                    ),
+                ),
+            )
         }
         emit(fetchAndCacheBudgets(year, month))
     }
@@ -70,10 +78,34 @@ class BudgetRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateBudgetIncome(
+        year: Int,
+        month: Int,
+        income: Double,
+    ): Resource<BudgetListState> {
+        return try {
+            val response = apiService.updateBudgetIncome(
+                CreateBudgetRequest(year = year, month = month, income = income),
+            )
+            when {
+                !response.isSuccessful -> when (response.code()) {
+                    404 -> Resource.Error("No budget found for this period.")
+                    400 -> Resource.Error("Could not update income. Check the amount.")
+                    else -> Resource.Error("Failed to update income: HTTP ${response.code()}")
+                }
+                else -> fetchAndCacheBudgets(year, month)
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
     override suspend fun saveExpenseGroup(
         id: Long?,
         name: String,
         budgetAmount: Double,
+        year: Int,
+        month: Int,
     ): Resource<BudgetListState> {
         return try {
             val response = apiService.saveExpense(
@@ -92,8 +124,7 @@ class BudgetRepositoryImpl @Inject constructor(
                 else -> {
                     cacheRefresher.invalidate(SyncKeys.EXPENSE_GROUPS)
                     cacheRefresher.refreshInBackground(SyncKeys.EXPENSE_GROUPS) { refreshExpenseGroups() }
-                    val now = LocalDate.now()
-                    fetchAndCacheBudgets(now.year, now.monthValue)
+                    fetchAndCacheBudgets(year, month)
                 }
             }
         } catch (e: Exception) {
@@ -142,12 +173,19 @@ class BudgetRepositoryImpl @Inject constructor(
         return try {
             val cached = budgetDao.getById(id)
             if (cached != null) {
+                val now = LocalDate.now()
+                val month = YearMonth.from(now)
                 // Refresh in the background so the next read shows fresh spent amounts.
-                cacheRefresher.refreshInBackground(
-                    SyncKeys.budgetMonth(YearMonth.from(LocalDate.now())),
-                ) {
-                    val now = LocalDate.now()
-                    fetchAndCacheBudgets(now.year, now.monthValue)
+                // Avoid markFresh on 404 Success (needsInitialSetup) from CacheRefresher.refreshNow.
+                cacheRefresher.refreshInBackground(SyncKeys.budgetMonth(month)) {
+                    when (val result = fetchAndCacheBudgets(now.year, now.monthValue)) {
+                        is Resource.Success -> if (result.data.needsInitialSetup) {
+                            Resource.Error("No budget for period")
+                        } else {
+                            result
+                        }
+                        else -> result
+                    }
                 }
                 return Resource.Success(cached.toDomain())
             }
@@ -178,10 +216,14 @@ class BudgetRepositoryImpl @Inject constructor(
     }
 
     private suspend fun fetchAndCacheBudgets(year: Int, month: Int): Resource<BudgetListState> {
+        val requested = YearMonth.of(year, month)
         return try {
             val budgetResponse = apiService.getBudgets(year = year, month = month)
             when {
-                budgetResponse.code() == 404 -> Resource.Success(BudgetListState(needsInitialSetup = true))
+                budgetResponse.code() == 404 -> {
+                    clearBudgetSnapshot(requested)
+                    Resource.Success(BudgetListState(needsInitialSetup = true))
+                }
                 budgetResponse.isSuccessful -> {
                     val dto = budgetResponse.body()
                         ?: return Resource.Error("Empty budget response")
@@ -192,27 +234,74 @@ class BudgetRepositoryImpl @Inject constructor(
                         emptyMap()
                     }
                     val budgets = mapBudgets(dto.expenses, balances)
-                    cacheBudgets(budgets)
+                    replaceBudgetSnapshot(requested, budgets)
                     cacheExpenseGroups(dto.expenses)
-                    Resource.Success(BudgetListState(budgets = budgets))
+                    Resource.Success(
+                        BudgetListState(
+                            budgets = budgets,
+                            income = dto.income,
+                        ),
+                    )
                 }
                 else -> Resource.Error("Failed to fetch budgets: ${budgetResponse.code()}")
             }
         } catch (e: Exception) {
-            val cached = budgetDao.getAll().first()
-            if (cached.isNotEmpty()) {
-                Resource.Success(BudgetListState(budgets = cached.map { it.toDomain() }))
-            } else {
-                Resource.Error(e.message ?: "Network error")
+            if (isRoomSnapshotFor(requested)) {
+                val cached = budgetDao.getAll().first()
+                if (cached.isNotEmpty()) {
+                    return Resource.Success(
+                        BudgetListState(
+                            budgets = cached.map { it.toDomain() },
+                            income = null,
+                        ),
+                    )
+                }
             }
+            Resource.Error(e.message ?: "Network error")
         }
     }
 
-    private suspend fun cacheBudgets(budgets: List<Budget>) {
+    private suspend fun isRoomSnapshotFor(month: YearMonth): Boolean {
+        val roomMonth = readRoomBudgetMonth() ?: return false
+        if (roomMonth != month) return false
+        return cacheRefresher.lastSyncedAt(SyncKeys.budgetMonth(month)) != null
+    }
+
+    private suspend fun replaceBudgetSnapshot(month: YearMonth, budgets: List<Budget>) {
+        val previous = readRoomBudgetMonth()
+        if (previous != null && previous != month) {
+            cacheRefresher.invalidate(SyncKeys.budgetMonth(previous))
+        }
         budgetDao.deleteAll()
         if (budgets.isNotEmpty()) {
             budgetDao.insertAll(budgets.map { BudgetEntity.fromDomain(it) })
         }
+        writeRoomBudgetMonth(month)
+        cacheRefresher.markFresh(SyncKeys.budgetMonth(month))
+    }
+
+    private suspend fun clearBudgetSnapshot(month: YearMonth) {
+        val previous = readRoomBudgetMonth()
+        if (previous == null || previous == month) {
+            budgetDao.deleteAll()
+            cacheRefresher.invalidate(SyncKeys.BUDGET_ROOM_MONTH)
+        }
+        cacheRefresher.invalidate(SyncKeys.budgetMonth(month))
+    }
+
+    private suspend fun readRoomBudgetMonth(): YearMonth? {
+        val packed = cacheRefresher.lastSyncedAt(SyncKeys.BUDGET_ROOM_MONTH) ?: return null
+        val year = (packed / 100L).toInt()
+        val monthValue = (packed % 100L).toInt()
+        if (monthValue !in 1..12 || year < 1) return null
+        return YearMonth.of(year, monthValue)
+    }
+
+    private suspend fun writeRoomBudgetMonth(month: YearMonth) {
+        cacheRefresher.markFresh(
+            SyncKeys.BUDGET_ROOM_MONTH,
+            at = month.year * 100L + month.monthValue,
+        )
     }
 
     private suspend fun cacheExpenseGroups(expenses: List<ExpenseDto>) {

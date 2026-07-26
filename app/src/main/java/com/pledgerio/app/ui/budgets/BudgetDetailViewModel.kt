@@ -129,11 +129,14 @@ class BudgetDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, formError = null) }
+            val now = LocalDate.now()
             when (
                 val result = saveBudgetExpenseUseCase(
                     id = budgetId,
                     name = state.formName,
                     budgetAmount = amount,
+                    year = now.year,
+                    month = now.monthValue,
                 )
             ) {
                 is Resource.Success -> {

@@ -160,6 +160,9 @@ interface PledgerApiService {
     @POST("v2/api/budgets")
     suspend fun createInitialBudget(@Body request: CreateBudgetRequest): Response<BudgetDto>
 
+    @PATCH("v2/api/budgets")
+    suspend fun updateBudgetIncome(@Body request: CreateBudgetRequest): Response<BudgetDto>
+
     @GET("v2/api/budgets/expenses")
     suspend fun getExpenses(
         @Query("name") name: String? = null,

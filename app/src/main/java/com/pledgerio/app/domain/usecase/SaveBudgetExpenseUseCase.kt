@@ -12,5 +12,13 @@ class SaveBudgetExpenseUseCase @Inject constructor(
         id: Long?,
         name: String,
         budgetAmount: Double,
-    ): Resource<BudgetListState> = budgetRepository.saveExpenseGroup(id, name, budgetAmount)
+        year: Int,
+        month: Int,
+    ): Resource<BudgetListState> = budgetRepository.saveExpenseGroup(
+        id = id,
+        name = name,
+        budgetAmount = budgetAmount,
+        year = year,
+        month = month,
+    )
 }

@@ -13,3 +13,9 @@ internal fun validateExpenseForm(name: String, amountInput: String): String? {
     if (amount == null || amount <= 0) return "Enter a valid monthly budget amount"
     return null
 }
+
+internal fun validateIncomeForm(amountInput: String): String? {
+    val amount = amountInput.replace(',', '.').toDoubleOrNull()
+    if (amount == null || amount < 0) return "Enter a valid monthly net income"
+    return null
+}

@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -85,6 +86,17 @@ fun BudgetsScreen(
             onAmountChange = viewModel::onExpenseFormAmountChange,
             onDismiss = viewModel::dismissExpenseForm,
             onSave = viewModel::saveExpenseForm,
+        )
+    }
+
+    if (uiState.incomeFormVisible) {
+        BudgetIncomeFormSheet(
+            amount = uiState.incomeFormAmount,
+            error = uiState.incomeFormError,
+            isSaving = uiState.isSavingIncome,
+            onAmountChange = viewModel::onIncomeFormAmountChange,
+            onDismiss = viewModel::dismissIncomeForm,
+            onSave = viewModel::saveIncomeForm,
         )
     }
 
@@ -184,17 +196,48 @@ fun BudgetsScreen(
                             val totalSpent = uiState.budgets.sumOf { it.spent }
                             PledgerCard {
                                 Text(
-                                    text = "Monthly Overview",
+                                    text = stringResource(R.string.budget_overview_title),
                                     style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
+                                uiState.monthlyIncome?.let { income ->
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Column {
+                                            Text(
+                                                text = stringResource(R.string.budget_overview_income),
+                                                style = MaterialTheme.typography.labelSmall,
+                                            )
+                                            Text(
+                                                text = income.formatCurrency(),
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.Bold,
+                                            )
+                                        }
+                                        IconButton(onClick = viewModel::openIncomeForm) {
+                                            Icon(
+                                                Icons.Default.Edit,
+                                                contentDescription = stringResource(
+                                                    R.string.budget_income_edit,
+                                                ),
+                                            )
+                                        }
+                                    }
+                                }
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                 ) {
                                     Column {
-                                        Text("Spent", style = MaterialTheme.typography.labelSmall)
+                                        Text(
+                                            text = stringResource(R.string.budget_spent),
+                                            style = MaterialTheme.typography.labelSmall,
+                                        )
                                         Text(
                                             text = totalSpent.formatCurrency(),
                                             style = MaterialTheme.typography.titleMedium,
@@ -202,7 +245,10 @@ fun BudgetsScreen(
                                         )
                                     }
                                     Column(horizontalAlignment = Alignment.End) {
-                                        Text("Budgeted", style = MaterialTheme.typography.labelSmall)
+                                        Text(
+                                            text = stringResource(R.string.budget_budgeted),
+                                            style = MaterialTheme.typography.labelSmall,
+                                        )
                                         Text(
                                             text = totalBudgeted.formatCurrency(),
                                             style = MaterialTheme.typography.titleMedium,

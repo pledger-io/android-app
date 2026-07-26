@@ -28,6 +28,10 @@
     <string name="budget_expense_save">Save</string>
     <string name="budget_expense_cancel">Cancel</string>
     <string name="budget_expense_remaining">%1$s remaining</string>
+    <string name="budget_overview_title">Monthly Overview</string>
+    <string name="budget_overview_income">Expected income</string>
+    <string name="budget_income_edit">Edit income</string>
+    <string name="budget_income_edit_title">Edit monthly income</string>
 
     <string name="offline_banner">You\'re offline. Showing cached data.</string>
 
