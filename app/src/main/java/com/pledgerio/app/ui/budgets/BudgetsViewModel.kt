@@ -8,6 +8,7 @@ import com.pledgerio.app.domain.model.BudgetListState
 import com.pledgerio.app.domain.usecase.CreateInitialBudgetUseCase
 import com.pledgerio.app.domain.usecase.GetBudgetsUseCase
 import com.pledgerio.app.domain.usecase.SaveBudgetExpenseUseCase
+import com.pledgerio.app.domain.usecase.UpdateBudgetIncomeUseCase
 import com.pledgerio.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +30,7 @@ data class BudgetsUiState(
     val isRefreshing: Boolean = false,
     val error: String? = null,
     val budgets: List<Budget> = emptyList(),
+    val monthlyIncome: Double? = null,
     val needsInitialSetup: Boolean = false,
     val isCreatingInitial: Boolean = false,
     val setupYear: Int = LocalDate.now().year,
@@ -41,6 +43,10 @@ data class BudgetsUiState(
     val formAmount: String = "",
     val formError: String? = null,
     val isSavingExpense: Boolean = false,
+    val incomeFormVisible: Boolean = false,
+    val incomeFormAmount: String = "",
+    val incomeFormError: String? = null,
+    val isSavingIncome: Boolean = false,
     val currentMonth: YearMonth = YearMonth.now(),
     val lastUpdatedAtMillis: Long? = null,
 ) {
@@ -56,6 +62,7 @@ class BudgetsViewModel @Inject constructor(
     private val getBudgetsUseCase: GetBudgetsUseCase,
     private val createInitialBudgetUseCase: CreateInitialBudgetUseCase,
     private val saveBudgetExpenseUseCase: SaveBudgetExpenseUseCase,
+    private val updateBudgetIncomeUseCase: UpdateBudgetIncomeUseCase,
 ) : ViewModel() {
 
     private val deepLinkYear = savedStateHandle.get<Int>("year")?.takeIf { it > 0 }
@@ -70,6 +77,7 @@ class BudgetsViewModel @Inject constructor(
     val uiState: StateFlow<BudgetsUiState> = _uiState.asStateFlow()
 
     private var loadJob: Job? = null
+    private var mutationJob: Job? = null
 
     init {
         loadBudgets()
@@ -93,10 +101,16 @@ class BudgetsViewModel @Inject constructor(
 
     private fun navigateToMonth(month: YearMonth) {
         loadJob?.cancel()
+        mutationJob?.cancel()
         _uiState.update {
             it.copy(
                 currentMonth = month,
                 budgets = emptyList(),
+                monthlyIncome = null,
+                formVisible = false,
+                incomeFormVisible = false,
+                isSavingExpense = false,
+                isSavingIncome = false,
                 error = null,
             )
         }
@@ -109,6 +123,7 @@ class BudgetsViewModel @Inject constructor(
                 isLoading = false,
                 isRefreshing = false,
                 budgets = state.budgets,
+                monthlyIncome = state.income ?: it.monthlyIncome,
                 needsInitialSetup = state.needsInitialSetup,
                 error = null,
             )
@@ -164,6 +179,71 @@ class BudgetsViewModel @Inject constructor(
         _uiState.update { it.copy(formAmount = value, formError = null) }
     }
 
+    fun openIncomeForm() {
+        val income = _uiState.value.monthlyIncome ?: return
+        _uiState.update {
+            it.copy(
+                incomeFormVisible = true,
+                incomeFormAmount = formatBudgetAmountInput(income),
+                incomeFormError = null,
+            )
+        }
+    }
+
+    fun dismissIncomeForm() {
+        _uiState.update {
+            it.copy(
+                incomeFormVisible = false,
+                incomeFormAmount = "",
+                incomeFormError = null,
+            )
+        }
+    }
+
+    fun onIncomeFormAmountChange(value: String) {
+        _uiState.update { it.copy(incomeFormAmount = value, incomeFormError = null) }
+    }
+
+    fun saveIncomeForm() {
+        val state = _uiState.value
+        val validationError = validateIncomeForm(state.incomeFormAmount)
+        if (validationError != null) {
+            _uiState.update { it.copy(incomeFormError = validationError) }
+            return
+        }
+        val income = state.incomeFormAmount.replace(',', '.').toDouble()
+        val month = state.currentMonth
+
+        mutationJob?.cancel()
+        mutationJob = viewModelScope.launch {
+            _uiState.update { it.copy(isSavingIncome = true, incomeFormError = null) }
+            when (
+                val result = updateBudgetIncomeUseCase(
+                    year = month.year,
+                    month = month.monthValue,
+                    income = income,
+                )
+            ) {
+                is Resource.Success -> {
+                    applyBudgetListState(result.data)
+                    _uiState.update {
+                        it.copy(
+                            isSavingIncome = false,
+                            incomeFormVisible = false,
+                            incomeFormAmount = "",
+                        )
+                    }
+                }
+                is Resource.Error -> {
+                    _uiState.update {
+                        it.copy(isSavingIncome = false, incomeFormError = result.message)
+                    }
+                }
+                is Resource.Loading -> Unit
+            }
+        }
+    }
+
     fun saveExpenseForm() {
         val state = _uiState.value
         val validationError = validateExpenseForm(state.formName, state.formAmount)
@@ -172,14 +252,18 @@ class BudgetsViewModel @Inject constructor(
             return
         }
         val amount = state.formAmount.replace(',', '.').toDouble()
+        val month = state.currentMonth
 
-        viewModelScope.launch {
+        mutationJob?.cancel()
+        mutationJob = viewModelScope.launch {
             _uiState.update { it.copy(isSavingExpense = true, formError = null) }
             when (
                 val result = saveBudgetExpenseUseCase(
                     id = state.editingExpenseId,
                     name = state.formName,
                     budgetAmount = amount,
+                    year = month.year,
+                    month = month.monthValue,
                 )
             ) {
                 is Resource.Success -> {
@@ -212,7 +296,8 @@ class BudgetsViewModel @Inject constructor(
             return
         }
 
-        viewModelScope.launch {
+        mutationJob?.cancel()
+        mutationJob = viewModelScope.launch {
             _uiState.update { it.copy(isCreatingInitial = true, setupError = null) }
             when (
                 val result = createInitialBudgetUseCase(
@@ -253,12 +338,12 @@ class BudgetsViewModel @Inject constructor(
                     is Resource.Loading -> _uiState.update { it.copy(isLoading = true) }
                     is Resource.Success -> {
                         val data = result.data
-                        val now = LocalDate.now()
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
                                 isRefreshing = false,
                                 budgets = data.budgets,
+                                monthlyIncome = data.income ?: it.monthlyIncome,
                                 needsInitialSetup = data.needsInitialSetup,
                                 error = null,
                                 setupYear = if (data.needsInitialSetup) month.year else it.setupYear,

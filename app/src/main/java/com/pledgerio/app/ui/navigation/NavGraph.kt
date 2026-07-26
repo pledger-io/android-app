@@ -336,7 +336,10 @@ fun NavGraph(
             val budgetsViewModel: BudgetsViewModel = hiltViewModel()
             BudgetsScreen(
                 onNavigateToDetail = { id ->
-                    navController.navigate(Screen.BudgetDetail.createRoute(id))
+                    val month = budgetsViewModel.uiState.value.currentMonth
+                    navController.navigate(
+                        Screen.BudgetDetail.createRoute(id, month.year, month.monthValue),
+                    )
                 },
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
@@ -347,7 +350,17 @@ fun NavGraph(
 
         composable(
             route = Screen.BudgetDetail.route,
-            arguments = listOf(navArgument("budgetId") { type = NavType.LongType })
+            arguments = listOf(
+                navArgument("budgetId") { type = NavType.LongType },
+                navArgument("year") {
+                    type = NavType.IntType
+                    defaultValue = -1
+                },
+                navArgument("month") {
+                    type = NavType.IntType
+                    defaultValue = -1
+                },
+            ),
         ) {
             val budgetsViewModel: BudgetsViewModel = hiltViewModel(
                 navController.getBackStackEntry(Screen.Budgets.route),

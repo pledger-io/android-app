@@ -17,4 +17,10 @@ object SyncKeys {
     const val CURRENCIES = "currencies"
 
     fun budgetMonth(month: YearMonth): String = "budget_$month"
+
+    /**
+     * Tracks which calendar month the single Room `budgets` snapshot currently represents.
+     * Packed as `year * 100 + month` in `sync_metadata.lastSyncedAt`.
+     */
+    const val BUDGET_ROOM_MONTH = "budget_room_month"
 }

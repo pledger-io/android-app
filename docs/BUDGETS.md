@@ -32,6 +32,13 @@ POST /v2/api/budgets
 { "year": 2026, "month": 5, "income": 3500.0 }
 ```
 
+### Update budget income
+
+```json
+PATCH /v2/api/budgets
+{ "year": 2026, "month": 5, "income": 3750.0 }
+```
+
 ### Create / update expense group
 
 ```json
@@ -57,9 +64,11 @@ There is **no delete** endpoint for expense groups in the current API.
 
 1. Loads current month via `GET /v2/api/budgets`.
 2. **404** → inline **Start your first budget** form (year, month, net income) → `POST /v2/api/budgets`.
-3. **200** with groups → monthly overview + cards; tap a card for detail.
-4. **200** with no groups → empty state; **FAB** or empty-state action adds the first expense group.
-5. **FAB** (when a budget exists) → bottom sheet to add a new expense group (name + monthly budget).
+3. **200** with groups → monthly overview (expected income + spent vs budgeted) + cards; tap a card for detail.
+4. Edit income from the overview → bottom sheet → `PATCH /v2/api/budgets`.
+5. **200** with no groups → overview still shows expected income (editable); empty copy + **FAB** / empty-state action adds the first expense group.
+6. **FAB** (when a budget exists) → bottom sheet to add a new expense group (name + monthly budget).
+7. Month navigation only shows Room cache when that month’s snapshot is marked fresh (`SyncKeys.budgetMonth`), avoiding a flash of the previously viewed month.
 
 ### Detail (`BudgetDetailScreen`)
 
@@ -77,7 +86,7 @@ There is **no delete** endpoint for expense groups in the current API.
 | API | `PledgerApiService` |
 | DTOs | `BudgetDto.kt` (`CreateBudgetRequest`, `ExpenseRequest`, …) |
 | Repository | `BudgetRepositoryImpl` |
-| Use cases | `CreateInitialBudgetUseCase`, `SaveBudgetExpenseUseCase`, `GetBudgetsUseCase` |
+| Use cases | `CreateInitialBudgetUseCase`, `UpdateBudgetIncomeUseCase`, `SaveBudgetExpenseUseCase`, `GetBudgetsUseCase` |
 | UI | `ui/budgets/*` |
 | Routes | `budgets`, `budget/{budgetId}` |
 

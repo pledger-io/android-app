@@ -13,10 +13,13 @@ interface BudgetRepository {
     fun observeExpenseGroups(query: String): Flow<List<BudgetExpense>>
 
     suspend fun createInitialBudget(year: Int, month: Int, income: Double): Resource<Unit>
+    suspend fun updateBudgetIncome(year: Int, month: Int, income: Double): Resource<BudgetListState>
     suspend fun saveExpenseGroup(
         id: Long?,
         name: String,
         budgetAmount: Double,
+        year: Int,
+        month: Int,
     ): Resource<BudgetListState>
     suspend fun searchExpenses(name: String): Resource<List<BudgetExpense>>
     suspend fun refreshExpenseGroups(): Resource<List<BudgetExpense>>

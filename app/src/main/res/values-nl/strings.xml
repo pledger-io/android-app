@@ -28,6 +28,10 @@
     <string name="budget_expense_save">Opslaan</string>
     <string name="budget_expense_cancel">Annuleren</string>
     <string name="budget_expense_remaining">%1$s resterend</string>
+    <string name="budget_overview_title">Maandoverzicht</string>
+    <string name="budget_overview_income">Verwacht inkomen</string>
+    <string name="budget_income_edit">Inkomen bewerken</string>
+    <string name="budget_income_edit_title">Maandelijks inkomen bewerken</string>
 
     <string name="offline_banner">Je bent offline. Gecachte gegevens worden getoond.</string>
 
