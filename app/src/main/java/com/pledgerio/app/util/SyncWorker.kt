@@ -7,62 +7,35 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import androidx.work.Constraints
-import androidx.work.NetworkType
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.Budget
-import com.pledgerio.app.domain.repository.AccountRepository
-import com.pledgerio.app.domain.repository.BudgetRepository
-import com.pledgerio.app.domain.repository.CategoryRepository
-import com.pledgerio.app.domain.repository.ContractRepository
-import com.pledgerio.app.domain.repository.CurrencyRepository
-import com.pledgerio.app.domain.repository.TagRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import java.io.IOException
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.CancellationException
-import java.time.LocalDate
-import java.util.concurrent.TimeUnit
 import retrofit2.HttpException
 
 @HiltWorker
 class SyncWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
-    private val accountRepository: AccountRepository,
-    private val budgetRepository: BudgetRepository,
-    private val categoryRepository: CategoryRepository,
-    private val contractRepository: ContractRepository,
-    private val currencyRepository: CurrencyRepository,
-    private val tagRepository: TagRepository,
+    private val syncWorkRunner: SyncWorkRunner,
+    private val sessionGuard: SyncSessionGuard,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
+        val generation = inputData.getString(INPUT_GENERATION)
+            ?.takeIf { it.isNotBlank() }
+            ?: return Result.success()
         return try {
-            // Refresh the catalogs that rarely change first so the UI has fresh data on
-            // the next cold start, then accounts and budgets.
-            currencyRepository.sync()
-            accountRepository.refreshAccountTypes()
-            categoryRepository.refreshCategories()
-            tagRepository.refreshTags()
-            contractRepository.refreshContracts()
-            budgetRepository.refreshExpenseGroups()
-            accountRepository.refreshOwnedAccounts()
-            accountRepository.refreshCounterpartyAccounts()
-
-            val now = LocalDate.now()
-            val budgetsResult = budgetRepository.getBudgets(now.year, now.monthValue).first()
-
-            if (budgetsResult is Resource.Success && !budgetsResult.data.needsInitialSetup) {
-                checkBudgetAlerts(budgetsResult.data.budgets)
+            when (val outcome = syncWorkRunner.run(generation)) {
+                SyncRunOutcome.StaleSession -> Result.success()
+                is SyncRunOutcome.Completed -> {
+                    checkBudgetAlerts(generation, outcome.budgetsForAlerts)
+                    Result.success()
+                }
             }
-
-            Result.success()
         } catch (e: CancellationException) {
             throw e
         } catch (e: IOException) {
@@ -74,10 +47,12 @@ class SyncWorker @AssistedInject constructor(
         }
     }
 
-    private fun checkBudgetAlerts(budgets: List<Budget>) {
+    private suspend fun checkBudgetAlerts(generation: String, budgets: List<Budget>) {
         val overBudget = budgets.filter { it.percentUsed >= 0.8f }
         if (overBudget.isNotEmpty()) {
-            sendBudgetNotification(overBudget)
+            sessionGuard.publishIfCurrent(generation) {
+                sendBudgetNotification(overBudget)
+            }
         }
     }
 
@@ -110,7 +85,7 @@ class SyncWorker @AssistedInject constructor(
     companion object {
         private const val CHANNEL_ID = "budget_alerts"
         private const val NOTIFICATION_ID = 1001
-        private const val WORK_NAME = "pledger_sync"
+        internal const val INPUT_GENERATION = "sync_generation"
 
         internal fun classifyFailure(error: Throwable): Result = when (error) {
             is IOException -> Result.retry()
@@ -122,25 +97,5 @@ class SyncWorker @AssistedInject constructor(
             else -> Result.failure()
         }
 
-        fun cancel(context: Context) {
-            WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
-        }
-
-        fun schedule(context: Context) {
-            val constraints = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
-            val workRequest = PeriodicWorkRequestBuilder<SyncWorker>(
-                12, TimeUnit.HOURS,
-            )
-                .setConstraints(constraints)
-                .build()
-
-            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                WORK_NAME,
-                ExistingPeriodicWorkPolicy.KEEP,
-                workRequest,
-            )
-        }
     }
 }

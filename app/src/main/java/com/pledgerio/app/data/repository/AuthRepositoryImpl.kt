@@ -1,9 +1,9 @@
 package com.pledgerio.app.data.repository
 
-import com.pledgerio.app.data.local.LocalDataCleaner
 import com.pledgerio.app.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.LoginRequest
 import com.pledgerio.app.domain.repository.AuthRepository
+import com.pledgerio.app.util.AuthenticatedSessionCoordinator
 import com.pledgerio.app.util.Resource
 import com.pledgerio.app.util.SessionManager
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +16,7 @@ import javax.inject.Inject
 class AuthRepositoryImpl @Inject constructor(
     private val apiService: PledgerApiService,
     private val sessionManager: SessionManager,
-    private val localDataCleaner: LocalDataCleaner,
+    private val authenticatedSessionCoordinator: AuthenticatedSessionCoordinator,
     private val okHttpClient: OkHttpClient,
 ) : AuthRepository {
 
@@ -31,13 +31,12 @@ class AuthRepositoryImpl @Inject constructor(
                 if (token.isBlank()) {
                     return Resource.Error("No access token in response")
                 }
-                localDataCleaner.clearAllUserData()
-                sessionManager.saveToken(token)
-                sessionManager.saveUsername(username)
-                body.refreshToken?.let { sessionManager.saveRefreshToken(it) }
-                if (body.expiresIn > 0) {
-                    sessionManager.saveTokenExpiry(body.expiresIn)
-                }
+                authenticatedSessionCoordinator.activateSession(
+                    accessToken = token,
+                    username = username,
+                    refreshToken = body.refreshToken,
+                    expiresInSeconds = body.expiresIn,
+                )
                 Resource.Success(token)
             } else if (response.code() == 401) {
                 Resource.Error("Invalid username or password")
@@ -69,10 +68,10 @@ class AuthRepositoryImpl @Inject constructor(
                     val normalizedUrl = result.data
                     val previous = sessionManager.getBaseUrl()?.trimEnd('/')
                     if (previous != null && previous != normalizedUrl) {
-                        localDataCleaner.clearAllUserData()
-                        sessionManager.clearAuthTokens()
+                        authenticatedSessionCoordinator.switchServer(normalizedUrl)
+                    } else {
+                        sessionManager.saveBaseUrl(normalizedUrl)
                     }
-                    sessionManager.saveBaseUrl(normalizedUrl)
                     Resource.Success(true)
                 }
                 is Resource.Error -> result
@@ -113,14 +112,10 @@ class AuthRepositoryImpl @Inject constructor(
     override fun isLoggedIn(): Boolean = sessionManager.isLoggedIn()
 
     override suspend fun logout() {
-        try {
-            if (sessionManager.isLoggedIn()) {
-                apiService.logout()
+        authenticatedSessionCoordinator.logout { credential ->
+            credential?.let {
+                apiService.logout(it.authorizationHeader())
             }
-        } catch (_: Exception) {
-            // Clear local session even when the server is unreachable
         }
-        localDataCleaner.clearAllUserData()
-        sessionManager.clearAuthTokens()
     }
 }

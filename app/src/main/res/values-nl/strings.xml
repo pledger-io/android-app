@@ -173,6 +173,7 @@
     <string name="settings_sign_out">Uitloggen</string>
     <string name="settings_sign_out_confirm_title">Uitloggen</string>
     <string name="settings_sign_out_confirm_message">Weet je zeker dat je wilt uitloggen?</string>
+    <string name="settings_sign_out_failed">Veilig uitloggen kon niet worden voltooid. Probeer het opnieuw.</string>
     <string name="settings_loading_currencies">Valuta\'s laden…</string>
     <string name="settings_experience_format">%1$s — %2$s</string>
 

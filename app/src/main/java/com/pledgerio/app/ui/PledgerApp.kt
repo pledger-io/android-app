@@ -87,6 +87,8 @@ fun PledgerRoot(
     val biometricAuthenticator = appViewModel.biometricAuthenticator
     val themeMode by appViewModel.themeMode.collectAsState()
     val isOnline by appViewModel.isOnline.collectAsState()
+    val biometricSignOutFailed by appViewModel.biometricSignOutFailed.collectAsState()
+    val biometricSignOutInProgress by appViewModel.biometricSignOutInProgress.collectAsState()
     val requiresBiometricUnlock by biometricLockManager.requiresUnlock.collectAsState()
     val activity = LocalActivity.current as? androidx.appcompat.app.AppCompatActivity
     val systemDark = isSystemInDarkTheme()
@@ -138,7 +140,11 @@ fun PledgerRoot(
 
     val showBiometricLock = requiresBiometricUnlock &&
         sessionManager.isBiometricEnabled() &&
-        sessionManager.isLoggedIn()
+        (
+            sessionManager.isLoggedIn() ||
+                biometricSignOutInProgress ||
+                biometricSignOutFailed
+            )
 
     PledgerTheme(darkTheme = darkTheme) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -155,6 +161,12 @@ fun PledgerRoot(
                     activity = activity,
                     biometricAuthenticator = biometricAuthenticator,
                     onUnlocked = biometricLockManager::onUnlocked,
+                    signOutErrorMessage = if (biometricSignOutFailed) {
+                        stringResource(R.string.settings_sign_out_failed)
+                    } else {
+                        null
+                    },
+                    signOutInProgress = biometricSignOutInProgress,
                     onSignOut = {
                         appViewModel.signOutFromBiometricLock {
                             navController.navigate(Screen.Login.route) {

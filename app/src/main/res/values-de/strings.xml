@@ -173,6 +173,7 @@
     <string name="settings_sign_out">Abmelden</string>
     <string name="settings_sign_out_confirm_title">Abmelden</string>
     <string name="settings_sign_out_confirm_message">Möchtest du dich wirklich abmelden?</string>
+    <string name="settings_sign_out_failed">Die sichere Abmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.</string>
     <string name="settings_loading_currencies">Währungen werden geladen…</string>
     <string name="settings_experience_format">%1$s — %2$s</string>
 

@@ -60,11 +60,7 @@ object NetworkModule {
             .addInterceptor(authInterceptor)
             .addInterceptor(issueLogInterceptor)
             .addInterceptor(HttpLoggingInterceptor().apply {
-                level = if (BuildConfig.DEBUG) {
-                    HttpLoggingInterceptor.Level.BODY
-                } else {
-                    HttpLoggingInterceptor.Level.NONE
-                }
+                level = secretSafeHttpLoggingLevel(BuildConfig.DEBUG)
             })
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
@@ -96,4 +92,13 @@ object NetworkModule {
         .okHttpClient(okHttpClient)
         .crossfade(true)
         .build()
+
+    internal fun secretSafeHttpLoggingLevel(
+        isDebug: Boolean,
+    ): HttpLoggingInterceptor.Level = if (isDebug) {
+        // BASIC excludes Authorization headers, login bodies, and token response bodies.
+        HttpLoggingInterceptor.Level.BASIC
+    } else {
+        HttpLoggingInterceptor.Level.NONE
+    }
 }

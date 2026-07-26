@@ -79,6 +79,7 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val issueReportState by issueReportViewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val signOutFailedMessage = stringResource(R.string.settings_sign_out_failed)
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -98,6 +99,13 @@ fun SettingsScreen(
             },
         )
         issueReportViewModel.clearReadyToOpen()
+    }
+
+    LaunchedEffect(uiState.logoutFailed) {
+        if (uiState.logoutFailed) {
+            snackbarHostState.showSnackbar(signOutFailedMessage)
+            viewModel.consumeLogoutFailure()
+        }
     }
 
     ReportIssueDialog(
@@ -200,6 +208,11 @@ fun SettingsScreen(
                             stringResource(R.string.settings_biometric_disabled)
                         }
                 }
+                val biometricEnableTitle =
+                    stringResource(R.string.settings_biometric_enable_title)
+                val biometricEnableSubtitle =
+                    stringResource(R.string.settings_biometric_enable_subtitle)
+                val cancelLabel = stringResource(R.string.cancel)
                 SettingsSection(stringResource(R.string.settings_section_security)) {
                     SettingsToggle(
                         icon = Icons.Default.Fingerprint,
@@ -215,9 +228,9 @@ fun SettingsScreen(
                             val activity = context as? AppCompatActivity ?: return@SettingsToggle
                             viewModel.enableBiometric(
                                 activity = activity,
-                                enableTitle = context.getString(R.string.settings_biometric_enable_title),
-                                enableSubtitle = context.getString(R.string.settings_biometric_enable_subtitle),
-                                cancelLabel = context.getString(R.string.cancel),
+                                enableTitle = biometricEnableTitle,
+                                enableSubtitle = biometricEnableSubtitle,
+                                cancelLabel = cancelLabel,
                                 onError = { message ->
                                     scope.launch {
                                         snackbarHostState.showSnackbar(message)

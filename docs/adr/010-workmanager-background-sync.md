@@ -24,14 +24,27 @@ Use **WorkManager** with `PeriodicWorkRequest` for a 12-hour background sync cyc
 
 Implementation:
 - `SyncWorker` is annotated with `@HiltWorker` for dependency injection
-- Scheduled from `PledgerApp.onCreate` (the previous implementation defined the worker but
-  never enqueued it)
+- Reconciled from `PledgerApp.onCreate`: authenticated sessions enqueue one unique periodic
+  worker; logged-out startup cancels any retained work
+- Fresh login rotates an opaque encrypted work-generation ID and schedules immediately;
+  logout, server changes, and terminal authentication failures invalidate that generation
+  before cancellation and local cleanup
+- Logout first persists an encrypted revocation tombstone. Tombstoned credentials are unusable
+  for normal requests, worker guards, and startup scheduling even if durable token deletion
+  fails; startup retries credential/cache cleanup and work cancellation
+- Each worker receives only the opaque generation ID and re-checks it between sync steps and
+  immediately before publishing a notification
+- Every worker repository step and notification publication holds a shared session-data barrier.
+  Session invalidation, cancellation dispatch, cache cleanup, and new-session activation hold the
+  same barrier, so an old write cannot overlap cleanup or continue with another step. WorkManager
+  cancellation is not treated as proof that a running worker has completed.
 - Syncs the SWR-cached resources from [ADR-015](015-stale-while-revalidate-cache.md):
   currencies, categories, contracts, expense groups, owned accounts, counterparty accounts
 - Loads the current-month budget and fires local notifications when any budget exceeds 80%
   (skipped when no budget exists yet for the current month)
 - Transaction cache is **not** refreshed here; lists load from the API when screens are opened
-- Uses `ExistingPeriodicWorkPolicy.KEEP` to avoid duplicate scheduling
+- Uses `ExistingPeriodicWorkPolicy.UPDATE` so startup reconciliation replaces stale generation input
+  without creating a second periodic worker
 - Requires `NetworkType.CONNECTED` so it doesn't fire when the device is offline
 - `Configuration.Provider` on the Application class enables Hilt worker injection
 

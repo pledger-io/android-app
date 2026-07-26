@@ -12,11 +12,14 @@ import kotlinx.coroutines.runBlocking
 import coil.ImageLoader
 import coil.Coil
 import com.pledgerio.app.util.AppLog
+import com.pledgerio.app.util.AuthenticatedSessionCoordinator
 import com.pledgerio.app.util.CurrencyProvider
 import com.pledgerio.app.util.DebugLogcatNoiseFilter
-import com.pledgerio.app.util.SyncWorker
+import com.pledgerio.app.di.ApplicationScope
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @HiltAndroidApp
 class PledgerApp : Application(), Configuration.Provider {
@@ -39,6 +42,13 @@ class PledgerApp : Application(), Configuration.Provider {
     @Inject
     lateinit var userPreferences: UserPreferences
 
+    @Inject
+    lateinit var authenticatedSessionCoordinator: AuthenticatedSessionCoordinator
+
+    @Inject
+    @ApplicationScope
+    lateinit var applicationScope: CoroutineScope
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -52,7 +62,9 @@ class PledgerApp : Application(), Configuration.Provider {
         }
         appLog.install()
         Coil.setImageLoader(imageLoader)
-        SyncWorker.schedule(this)
+        applicationScope.launch {
+            authenticatedSessionCoordinator.reconcileAtStartup()
+        }
         ProcessLifecycleOwner.get().lifecycle.addObserver(biometricLockManager)
         biometricLockManager.onColdStart()
     }
