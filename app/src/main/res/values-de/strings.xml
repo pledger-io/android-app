@@ -363,6 +363,13 @@
 
     <string name="transaction_form_new_title">Neue Transaktion</string>
     <string name="transaction_form_edit_title">Transaktion bearbeiten</string>
+    <string name="transaction_detail_fallback_title">Transaktion</string>
+    <string name="transaction_delete_content_description">Transaktion löschen</string>
+    <string name="transaction_delete_title">Transaktion löschen?</string>
+    <string name="transaction_delete_message">„%1$s“ wird dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.</string>
+    <string name="transaction_delete_in_progress">Wird gelöscht…</string>
+    <string name="transaction_delete_failed">Die Transaktion konnte nicht gelöscht werden. Prüfe deine Verbindung und versuche es erneut.</string>
+    <string name="transaction_delete_retry">Löschen wiederholen</string>
     <string name="transaction_form_create">Transaktion erstellen</string>
     <string name="transaction_form_save_changes">Änderungen speichern</string>
     <string name="transaction_form_saving">Speichern…</string>

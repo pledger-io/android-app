@@ -355,6 +355,22 @@ class TransactionsViewModel @Inject constructor(
         }
     }
 
+    fun removeDeletedTransaction(id: Long) {
+        _uiState.update { state ->
+            val filtered = state.transactions.filterNot { it.id == id }
+            if (filtered.size == state.transactions.size) {
+                state
+            } else {
+                val totalRecords = (state.totalRecords - 1).coerceAtLeast(0)
+                state.copy(
+                    transactions = filtered,
+                    totalRecords = totalRecords,
+                    hasMoreInMonth = filtered.size.toLong() < totalRecords,
+                )
+            }
+        }
+    }
+
     private fun loadFirstPage() {
         loadJob?.cancel()
         loadJob = viewModelScope.launch {

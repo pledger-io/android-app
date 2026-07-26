@@ -363,6 +363,13 @@
 
     <string name="transaction_form_new_title">Nieuwe transactie</string>
     <string name="transaction_form_edit_title">Transactie bewerken</string>
+    <string name="transaction_detail_fallback_title">Transactie</string>
+    <string name="transaction_delete_content_description">Transactie verwijderen</string>
+    <string name="transaction_delete_title">Transactie verwijderen?</string>
+    <string name="transaction_delete_message">‘%1$s’ wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.</string>
+    <string name="transaction_delete_in_progress">Verwijderen…</string>
+    <string name="transaction_delete_failed">De transactie kon niet worden verwijderd. Controleer je verbinding en probeer het opnieuw.</string>
+    <string name="transaction_delete_retry">Opnieuw verwijderen</string>
     <string name="transaction_form_create">Transactie aanmaken</string>
     <string name="transaction_form_save_changes">Wijzigingen opslaan</string>
     <string name="transaction_form_saving">Opslaan…</string>

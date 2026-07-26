@@ -19,15 +19,19 @@ import com.pledgerio.app.ui.budgets.BudgetsViewModel
 import com.pledgerio.app.ui.categories.CategoriesScreen
 import com.pledgerio.app.ui.tags.TagsScreen
 import com.pledgerio.app.ui.dashboard.DashboardScreen
+import com.pledgerio.app.ui.dashboard.DashboardViewModel
 import com.pledgerio.app.ui.onboarding.LoginScreen
 import com.pledgerio.app.ui.onboarding.ServerSetupScreen
 import com.pledgerio.app.ui.reports.ReportsScreen
 import com.pledgerio.app.ui.search.SearchScreen
+import com.pledgerio.app.ui.search.SearchViewModel
 import com.pledgerio.app.ui.settings.SettingsScreen
 import com.pledgerio.app.ui.transactions.TransactionDetailScreen
 import com.pledgerio.app.ui.transactions.TransactionFormScreen
 import com.pledgerio.app.ui.transactions.TransactionsScreen
+import com.pledgerio.app.ui.transactions.TransactionsViewModel
 import com.pledgerio.app.ui.transactions.scan.InvoiceScanScreen
+import com.pledgerio.app.ui.accounts.AccountDetailViewModel
 
 @Composable
 fun NavGraph(
@@ -80,7 +84,11 @@ fun NavGraph(
             )
         }
 
-        composable(Screen.Dashboard.route) {
+        composable(Screen.Dashboard.route) { backStackEntry ->
+            val dashboardViewModel: DashboardViewModel = hiltViewModel()
+            TransactionDeletionResultEffect(backStackEntry) { deletedId ->
+                dashboardViewModel.removeDeletedTransaction(deletedId)
+            }
             DashboardScreen(
                 onNavigateToTransactions = {
                     navController.navigate(Screen.Transactions.createRoute())
@@ -103,10 +111,15 @@ fun NavGraph(
                 onNavigateToSearch = {
                     navController.navigate(Screen.Search.route)
                 },
+                viewModel = dashboardViewModel,
             )
         }
 
-        composable(Screen.Search.route) {
+        composable(Screen.Search.route) { backStackEntry ->
+            val searchViewModel: SearchViewModel = hiltViewModel()
+            TransactionDeletionResultEffect(backStackEntry) { deletedId ->
+                searchViewModel.removeDeletedTransaction(deletedId)
+            }
             SearchScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToTransaction = { id ->
@@ -115,6 +128,7 @@ fun NavGraph(
                 onNavigateToAccount = { id ->
                     navController.navigate(Screen.AccountDetail.createRoute(id))
                 },
+                viewModel = searchViewModel,
             )
         }
 
@@ -130,7 +144,12 @@ fun NavGraph(
                     defaultValue = ""
                 },
             ),
-        ) {
+        ) { backStackEntry ->
+            val transactionsViewModel: TransactionsViewModel =
+                hiltViewModel()
+            TransactionDeletionResultEffect(backStackEntry) { deletedId ->
+                transactionsViewModel.removeDeletedTransaction(deletedId)
+            }
             TransactionsScreen(
                 onNavigateToDetail = { id ->
                     navController.navigate(Screen.TransactionDetail.createRoute(id))
@@ -141,6 +160,7 @@ fun NavGraph(
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
                 },
+                viewModel = transactionsViewModel,
             )
         }
 
@@ -230,6 +250,13 @@ fun NavGraph(
                         launchSingleTop = true
                     }
                 },
+                onDeleted = { deletedId ->
+                    TransactionDeletionResultContract.publish(
+                        navController.previousBackStackEntry?.savedStateHandle,
+                        deletedId,
+                    )
+                    navController.popBackStack()
+                },
             )
         }
 
@@ -252,7 +279,12 @@ fun NavGraph(
         composable(
             route = Screen.AccountDetail.route,
             arguments = listOf(navArgument("accountId") { type = NavType.LongType })
-        ) {
+        ) { backStackEntry ->
+            val accountDetailViewModel: AccountDetailViewModel =
+                hiltViewModel()
+            TransactionDeletionResultEffect(backStackEntry) { deletedId ->
+                accountDetailViewModel.removeDeletedTransaction(deletedId)
+            }
             AccountDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToTransaction = { id ->
@@ -261,6 +293,7 @@ fun NavGraph(
                 onNavigateToEdit = { accountId ->
                     navController.navigate(Screen.EditAccount.createRoute(accountId))
                 },
+                viewModel = accountDetailViewModel,
             )
         }
 

@@ -25,6 +25,7 @@ import javax.inject.Inject
 class TransactionRepositoryImpl @Inject constructor(
     private val apiService: PledgerApiService,
     private val transactionDao: TransactionDao,
+    private val mutationInvalidator: TransactionMutationInvalidator,
 ) : TransactionRepository {
 
     override suspend fun getTransactionsPage(
@@ -210,11 +211,16 @@ class TransactionRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deleteTransaction(id: Long): Resource<Unit> {
+    override suspend fun deleteTransaction(
+        id: Long,
+        transactionDate: LocalDate?,
+    ): Resource<Unit> {
         return try {
+            val cachedDate = transactionDao.getById(id)?.date
             val response = apiService.deleteTransaction(id)
-            if (response.isSuccessful) {
-                transactionDao.getById(id)?.let { transactionDao.delete(it) }
+            if (response.isSuccessful || response.code() == 404) {
+                transactionDao.deleteById(id)
+                mutationInvalidator.invalidate(transactionDate ?: cachedDate)
                 Resource.Success(Unit)
             } else {
                 Resource.Error("Failed to delete transaction: ${response.code()}")

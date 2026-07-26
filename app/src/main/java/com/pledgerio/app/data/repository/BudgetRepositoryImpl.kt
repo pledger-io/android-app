@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import java.time.LocalDate
+import java.time.YearMonth
 import kotlin.math.abs
 import javax.inject.Inject
 
@@ -142,7 +143,9 @@ class BudgetRepositoryImpl @Inject constructor(
             val cached = budgetDao.getById(id)
             if (cached != null) {
                 // Refresh in the background so the next read shows fresh spent amounts.
-                cacheRefresher.refreshInBackground("budget_${LocalDate.now().toMonthKey()}") {
+                cacheRefresher.refreshInBackground(
+                    SyncKeys.budgetMonth(YearMonth.from(LocalDate.now())),
+                ) {
                     val now = LocalDate.now()
                     fetchAndCacheBudgets(now.year, now.monthValue)
                 }
@@ -251,8 +254,6 @@ class BudgetRepositoryImpl @Inject constructor(
         ) { refreshExpenseGroups() }
     }
 }
-
-private fun LocalDate.toMonthKey(): String = "%04d-%02d".format(year, monthValue)
 
 /** Spent outflows from the API are negative; normalize to a positive amount for display. */
 private fun ExpenseComputedDto.spentAsPositive(): Double = abs(spent)
