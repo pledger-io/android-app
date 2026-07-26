@@ -62,11 +62,13 @@ class AuthenticatedSessionCoordinatorTest {
         }
 
     @Test
-    fun `logout invalidates and awaits cancellation before remote logout and local cleanup`() =
+    fun `logout tombstones before cancellation remote logout and local cleanup`() =
         runTest {
             val events = mutableListOf<String>()
-            every { sessionManager.invalidateSyncGeneration() } answers {
-                events += "invalidate"
+            val credential = LogoutCredential("old-token")
+            every { sessionManager.markLogoutTombstoneAndCaptureCredential() } answers {
+                events += "tombstone"
+                credential
             }
             coEvery { scheduler.cancelAndAwait() } coAnswers {
                 events += "cancel"
@@ -79,13 +81,14 @@ class AuthenticatedSessionCoordinatorTest {
             }
             val coordinator = coordinator()
 
-            coordinator.logout {
+            coordinator.logout { capturedCredential ->
+                assertEquals(credential, capturedCredential)
                 events += "remote"
                 error("server unavailable")
             }
 
             assertEquals(
-                listOf("invalidate", "cancel", "remote", "clear-auth", "clean"),
+                listOf("tombstone", "cancel", "remote", "clear-auth", "clean"),
                 events,
             )
         }
@@ -203,6 +206,9 @@ class AuthenticatedSessionCoordinatorTest {
     @Test
     fun `logout clears credentials and cache when cancellation and remote logout fail`() =
         runTest {
+            every {
+                sessionManager.markLogoutTombstoneAndCaptureCredential()
+            } returns LogoutCredential("old-token")
             coEvery { scheduler.cancelAndAwait() } throws IllegalStateException("cancel failed")
             val coordinator = coordinator()
 
@@ -210,10 +216,66 @@ class AuthenticatedSessionCoordinatorTest {
                 throw IllegalStateException("remote failed")
             }
 
-            verify(exactly = 1) { sessionManager.invalidateSyncGeneration() }
+            verify(exactly = 1) {
+                sessionManager.markLogoutTombstoneAndCaptureCredential()
+            }
             verify(exactly = 1) { sessionManager.clearAuthTokens() }
             coVerify(exactly = 1) { localDataCleaner.clearAllUserData() }
         }
+
+    @Test
+    fun `logout propagates durable clear failure after every best effort action`() = runTest {
+        val events = mutableListOf<String>()
+        every {
+            sessionManager.markLogoutTombstoneAndCaptureCredential()
+        } answers {
+            events += "tombstone"
+            LogoutCredential("old-token")
+        }
+        coEvery { scheduler.cancelAndAwait() } coAnswers {
+            events += "cancel"
+        }
+        every { sessionManager.clearAuthTokens() } answers {
+            events += "clear-failed"
+            throw IllegalStateException("disk write failed")
+        }
+        coEvery { localDataCleaner.clearAllUserData() } coAnswers {
+            events += "clean"
+        }
+        val coordinator = coordinator()
+        var failure: Throwable? = null
+
+        try {
+            coordinator.logout {
+                events += "remote"
+            }
+        } catch (error: Throwable) {
+            failure = error
+        }
+
+        assertTrue(failure is DurableLogoutException)
+        assertEquals(
+            listOf("tombstone", "cancel", "remote", "clear-failed", "clean"),
+            events,
+        )
+    }
+
+    @Test
+    fun `startup retries tombstoned cleanup and never schedules work`() = runTest {
+        every { sessionManager.isLogoutTombstoned() } returns true
+        every {
+            sessionManager.clearAuthTokens()
+        } throws IllegalStateException("disk write failed")
+        val coordinator = coordinator()
+
+        coordinator.reconcileAtStartup()
+
+        verify(exactly = 1) { sessionManager.clearAuthTokens() }
+        coVerify(exactly = 1) { scheduler.cancelAndAwait() }
+        coVerify(exactly = 1) { localDataCleaner.clearAllUserData() }
+        verify(exactly = 0) { sessionManager.rotateSyncGeneration() }
+        coVerify(exactly = 0) { scheduler.schedule(any()) }
+    }
 
     @Test
     fun `terminal cleanup clears cache even when cancellation fails`() = runTest {

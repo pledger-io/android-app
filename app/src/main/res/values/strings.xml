@@ -178,6 +178,7 @@
     <string name="settings_sign_out">Sign out</string>
     <string name="settings_sign_out_confirm_title">Sign out</string>
     <string name="settings_sign_out_confirm_message">Are you sure you want to sign out?</string>
+    <string name="settings_sign_out_failed">Secure sign out could not be completed. Please try again.</string>
     <string name="settings_loading_currencies">Loading currencies…</string>
     <string name="settings_experience_format">%1$s — %2$s</string>
 

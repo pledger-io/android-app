@@ -37,6 +37,8 @@ fun BiometricLockScreen(
     biometricAuthenticator: BiometricAuthenticator,
     onUnlocked: () -> Unit,
     onSignOut: () -> Unit,
+    signOutErrorMessage: String? = null,
+    signOutInProgress: Boolean = false,
     autoPrompt: Boolean = true,
 ) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -92,7 +94,7 @@ fun BiometricLockScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
-            errorMessage?.let { message ->
+            (errorMessage ?: signOutErrorMessage)?.let { message ->
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = message,
@@ -106,7 +108,10 @@ fun BiometricLockScreen(
                 Text(stringResource(R.string.biometric_unlock_action))
             }
             Spacer(modifier = Modifier.height(8.dp))
-            TextButton(onClick = onSignOut) {
+            TextButton(
+                onClick = onSignOut,
+                enabled = !signOutInProgress,
+            ) {
                 Text(stringResource(R.string.biometric_unlock_sign_out))
             }
         }

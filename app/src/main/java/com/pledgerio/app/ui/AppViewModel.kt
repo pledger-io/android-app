@@ -10,8 +10,11 @@ import com.pledgerio.app.util.NetworkMonitor
 import com.pledgerio.app.util.SessionManager
 import com.pledgerio.app.util.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -26,6 +29,11 @@ class AppViewModel @Inject constructor(
     networkMonitor: NetworkMonitor,
 ) : ViewModel() {
     val themeMode: StateFlow<ThemeMode> = userPreferences.themeMode
+    private val _biometricSignOutFailed = MutableStateFlow(false)
+    val biometricSignOutFailed: StateFlow<Boolean> = _biometricSignOutFailed.asStateFlow()
+    private val _biometricSignOutInProgress = MutableStateFlow(false)
+    val biometricSignOutInProgress: StateFlow<Boolean> =
+        _biometricSignOutInProgress.asStateFlow()
 
     /**
      * Initial value `true` avoids a single-frame "offline" flash on cold start before the
@@ -39,9 +47,19 @@ class AppViewModel @Inject constructor(
 
     fun signOutFromBiometricLock(onComplete: () -> Unit) {
         viewModelScope.launch {
-            authRepository.logout()
-            biometricLockManager.onBiometricDisabled()
-            onComplete()
+            _biometricSignOutFailed.value = false
+            _biometricSignOutInProgress.value = true
+            try {
+                authRepository.logout()
+                biometricLockManager.onBiometricDisabled()
+                onComplete()
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                _biometricSignOutFailed.value = true
+            } finally {
+                _biometricSignOutInProgress.value = false
+            }
         }
     }
 }

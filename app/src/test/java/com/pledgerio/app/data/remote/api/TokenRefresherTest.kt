@@ -3,6 +3,7 @@ package com.pledgerio.app.data.remote.api
 import com.pledgerio.app.util.AuthenticatedSessionScope
 import com.pledgerio.app.util.RefreshSessionSnapshot
 import com.pledgerio.app.util.SessionManager
+import com.pledgerio.app.util.refreshSnapshotMatches
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import io.mockk.every
@@ -11,6 +12,7 @@ import io.mockk.verify
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -131,8 +133,25 @@ class TokenRefresherTest {
 
     @Test
     fun `stale refresh response is discarded after session changes in flight`() {
+        data class StoredSession(
+            val accessToken: String?,
+            val refreshToken: String?,
+            val baseUrl: String?,
+            val syncGeneration: String?,
+            val logoutTombstoned: Boolean,
+        )
+
         val requestArrived = CountDownLatch(1)
         val releaseResponse = CountDownLatch(1)
+        val storedSession = AtomicReference(
+            StoredSession(
+                accessToken = scope.accessToken,
+                refreshToken = snapshot.refreshToken,
+                baseUrl = scope.baseUrl,
+                syncGeneration = scope.syncGeneration,
+                logoutTombstoned = false,
+            ),
+        )
         server.dispatcher = object : Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {
                 requestArrived.countDown()
@@ -157,7 +176,27 @@ class TokenRefresherTest {
                 "stale-refresh",
                 3600,
             )
-        } returns null
+        } answers {
+            val current = storedSession.get()
+            if (
+                refreshSnapshotMatches(
+                    snapshot = snapshot,
+                    currentAccessToken = current.accessToken,
+                    currentRefreshToken = current.refreshToken,
+                    currentBaseUrl = current.baseUrl,
+                    currentSyncGeneration = current.syncGeneration,
+                    logoutTombstoned = current.logoutTombstoned,
+                )
+            ) {
+                AuthenticatedSessionScope(
+                    accessToken = "stale-access",
+                    baseUrl = scope.baseUrl,
+                    syncGeneration = scope.syncGeneration,
+                )
+            } else {
+                null
+            }
+        }
         val executor = Executors.newSingleThreadExecutor()
         try {
             val result = executor.submit<AuthenticatedSessionScope?> {
@@ -165,7 +204,16 @@ class TokenRefresherTest {
             }
             check(requestArrived.await(5, TimeUnit.SECONDS))
 
-            // Models a server/account transition before the old server responds.
+            // Changes every compare-and-set field before the old server responds.
+            storedSession.set(
+                StoredSession(
+                    accessToken = "new-session-access",
+                    refreshToken = "new-session-refresh",
+                    baseUrl = "https://new.example",
+                    syncGeneration = "generation-b",
+                    logoutTombstoned = false,
+                ),
+            )
             releaseResponse.countDown()
 
             assertNull(result.get(5, TimeUnit.SECONDS))

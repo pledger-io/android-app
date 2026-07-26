@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
 data class SettingsUiState(
@@ -42,6 +43,7 @@ data class SettingsUiState(
     val showExperiencePicker: Boolean = false,
     val showLanguagePicker: Boolean = false,
     val isLoggingOut: Boolean = false,
+    val logoutFailed: Boolean = false,
 )
 
 @HiltViewModel
@@ -188,11 +190,23 @@ class SettingsViewModel @Inject constructor(
 
     fun logout(onLoggedOut: () -> Unit) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoggingOut = true) }
-            authRepository.logout()
-            _uiState.update { it.copy(isLoggingOut = false) }
-            onLoggedOut()
+            _uiState.update { it.copy(isLoggingOut = true, logoutFailed = false) }
+            try {
+                authRepository.logout()
+                _uiState.update { it.copy(isLoggingOut = false) }
+                onLoggedOut()
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                _uiState.update {
+                    it.copy(isLoggingOut = false, logoutFailed = true)
+                }
+            }
         }
+    }
+
+    fun consumeLogoutFailure() {
+        _uiState.update { it.copy(logoutFailed = false) }
     }
 
     private fun loadCurrencies() {

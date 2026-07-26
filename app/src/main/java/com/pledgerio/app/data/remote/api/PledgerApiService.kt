@@ -14,7 +14,9 @@ interface PledgerApiService {
     suspend fun refreshToken(@Body request: RefreshTokenRequest): Response<LoginResponse>
 
     @POST("v2/api/security/logout")
-    suspend fun logout(): Response<Unit>
+    suspend fun logout(
+        @Header("Authorization") authorization: String? = null,
+    ): Response<Unit>
 
     // OpenID Connect
     @GET(".well-known/openid-connect")

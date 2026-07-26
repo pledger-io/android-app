@@ -3,6 +3,7 @@ package com.pledgerio.app.data.repository
 import com.pledgerio.app.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.LoginResponse
 import com.pledgerio.app.util.AuthenticatedSessionCoordinator
+import com.pledgerio.app.util.LogoutCredential
 import com.pledgerio.app.util.Resource
 import com.pledgerio.app.util.SessionManager
 import io.mockk.coEvery
@@ -35,24 +36,28 @@ class AuthRepositoryImplTest {
 
     @Test
     fun `logout delegates remote and local lifecycle to coordinator`() = runTest {
-        every { sessionManager.isLoggedIn() } returns true
-        coEvery { apiService.logout() } returns Response.success(Unit)
+        val credential = LogoutCredential("old-token")
+        coEvery { apiService.logout("Bearer old-token") } returns Response.success(Unit)
         coEvery { authenticatedSessionCoordinator.logout(any()) } coAnswers {
-            firstArg<suspend () -> Unit>().invoke()
+            firstArg<suspend (LogoutCredential?) -> Unit>().invoke(credential)
         }
 
         repository.logout()
 
         coVerify(exactly = 1) { authenticatedSessionCoordinator.logout(any()) }
-        coVerify(exactly = 1) { apiService.logout() }
+        coVerify(exactly = 1) { apiService.logout("Bearer old-token") }
     }
 
     @Test
     fun `logout coordinator receives remote failure without repository handling credentials`() = runTest {
-        every { sessionManager.isLoggedIn() } returns true
-        coEvery { apiService.logout() } throws RuntimeException("offline")
+        val credential = LogoutCredential("old-token")
+        coEvery {
+            apiService.logout("Bearer old-token")
+        } throws RuntimeException("offline")
         coEvery { authenticatedSessionCoordinator.logout(any()) } coAnswers {
-            runCatching { firstArg<suspend () -> Unit>().invoke() }
+            runCatching {
+                firstArg<suspend (LogoutCredential?) -> Unit>().invoke(credential)
+            }
             Unit
         }
 

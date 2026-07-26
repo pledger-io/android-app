@@ -31,6 +31,27 @@ class RefreshSessionSnapshot internal constructor(
     override fun toString(): String = "RefreshSessionSnapshot(redacted)"
 }
 
+class LogoutCredential internal constructor(
+    private val accessToken: String,
+) {
+    fun authorizationHeader(): String = "Bearer $accessToken"
+
+    override fun toString(): String = "LogoutCredential(redacted)"
+}
+
+internal fun refreshSnapshotMatches(
+    snapshot: RefreshSessionSnapshot,
+    currentAccessToken: String?,
+    currentRefreshToken: String?,
+    currentBaseUrl: String?,
+    currentSyncGeneration: String?,
+    logoutTombstoned: Boolean,
+): Boolean = !logoutTombstoned &&
+    currentAccessToken == snapshot.scope.accessToken &&
+    currentRefreshToken == snapshot.refreshToken &&
+    currentBaseUrl?.trimEnd('/') == snapshot.scope.baseUrl &&
+    currentSyncGeneration == snapshot.scope.syncGeneration
+
 @Singleton
 class SessionManager @Inject constructor(
     @ApplicationContext context: Context
@@ -55,6 +76,7 @@ class SessionManager @Inject constructor(
         private const val KEY_USERNAME = "username"
         private const val KEY_BIOMETRIC_ENABLED = "biometric_enabled"
         private const val KEY_SYNC_GENERATION = "sync_generation"
+        private const val KEY_LOGOUT_TOMBSTONE = "logout_tombstone"
 
         /** Refresh the access token this long before it expires. */
         const val TOKEN_REFRESH_BUFFER_MS = 60_000L
@@ -66,7 +88,11 @@ class SessionManager @Inject constructor(
     }
 
     @Synchronized
-    fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
+    fun getToken(): String? = if (isLogoutTombstoned()) {
+        null
+    } else {
+        prefs.getString(KEY_TOKEN, null)
+    }
 
     @Synchronized
     fun saveTokenExpiry(expiresInSeconds: Long) {
@@ -93,7 +119,11 @@ class SessionManager @Inject constructor(
     }
 
     @Synchronized
-    fun getRefreshToken(): String? = prefs.getString(KEY_REFRESH_TOKEN, null)
+    fun getRefreshToken(): String? = if (isLogoutTombstoned()) {
+        null
+    } else {
+        prefs.getString(KEY_REFRESH_TOKEN, null)
+    }
 
     @Synchronized
     fun saveBaseUrl(url: String) {
@@ -109,7 +139,11 @@ class SessionManager @Inject constructor(
     }
 
     @Synchronized
-    fun getUsername(): String? = prefs.getString(KEY_USERNAME, null)
+    fun getUsername(): String? = if (isLogoutTombstoned()) {
+        null
+    } else {
+        prefs.getString(KEY_USERNAME, null)
+    }
 
     /**
      * Installs all credential fields and the new work generation in one encrypted preference
@@ -130,6 +164,7 @@ class SessionManager @Inject constructor(
             .remove(KEY_TOKEN_EXPIRES_AT)
             .remove(KEY_USERNAME)
             .remove(KEY_SYNC_GENERATION)
+            .remove(KEY_LOGOUT_TOMBSTONE)
             .putString(KEY_TOKEN, accessToken)
             .putString(KEY_USERNAME, username)
             .putString(KEY_SYNC_GENERATION, generation)
@@ -170,8 +205,18 @@ class SessionManager @Inject constructor(
         refreshToken: String?,
         expiresInSeconds: Long,
     ): AuthenticatedSessionScope? {
-        if (!isSessionScopeCurrent(snapshot.scope)) return null
-        if (prefs.getString(KEY_REFRESH_TOKEN, null) != snapshot.refreshToken) return null
+        if (
+            !refreshSnapshotMatches(
+                snapshot = snapshot,
+                currentAccessToken = prefs.getString(KEY_TOKEN, null),
+                currentRefreshToken = prefs.getString(KEY_REFRESH_TOKEN, null),
+                currentBaseUrl = prefs.getString(KEY_BASE_URL, null),
+                currentSyncGeneration = prefs.getString(KEY_SYNC_GENERATION, null),
+                logoutTombstoned = isLogoutTombstoned(),
+            )
+        ) {
+            return null
+        }
 
         val committedRefreshToken = refreshToken ?: snapshot.refreshToken
         val editor = prefs.edit()
@@ -196,6 +241,7 @@ class SessionManager @Inject constructor(
 
     @Synchronized
     fun getAuthenticatedSessionScope(): AuthenticatedSessionScope? {
+        if (isLogoutTombstoned()) return null
         val accessToken = prefs.getString(KEY_TOKEN, null) ?: return null
         val baseUrl = prefs.getString(KEY_BASE_URL, null)?.trimEnd('/') ?: return null
         val generation = prefs.getString(KEY_SYNC_GENERATION, null) ?: return null
@@ -204,7 +250,8 @@ class SessionManager @Inject constructor(
 
     @Synchronized
     fun isSessionScopeCurrent(scope: AuthenticatedSessionScope): Boolean =
-        prefs.getString(KEY_TOKEN, null) == scope.accessToken &&
+        !isLogoutTombstoned() &&
+            prefs.getString(KEY_TOKEN, null) == scope.accessToken &&
             prefs.getString(KEY_BASE_URL, null)?.trimEnd('/') == scope.baseUrl &&
             prefs.getString(KEY_SYNC_GENERATION, null) == scope.syncGeneration
 
@@ -224,6 +271,9 @@ class SessionManager @Inject constructor(
     @SuppressLint("ApplySharedPref")
     @Synchronized
     fun rotateSyncGeneration(): String {
+        check(!isLogoutTombstoned()) {
+            "Cannot rotate background work generation while logout is pending"
+        }
         val generation = UUID.randomUUID().toString()
         check(prefs.edit().putString(KEY_SYNC_GENERATION, generation).commit()) {
             "Could not persist background work generation"
@@ -232,7 +282,11 @@ class SessionManager @Inject constructor(
     }
 
     @Synchronized
-    fun getSyncGeneration(): String? = prefs.getString(KEY_SYNC_GENERATION, null)
+    fun getSyncGeneration(): String? = if (isLogoutTombstoned()) {
+        null
+    } else {
+        prefs.getString(KEY_SYNC_GENERATION, null)
+    }
 
     /**
      * Invalidates workers synchronously before cancellation is dispatched.
@@ -255,8 +309,9 @@ class SessionManager @Inject constructor(
      */
     @Synchronized
     fun runIfSyncGenerationCurrent(generation: String, action: () -> Unit): Boolean {
-        val isCurrent = generation.isNotBlank() &&
-            getToken() != null &&
+        val isCurrent = !isLogoutTombstoned() &&
+            generation.isNotBlank() &&
+            prefs.getString(KEY_TOKEN, null) != null &&
             prefs.getString(KEY_SYNC_GENERATION, null) == generation
         if (isCurrent) action()
         return isCurrent
@@ -268,7 +323,30 @@ class SessionManager @Inject constructor(
 
     fun isBiometricEnabled(): Boolean = prefs.getBoolean(KEY_BIOMETRIC_ENABLED, false)
 
-    fun isLoggedIn(): Boolean = getToken() != null
+    @Synchronized
+    fun isLoggedIn(): Boolean =
+        !isLogoutTombstoned() && prefs.getString(KEY_TOKEN, null) != null
+
+    @Synchronized
+    fun isLogoutTombstoned(): Boolean =
+        prefs.getBoolean(KEY_LOGOUT_TOMBSTONE, false)
+
+    /**
+     * Durably revokes normal credential access before logout side effects begin.
+     *
+     * The returned credential exists only so the dedicated logout endpoint can revoke the remote
+     * session. All normal session accessors already treat this process as logged out.
+     */
+    @SuppressLint("ApplySharedPref")
+    @Synchronized
+    fun markLogoutTombstoneAndCaptureCredential(): LogoutCredential? {
+        val credential = prefs.getString(KEY_TOKEN, null)?.let(::LogoutCredential)
+        check(prefs.edit().putBoolean(KEY_LOGOUT_TOMBSTONE, true).commit()) {
+            prefs.edit().putBoolean(KEY_LOGOUT_TOMBSTONE, true).apply()
+            "Could not persist logout tombstone"
+        }
+        return credential
+    }
 
     /** Clears auth credentials but keeps server URL and biometric preference. */
     @SuppressLint("ApplySharedPref", "UseKtx")
@@ -281,8 +359,12 @@ class SessionManager @Inject constructor(
                 .remove(KEY_TOKEN_EXPIRES_AT)
                 .remove(KEY_USERNAME)
                 .remove(KEY_SYNC_GENERATION)
+                .remove(KEY_LOGOUT_TOMBSTONE)
                 .commit(),
         ) {
+            // commit() updates memory before reporting a disk failure. Restore the fail-closed
+            // in-process view; the previously durable tombstone remains on disk atomically.
+            prefs.edit().putBoolean(KEY_LOGOUT_TOMBSTONE, true).apply()
             "Could not clear authentication state"
         }
     }
@@ -297,9 +379,11 @@ class SessionManager @Inject constructor(
                 .remove(KEY_TOKEN_EXPIRES_AT)
                 .remove(KEY_USERNAME)
                 .remove(KEY_SYNC_GENERATION)
+                .remove(KEY_LOGOUT_TOMBSTONE)
                 .putString(KEY_BASE_URL, baseUrl)
                 .commit(),
         ) {
+            prefs.edit().putBoolean(KEY_LOGOUT_TOMBSTONE, true).apply()
             "Could not switch server and clear authentication state"
         }
     }

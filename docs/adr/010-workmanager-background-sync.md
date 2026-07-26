@@ -29,6 +29,9 @@ Implementation:
 - Fresh login rotates an opaque encrypted work-generation ID and schedules immediately;
   logout, server changes, and terminal authentication failures invalidate that generation
   before cancellation and local cleanup
+- Logout first persists an encrypted revocation tombstone. Tombstoned credentials are unusable
+  for normal requests, worker guards, and startup scheduling even if durable token deletion
+  fails; startup retries credential/cache cleanup and work cancellation
 - Each worker receives only the opaque generation ID and re-checks it between sync steps and
   immediately before publishing a notification
 - Every worker repository step and notification publication holds a shared session-data barrier.

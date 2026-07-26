@@ -13,6 +13,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
+class DurableLogoutException internal constructor(cause: Throwable) :
+    IllegalStateException("Secure sign out could not be completed", cause)
+
 /**
  * Owns transitions between authenticated sessions and their background work.
  *
@@ -84,22 +87,29 @@ class AuthenticatedSessionCoordinator @Inject constructor(
         }
     }
 
-    suspend fun logout(remoteLogout: suspend () -> Unit): Unit = withContext(ioDispatcher) {
+    suspend fun logout(
+        remoteLogout: suspend (LogoutCredential?) -> Unit,
+    ): Unit = withContext(ioDispatcher) {
         transitionMutex.withLock {
             withContext(NonCancellable) {
                 sessionDataBarrier.withSessionTransition {
-                    attempt("Could not invalidate background work during logout") {
+                    var logoutCredential: LogoutCredential? = null
+                    val tombstoneFailure = attempt("Could not persist logout tombstone") {
                         synchronized(credentialLock) {
-                            sessionManager.invalidateSyncGeneration()
+                            logoutCredential =
+                                sessionManager.markLogoutTombstoneAndCaptureCredential()
                         }
                     }
                     attempt("Could not cancel background work during logout") {
                         syncWorkScheduler.cancelAndAwait()
                     }
-                    attempt("Remote logout failed") {
-                        remoteLogout()
+                    if (tombstoneFailure == null) {
+                        attempt("Remote logout failed") {
+                            remoteLogout(logoutCredential)
+                        }
                     }
-                    attempt("Could not clear credentials during logout") {
+                    val credentialClearFailure =
+                        attempt("Could not clear credentials during logout") {
                         synchronized(credentialLock) {
                             sessionManager.clearAuthTokens()
                         }
@@ -107,7 +117,13 @@ class AuthenticatedSessionCoordinator @Inject constructor(
                     attempt("Could not clear cached data during logout") {
                         localDataCleaner.clearAllUserData()
                     }
-                    Unit
+                    val durableFailure = collectFailure(
+                        tombstoneFailure,
+                        credentialClearFailure,
+                    )
+                    if (durableFailure != null) {
+                        throw DurableLogoutException(durableFailure)
+                    }
                 }
             }
         }
@@ -142,6 +158,20 @@ class AuthenticatedSessionCoordinator @Inject constructor(
         try {
             transitionMutex.withLock {
                 sessionDataBarrier.withSessionTransition {
+                    if (sessionManager.isLogoutTombstoned()) {
+                        attempt("Could not clear tombstoned credentials at startup") {
+                            synchronized(credentialLock) {
+                                sessionManager.clearAuthTokens()
+                            }
+                        }
+                        attempt("Could not cancel tombstoned work at startup") {
+                            syncWorkScheduler.cancelAndAwait()
+                        }
+                        attempt("Could not clear tombstoned cache at startup") {
+                            localDataCleaner.clearAllUserData()
+                        }
+                        return@withSessionTransition
+                    }
                     val generation = synchronized(credentialLock) {
                         if (!sessionManager.isLoggedIn()) {
                             sessionManager.invalidateSyncGeneration()
@@ -177,8 +207,13 @@ class AuthenticatedSessionCoordinator @Inject constructor(
      * [expectedScope] prevents an old request from terminating a newer login or server.
      */
     fun terminateSessionAsync(expectedScope: AuthenticatedSessionScope) {
-        val invalidated = synchronized(credentialLock) {
-            sessionManager.clearAuthTokensIfCurrent(expectedScope)
+        val invalidated = try {
+            synchronized(credentialLock) {
+                sessionManager.clearAuthTokensIfCurrent(expectedScope)
+            }
+        } catch (_: Exception) {
+            appLog.w(TAG, "Could not durably clear terminal authentication state")
+            sessionManager.isLogoutTombstoned()
         }
         if (!invalidated) return
 

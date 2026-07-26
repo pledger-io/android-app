@@ -15,6 +15,7 @@ import okhttp3.Response
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 
@@ -167,6 +168,49 @@ class AuthInterceptorTest {
 
         verify(exactly = 0) { tokenRefresher.tokenForRequest(any()) }
         verify(exactly = 0) { tokenRefresher.refreshAfterUnauthorized(any()) }
+    }
+
+    @Test
+    fun `tombstoned session sends no credential on normal requests`() {
+        val original = Request.Builder()
+            .url("https://example.com/v2/api/accounts")
+            .header("Authorization", "Bearer persisted-old-token")
+            .build()
+        val chain = mockk<Interceptor.Chain>()
+        val capturedRequests = mutableListOf<Request>()
+        every { sessionManager.getAuthenticatedSessionScope() } returns null
+        every { chain.request() } returns original
+        every {
+            chain.proceed(capture(capturedRequests))
+        } returns responseFor(original, 200)
+
+        interceptor.intercept(chain)
+
+        assertNull(capturedRequests.single().header("Authorization"))
+        verify(exactly = 0) { tokenRefresher.tokenForRequest(any()) }
+    }
+
+    @Test
+    fun `tombstoned session preserves captured credential only on logout request`() {
+        val logoutRequest = Request.Builder()
+            .url("https://example.com/v2/api/security/logout")
+            .header("Authorization", "Bearer captured-old-token")
+            .build()
+        val chain = mockk<Interceptor.Chain>()
+        val capturedRequests = mutableListOf<Request>()
+        every { sessionManager.getAuthenticatedSessionScope() } returns null
+        every { chain.request() } returns logoutRequest
+        every {
+            chain.proceed(capture(capturedRequests))
+        } returns responseFor(logoutRequest, 200)
+
+        interceptor.intercept(chain)
+
+        assertEquals(
+            "Bearer captured-old-token",
+            capturedRequests.single().header("Authorization"),
+        )
+        verify(exactly = 0) { tokenRefresher.tokenForRequest(any()) }
     }
 
     private fun responseFor(request: Request, code: Int): Response =

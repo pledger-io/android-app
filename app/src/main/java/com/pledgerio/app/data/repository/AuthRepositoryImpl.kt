@@ -112,9 +112,9 @@ class AuthRepositoryImpl @Inject constructor(
     override fun isLoggedIn(): Boolean = sessionManager.isLoggedIn()
 
     override suspend fun logout() {
-        authenticatedSessionCoordinator.logout {
-            if (sessionManager.isLoggedIn()) {
-                apiService.logout()
+        authenticatedSessionCoordinator.logout { credential ->
+            credential?.let {
+                apiService.logout(it.authorizationHeader())
             }
         }
     }

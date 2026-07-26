@@ -41,6 +41,10 @@ class AuthInterceptor @Inject constructor(
             originalRequest.newBuilder()
                 .header("Authorization", "Bearer ${requestScope.accessToken}")
                 .build()
+        } else if (!path.endsWith("/v2/api/security/logout")) {
+            originalRequest.newBuilder()
+                .removeHeader("Authorization")
+                .build()
         } else {
             originalRequest
         }
