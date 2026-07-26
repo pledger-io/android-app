@@ -167,13 +167,13 @@ fun BudgetsScreen(
                         onSubmit = viewModel::createInitialBudget,
                     )
                 }
-                uiState.error != null && uiState.budgets.isEmpty() -> {
+                uiState.error != null && uiState.budgets.isEmpty() && uiState.monthlyIncome == null -> {
                     ErrorScreen(
                         message = uiState.error ?: "",
                         onRetry = viewModel::refresh,
                     )
                 }
-                uiState.budgets.isEmpty() -> {
+                uiState.budgets.isEmpty() && uiState.monthlyIncome == null -> {
                     EmptyScreen(
                         icon = Icons.Default.PieChart,
                         title = stringResource(R.string.budget_empty_title),
@@ -275,11 +275,21 @@ fun BudgetsScreen(
                             }
                         }
 
-                        items(uiState.budgets, key = { it.id }) { budget ->
-                            BudgetCard(
-                                budget = budget,
-                                onClick = { onNavigateToDetail(budget.id) },
-                            )
+                        if (uiState.budgets.isEmpty()) {
+                            item {
+                                Text(
+                                    text = stringResource(R.string.budget_empty_message),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        } else {
+                            items(uiState.budgets, key = { it.id }) { budget ->
+                                BudgetCard(
+                                    budget = budget,
+                                    onClick = { onNavigateToDetail(budget.id) },
+                                )
+                            }
                         }
 
                         item { Spacer(modifier = Modifier.height(80.dp)) }

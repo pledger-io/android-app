@@ -41,6 +41,8 @@ class BudgetDetailViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val budgetId: Long = savedStateHandle.get<Long>("budgetId") ?: 0L
+    private val periodYear = savedStateHandle.get<Int>("year")?.takeIf { it > 0 }
+    private val periodMonth = savedStateHandle.get<Int>("month")?.takeIf { it in 1..12 }
 
     private val _uiState = MutableStateFlow(BudgetDetailUiState())
     val uiState: StateFlow<BudgetDetailUiState> = _uiState.asStateFlow()
@@ -60,7 +62,9 @@ class BudgetDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true) }
             val now = LocalDate.now()
-            val terminalResult = budgetRepository.getBudgets(now.year, now.monthValue)
+            val year = periodYear ?: now.year
+            val month = periodMonth ?: now.monthValue
+            val terminalResult = budgetRepository.getBudgets(year, month)
                 .filterIsInstance<Resource<BudgetListState>>()
                 .first { it !is Resource.Loading }
             when (terminalResult) {
@@ -130,13 +134,15 @@ class BudgetDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, formError = null) }
             val now = LocalDate.now()
+            val year = periodYear ?: now.year
+            val month = periodMonth ?: now.monthValue
             when (
                 val result = saveBudgetExpenseUseCase(
                     id = budgetId,
                     name = state.formName,
                     budgetAmount = amount,
-                    year = now.year,
-                    month = now.monthValue,
+                    year = year,
+                    month = month,
                 )
             ) {
                 is Resource.Success -> {

@@ -23,6 +23,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -128,5 +129,49 @@ class BudgetsViewModelTest {
         assertEquals(4000.0, viewModel.uiState.value.monthlyIncome!!, 0.001)
         assertFalse(viewModel.uiState.value.incomeFormVisible)
         coVerify { updateBudgetIncomeUseCase(any(), any(), 4000.0) }
+    }
+
+    @Test
+    fun `load keeps income when budget has no expense groups`() = runTest {
+        every { getBudgetsUseCase(any(), any()) } returns flowOf(
+            Resource.Loading,
+            Resource.Success(BudgetListState(budgets = emptyList(), income = 3500.0)),
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(3500.0, viewModel.uiState.value.monthlyIncome!!, 0.001)
+        assertTrue(viewModel.uiState.value.budgets.isEmpty())
+        assertFalse(viewModel.uiState.value.needsInitialSetup)
+    }
+
+    @Test
+    fun `previousMonth clears monthly income until reload`() = runTest {
+        var loadCount = 0
+        every { getBudgetsUseCase(any(), any()) } answers {
+            loadCount++
+            if (loadCount == 1) {
+                flowOf(
+                    Resource.Loading,
+                    Resource.Success(
+                        BudgetListState(
+                            budgets = listOf(Budget(id = 1, name = "Groceries", amount = 400.0)),
+                            income = 3500.0,
+                        ),
+                    ),
+                )
+            } else {
+                flowOf(Resource.Loading)
+            }
+        }
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        assertEquals(3500.0, viewModel.uiState.value.monthlyIncome!!, 0.001)
+
+        viewModel.previousMonth()
+        assertNull(viewModel.uiState.value.monthlyIncome)
+        assertTrue(viewModel.uiState.value.budgets.isEmpty())
     }
 }

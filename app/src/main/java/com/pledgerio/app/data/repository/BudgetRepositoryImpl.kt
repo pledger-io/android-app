@@ -246,7 +246,9 @@ class BudgetRepositoryImpl @Inject constructor(
                 else -> Resource.Error("Failed to fetch budgets: ${budgetResponse.code()}")
             }
         } catch (e: Exception) {
-            if (isRoomSnapshotFor(requested)) {
+            // Prefer the Room snapshot for this month even if budgetMonth was invalidated
+            // (e.g. after a transaction mutation) so offline reads still work.
+            if (readRoomBudgetMonth() == requested) {
                 val cached = budgetDao.getAll().first()
                 if (cached.isNotEmpty()) {
                     return Resource.Success(

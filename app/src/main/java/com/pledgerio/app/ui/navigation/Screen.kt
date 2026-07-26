@@ -74,8 +74,9 @@ sealed class Screen(val route: String) {
         }
     }
     data object Search : Screen("search")
-    data object BudgetDetail : Screen("budget/{budgetId}") {
-        fun createRoute(budgetId: Long) = "budget/$budgetId"
+    data object BudgetDetail : Screen("budget/{budgetId}?year={year}&month={month}") {
+        fun createRoute(budgetId: Long, year: Int = -1, month: Int = -1) =
+            "budget/$budgetId?year=$year&month=$month"
     }
     data object Reports : Screen("reports")
     data object Settings : Screen("settings")

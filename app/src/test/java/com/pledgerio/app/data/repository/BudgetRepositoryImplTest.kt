@@ -231,6 +231,19 @@ class BudgetRepositoryImplTest {
     }
 
     @Test
+    fun `updateBudgetIncome fails on 404`() = runTest {
+        coEvery { apiService.updateBudgetIncome(any()) } returns Response.error(
+            404,
+            "".toResponseBody(),
+        )
+
+        val result = repository.updateBudgetIncome(2026, 5, 4000.0)
+
+        assertTrue(result is Resource.Error)
+        assertFalse((result as Resource.Error).message.isNullOrBlank())
+    }
+
+    @Test
     fun `createInitialBudget fails on 400`() = runTest {
         coEvery { apiService.createInitialBudget(any()) } returns Response.error(
             400,

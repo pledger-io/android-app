@@ -54,7 +54,6 @@ data class BudgetsUiState(
     val isEditingExpense: Boolean get() = editingExpenseId != null
 
     val canAddExpenseGroups: Boolean get() = !needsInitialSetup && !isLoading
-    val canEditIncome: Boolean get() = !needsInitialSetup && !isLoading && monthlyIncome != null
 }
 
 @HiltViewModel
@@ -78,6 +77,7 @@ class BudgetsViewModel @Inject constructor(
     val uiState: StateFlow<BudgetsUiState> = _uiState.asStateFlow()
 
     private var loadJob: Job? = null
+    private var mutationJob: Job? = null
 
     init {
         loadBudgets()
@@ -101,11 +101,16 @@ class BudgetsViewModel @Inject constructor(
 
     private fun navigateToMonth(month: YearMonth) {
         loadJob?.cancel()
+        mutationJob?.cancel()
         _uiState.update {
             it.copy(
                 currentMonth = month,
                 budgets = emptyList(),
                 monthlyIncome = null,
+                formVisible = false,
+                incomeFormVisible = false,
+                isSavingExpense = false,
+                isSavingIncome = false,
                 error = null,
             )
         }
@@ -209,7 +214,8 @@ class BudgetsViewModel @Inject constructor(
         val income = state.incomeFormAmount.replace(',', '.').toDouble()
         val month = state.currentMonth
 
-        viewModelScope.launch {
+        mutationJob?.cancel()
+        mutationJob = viewModelScope.launch {
             _uiState.update { it.copy(isSavingIncome = true, incomeFormError = null) }
             when (
                 val result = updateBudgetIncomeUseCase(
@@ -248,7 +254,8 @@ class BudgetsViewModel @Inject constructor(
         val amount = state.formAmount.replace(',', '.').toDouble()
         val month = state.currentMonth
 
-        viewModelScope.launch {
+        mutationJob?.cancel()
+        mutationJob = viewModelScope.launch {
             _uiState.update { it.copy(isSavingExpense = true, formError = null) }
             when (
                 val result = saveBudgetExpenseUseCase(
@@ -289,7 +296,8 @@ class BudgetsViewModel @Inject constructor(
             return
         }
 
-        viewModelScope.launch {
+        mutationJob?.cancel()
+        mutationJob = viewModelScope.launch {
             _uiState.update { it.copy(isCreatingInitial = true, setupError = null) }
             when (
                 val result = createInitialBudgetUseCase(
