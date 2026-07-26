@@ -220,7 +220,10 @@ class TransactionRepositoryImpl @Inject constructor(
             val response = apiService.deleteTransaction(id)
             if (response.isSuccessful || response.code() == 404) {
                 transactionDao.deleteById(id)
-                mutationInvalidator.invalidate(transactionDate ?: cachedDate)
+                // Cache invalidation is best-effort: the server/local delete already succeeded.
+                runCatching {
+                    mutationInvalidator.invalidate(transactionDate ?: cachedDate)
+                }
                 Resource.Success(Unit)
             } else {
                 Resource.Error("Failed to delete transaction: ${response.code()}")
