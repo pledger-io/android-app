@@ -27,6 +27,7 @@ class SyncWorkRunnerTest {
     private val currencyRepository = mockk<CurrencyRepository>(relaxed = true)
     private val tagRepository = mockk<TagRepository>(relaxed = true)
     private val sessionGuard = mockk<SyncSessionGuard>()
+    private val sessionDataBarrier = SessionDataBarrier()
 
     @Test
     fun `stale generation performs no synchronization`() = runTest {
@@ -78,14 +79,17 @@ class SyncWorkRunnerTest {
         }
 
     @Test
-    fun `session guard does not publish after generation invalidation`() {
+    fun `session guard does not publish after generation invalidation`() = runTest {
         val sessionManager = mockk<SessionManager>()
         every {
             sessionManager.runIfSyncGenerationCurrent("stale", any())
         } returns false
         var published = false
 
-        val result = SyncSessionGuard(sessionManager).publishIfCurrent("stale") {
+        val result = SyncSessionGuard(
+            sessionManager,
+            sessionDataBarrier,
+        ).publishIfCurrent("stale") {
             published = true
         }
 
@@ -101,5 +105,6 @@ class SyncWorkRunnerTest {
         currencyRepository = currencyRepository,
         tagRepository = tagRepository,
         sessionGuard = sessionGuard,
+        sessionDataBarrier = sessionDataBarrier,
     )
 }

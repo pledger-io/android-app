@@ -2,15 +2,17 @@ package com.pledgerio.app.data.remote.api
 
 import com.pledgerio.app.data.remote.dto.LoginResponse
 import com.pledgerio.app.data.remote.dto.RefreshTokenRequest
+import com.pledgerio.app.di.RefreshClient
+import com.pledgerio.app.util.AuthenticatedSessionScope
+import com.pledgerio.app.util.RefreshSessionSnapshot
 import com.pledgerio.app.util.SessionManager
 import com.squareup.moshi.Moshi
+import javax.inject.Inject
+import javax.inject.Singleton
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import com.pledgerio.app.di.RefreshClient
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 class TokenRefresher @Inject constructor(
@@ -23,43 +25,68 @@ class TokenRefresher @Inject constructor(
     private val loginResponseAdapter = moshi.adapter(LoginResponse::class.java)
     private val refreshRequestAdapter = moshi.adapter(RefreshTokenRequest::class.java)
 
-    fun refreshTokenIfNeeded(): Boolean {
-        if (!sessionManager.isTokenExpiringSoon()) return true
-        return refreshToken()
+    /**
+     * Returns a token scoped to [expectedScope], refreshing it when needed.
+     *
+     * A failed proactive refresh may use the still-current existing token and let the server
+     * decide. A stale session always returns null.
+     */
+    fun tokenForRequest(
+        expectedScope: AuthenticatedSessionScope,
+    ): AuthenticatedSessionScope? = synchronized(refreshLock) {
+        if (!sessionManager.isSessionScopeCurrent(expectedScope)) return null
+        if (!sessionManager.isTokenExpiringSoon()) return expectedScope
+
+        val snapshot = sessionManager.getRefreshSessionSnapshot(expectedScope)
+            ?: return expectedScope.takeIf(sessionManager::isSessionScopeCurrent)
+        performRefresh(snapshot)
+            ?: expectedScope.takeIf(sessionManager::isSessionScopeCurrent)
     }
 
-    fun refreshToken(force: Boolean = false): Boolean = synchronized(refreshLock) {
-        if (!force && !sessionManager.isTokenExpiringSoon() && sessionManager.getToken() != null) {
-            return true
+    /**
+     * Refreshes a server-rejected token and returns the exact atomically committed credential.
+     */
+    fun refreshAfterUnauthorized(
+        expectedScope: AuthenticatedSessionScope,
+    ): AuthenticatedSessionScope? = synchronized(refreshLock) {
+        if (!sessionManager.isSessionScopeCurrent(expectedScope)) {
+            val currentScope = sessionManager.getAuthenticatedSessionScope()
+            return currentScope?.takeIf {
+                it.baseUrl == expectedScope.baseUrl &&
+                    it.syncGeneration == expectedScope.syncGeneration
+            }
         }
+        val snapshot = sessionManager.getRefreshSessionSnapshot(expectedScope) ?: return null
+        performRefresh(snapshot)
+    }
 
-        val refreshToken = sessionManager.getRefreshToken() ?: return false
-        val baseUrl = sessionManager.getBaseUrl()?.trimEnd('/') ?: return false
-
+    private fun performRefresh(
+        snapshot: RefreshSessionSnapshot,
+    ): AuthenticatedSessionScope? {
         val requestBody = refreshRequestAdapter.toJson(
-            RefreshTokenRequest(refreshToken = refreshToken),
+            RefreshTokenRequest(refreshToken = snapshot.refreshToken),
         )
         val request = Request.Builder()
-            .url("$baseUrl/v2/api/security/oauth")
+            .url("${snapshot.scope.baseUrl}/v2/api/security/oauth")
             .post(requestBody.toRequestBody(JSON_MEDIA_TYPE))
             .build()
 
         return try {
             refreshOkHttpClient.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) return false
-                val body = response.body?.string() ?: return false
-                val loginResponse = loginResponseAdapter.fromJson(body) ?: return false
+                if (!response.isSuccessful) return null
+                val body = response.body?.string() ?: return null
+                val loginResponse = loginResponseAdapter.fromJson(body) ?: return null
                 val accessToken = loginResponse.accessToken
-                if (accessToken.isBlank()) return false
-                sessionManager.saveToken(accessToken)
-                loginResponse.refreshToken?.let { sessionManager.saveRefreshToken(it) }
-                if (loginResponse.expiresIn > 0) {
-                    sessionManager.saveTokenExpiry(loginResponse.expiresIn)
-                }
-                true
+                if (accessToken.isBlank()) return null
+                sessionManager.commitRefreshedCredentials(
+                    snapshot = snapshot,
+                    accessToken = accessToken,
+                    refreshToken = loginResponse.refreshToken,
+                    expiresInSeconds = loginResponse.expiresIn,
+                )
             }
         } catch (_: Exception) {
-            false
+            null
         }
     }
 

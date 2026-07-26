@@ -1,6 +1,7 @@
 package com.pledgerio.app.util
 
 import com.pledgerio.app.domain.model.Budget
+import com.pledgerio.app.domain.model.BudgetListState
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.domain.repository.CategoryRepository
@@ -17,12 +18,15 @@ sealed interface SyncRunOutcome {
 
 class SyncSessionGuard @Inject constructor(
     private val sessionManager: SessionManager,
+    private val sessionDataBarrier: SessionDataBarrier,
 ) {
     fun isCurrent(generation: String): Boolean =
         sessionManager.runIfSyncGenerationCurrent(generation) {}
 
-    fun publishIfCurrent(generation: String, action: () -> Unit): Boolean =
-        sessionManager.runIfSyncGenerationCurrent(generation, action)
+    suspend fun publishIfCurrent(generation: String, action: () -> Unit): Boolean =
+        sessionDataBarrier.withWorkerStep {
+            sessionManager.runIfSyncGenerationCurrent(generation, action)
+        }
 }
 
 class SyncWorkRunner @Inject constructor(
@@ -33,6 +37,7 @@ class SyncWorkRunner @Inject constructor(
     private val currencyRepository: CurrencyRepository,
     private val tagRepository: TagRepository,
     private val sessionGuard: SyncSessionGuard,
+    private val sessionDataBarrier: SessionDataBarrier,
 ) {
     suspend fun run(generation: String): SyncRunOutcome {
         if (!runStep(generation) { currencyRepository.sync() }) return SyncRunOutcome.StaleSession
@@ -56,10 +61,15 @@ class SyncWorkRunner @Inject constructor(
             return SyncRunOutcome.StaleSession
         }
 
-        if (!sessionGuard.isCurrent(generation)) return SyncRunOutcome.StaleSession
         val now = java.time.LocalDate.now()
-        val budgetsResult = budgetRepository.getBudgets(now.year, now.monthValue).first()
-        if (!sessionGuard.isCurrent(generation)) return SyncRunOutcome.StaleSession
+        var budgetsResult: Resource<BudgetListState>? = null
+        if (
+            !runStep(generation) {
+                budgetsResult = budgetRepository.getBudgets(now.year, now.monthValue).first()
+            }
+        ) {
+            return SyncRunOutcome.StaleSession
+        }
 
         val budgets = (budgetsResult as? Resource.Success)
             ?.data
@@ -72,9 +82,9 @@ class SyncWorkRunner @Inject constructor(
     private suspend fun runStep(
         generation: String,
         action: suspend () -> Unit,
-    ): Boolean {
-        if (!sessionGuard.isCurrent(generation)) return false
+    ): Boolean = sessionDataBarrier.withWorkerStep {
+        if (!sessionGuard.isCurrent(generation)) return@withWorkerStep false
         action()
-        return sessionGuard.isCurrent(generation)
+        sessionGuard.isCurrent(generation)
     }
 }

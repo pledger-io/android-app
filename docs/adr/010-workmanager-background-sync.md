@@ -31,6 +31,10 @@ Implementation:
   before cancellation and local cleanup
 - Each worker receives only the opaque generation ID and re-checks it between sync steps and
   immediately before publishing a notification
+- Every worker repository step and notification publication holds a shared session-data barrier.
+  Session invalidation, cancellation dispatch, cache cleanup, and new-session activation hold the
+  same barrier, so an old write cannot overlap cleanup or continue with another step. WorkManager
+  cancellation is not treated as proof that a running worker has completed.
 - Syncs the SWR-cached resources from [ADR-015](015-stale-while-revalidate-cache.md):
   currencies, categories, contracts, expense groups, owned accounts, counterparty accounts
 - Loads the current-month budget and fires local notifications when any budget exceeds 80%

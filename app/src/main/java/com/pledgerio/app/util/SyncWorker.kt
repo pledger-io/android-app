@@ -47,7 +47,7 @@ class SyncWorker @AssistedInject constructor(
         }
     }
 
-    private fun checkBudgetAlerts(generation: String, budgets: List<Budget>) {
+    private suspend fun checkBudgetAlerts(generation: String, budgets: List<Budget>) {
         val overBudget = budgets.filter { it.percentUsed >= 0.8f }
         if (overBudget.isNotEmpty()) {
             sessionGuard.publishIfCurrent(generation) {
