@@ -68,10 +68,13 @@ class SyncWorker @AssistedInject constructor(
             thresholdPercent = threshold,
             overBudgetIds = overBudget.map { it.id },
         )
-        if (!userPreferences.consumeBudgetAlertFingerprint(fingerprint)) return
+        if (!userPreferences.isNewBudgetAlertFingerprint(fingerprint)) return
 
-        sessionGuard.publishIfCurrent(generation) {
+        val published = sessionGuard.publishIfCurrent(generation) {
             budgetAlertNotifier.notifyOverBudget(overBudget, yearMonth, threshold)
+        }
+        if (published) {
+            userPreferences.markBudgetAlertFingerprint(fingerprint)
         }
     }
 

@@ -34,7 +34,7 @@ class BudgetAlertPreferencesTest {
     }
 
     @Test
-    fun `fingerprint consume helper notifies once then suppresses`() {
+    fun `fingerprint mark helper notifies once then suppresses`() {
         val fingerprint = BudgetAlertLogic.buildFingerprint(
             yearMonth = java.time.YearMonth.of(2026, 7),
             thresholdPercent = 80,
@@ -42,14 +42,14 @@ class BudgetAlertPreferencesTest {
         )
         var stored: String? = null
 
-        fun consume(candidate: String): Boolean {
-            if (!BudgetAlertLogic.isFingerprintNew(stored, candidate)) return false
+        fun isNew(candidate: String): Boolean = BudgetAlertLogic.isFingerprintNew(stored, candidate)
+        fun mark(candidate: String) {
             stored = candidate
-            return true
         }
 
-        assertTrue(consume(fingerprint))
-        assertFalse(consume(fingerprint))
-        assertTrue(consume(fingerprint.replace("|12,45", "|12,45,99")))
+        assertTrue(isNew(fingerprint))
+        mark(fingerprint)
+        assertFalse(isNew(fingerprint))
+        assertTrue(isNew(fingerprint.replace("|12,45", "|12,45,99")))
     }
 }

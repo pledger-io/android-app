@@ -134,19 +134,20 @@ class UserPreferences @Inject constructor(
     }
 
     /**
-     * Returns `true` if [fingerprint] is new (should notify) and stores it;
-     * `false` if unchanged (suppress).
+     * Returns true when [fingerprint] differs from the last successfully published alert.
+     * Does not mutate storage — call [markBudgetAlertFingerprint] only after a successful notify.
      */
-    suspend fun consumeBudgetAlertFingerprint(fingerprint: String): Boolean {
-        var shouldNotify = false
+    suspend fun isNewBudgetAlertFingerprint(fingerprint: String): Boolean {
+        val previous = dataStore.data.map { prefs ->
+            prefs[KEY_BUDGET_ALERT_LAST_FINGERPRINT]
+        }.first()
+        return BudgetAlertLogic.isFingerprintNew(previous, fingerprint)
+    }
+
+    suspend fun markBudgetAlertFingerprint(fingerprint: String) {
         dataStore.edit { prefs ->
-            val previous = prefs[KEY_BUDGET_ALERT_LAST_FINGERPRINT]
-            if (BudgetAlertLogic.isFingerprintNew(previous, fingerprint)) {
-                prefs[KEY_BUDGET_ALERT_LAST_FINGERPRINT] = fingerprint
-                shouldNotify = true
-            }
+            prefs[KEY_BUDGET_ALERT_LAST_FINGERPRINT] = fingerprint
         }
-        return shouldNotify
     }
 
     /** Clears the dedup token so a later over-threshold set can alert again. */

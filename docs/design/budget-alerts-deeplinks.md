@@ -48,8 +48,10 @@ Expose:
 
 - `StateFlow` / suspend getters for enabled + threshold
 - `setBudgetAlertsEnabled`, `setBudgetAlertThresholdPercent`
-- `suspend fun consumeBudgetAlertFingerprint(fingerprint: String): Boolean`  
-  — returns `true` if this fingerprint is **new** (should notify) and stores it; `false` if unchanged (suppress). Clear fingerprint when month changes is implicit if fingerprint includes `yyyy-MM`.
+- `suspend fun isNewBudgetAlertFingerprint(fingerprint: String): Boolean`  
+  — returns `true` if this fingerprint differs from the last **successfully published** alert.
+- `suspend fun markBudgetAlertFingerprint(fingerprint: String)` — persist only after notify succeeds under the session guard.
+- `suspend fun clearBudgetAlertFingerprint()` — when the over-set is empty so a later breach can alert again.
 
 **Fingerprint format:**  
 `"{yearMonth}|{threshold}|{sortedBudgetIds joined by comma}"`  
@@ -61,8 +63,8 @@ e.g. `2026-07|80|12,45`. Empty over-set → do not notify; optionally clear fing
 2. If `!enabled` → return (no notify).
 3. `thresholdFraction = percent / 100f`; filter `budgets.filter { it.percentUsed >= thresholdFraction }`.
 4. Build fingerprint from **current calendar month** (same month as `SyncWorkRunner` budget fetch) + threshold + over-budget ids.
-5. If `consumeBudgetAlertFingerprint` is false → skip.
-6. Else `sessionGuard.publishIfCurrent { send… }` as today.
+5. If fingerprint is not new → skip.
+6. Else `sessionGuard.publishIfCurrent { send… }`; **only if published**, mark fingerprint.
 
 ### Notification content + deep link
 

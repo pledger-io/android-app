@@ -71,7 +71,7 @@ class SyncWorkRunner @Inject constructor(
             !runStep(generation) {
                 budgetsResult = budgetRepository
                     .getBudgets(yearMonth.year, yearMonth.monthValue)
-                    .first()
+                    .first { it !is Resource.Loading }
             }
         ) {
             return SyncRunOutcome.StaleSession
