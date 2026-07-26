@@ -1,8 +1,18 @@
 package com.pledgerio.app.ui.settings
 
+import android.Manifest
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,23 +31,21 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Tag
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -46,24 +54,27 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import androidx.activity.compose.LocalActivity
-import androidx.appcompat.app.AppCompatActivity
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.pledgerio.app.ui.util.localizedDescription
-import com.pledgerio.app.ui.util.localizedName
-import com.pledgerio.app.util.BiometricAvailability
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import com.pledgerio.app.BuildConfig
 import com.pledgerio.app.R
 import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.ui.theme.ExpenseRed
+import com.pledgerio.app.ui.util.localizedDescription
+import com.pledgerio.app.ui.util.localizedName
+import com.pledgerio.app.util.BiometricAvailability
+import com.pledgerio.app.util.BudgetAlertLogic
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,9 +91,44 @@ fun SettingsScreen(
     val issueReportState by issueReportViewModel.uiState.collectAsState()
     val context = LocalContext.current
     val signOutFailedMessage = stringResource(R.string.settings_sign_out_failed)
+    val permissionDeniedMessage = stringResource(R.string.settings_budget_alerts_permission_denied)
+    val openSettingsLabel = stringResource(R.string.settings_budget_alerts_open_system_settings)
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var osNotificationsEnabled by remember {
+        mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled())
+    }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            osNotificationsEnabled =
+                NotificationManagerCompat.from(context).areNotificationsEnabled()
+        }
+    }
+
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        osNotificationsEnabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
+        if (!granted) {
+            scope.launch {
+                val result = snackbarHostState.showSnackbar(
+                    message = permissionDeniedMessage,
+                    actionLabel = openSettingsLabel,
+                    duration = SnackbarDuration.Long,
+                )
+                if (result == SnackbarResult.ActionPerformed) {
+                    context.startActivity(
+                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", context.packageName, null)
+                        },
+                    )
+                }
+            }
+        }
+    }
 
     LaunchedEffect(issueReportState.readyToOpen) {
         val report = issueReportState.readyToOpen ?: return@LaunchedEffect
@@ -160,6 +206,15 @@ fun SettingsScreen(
             selected = uiState.financeExperienceMode,
             onDismiss = viewModel::dismissExperiencePicker,
             onSelect = viewModel::selectFinanceExperienceMode,
+        )
+    }
+
+    if (uiState.showBudgetAlertThresholdPicker) {
+        SettingsBudgetAlertThresholdPickerDialog(
+            selected = uiState.budgetAlertThresholdPercent,
+            options = BudgetAlertLogic.VALID_THRESHOLDS,
+            onDismiss = viewModel::dismissBudgetAlertThresholdPicker,
+            onSelect = viewModel::selectBudgetAlertThreshold,
         )
     }
 
@@ -261,6 +316,11 @@ fun SettingsScreen(
             }
 
             item {
+                val budgetAlertsSubtitle = when {
+                    uiState.budgetAlertsEnabled && !osNotificationsEnabled ->
+                        stringResource(R.string.settings_budget_alerts_os_disabled)
+                    else -> stringResource(R.string.settings_budget_alerts_subtitle)
+                }
                 SettingsSection(stringResource(R.string.settings_section_preferences)) {
                     SettingsItem(
                         icon = Icons.Default.Language,
@@ -283,12 +343,38 @@ fun SettingsScreen(
                         onClick = viewModel::openThemePicker,
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    SettingsToggle(
+                        icon = Icons.Default.Notifications,
+                        title = stringResource(R.string.settings_budget_alerts),
+                        subtitle = budgetAlertsSubtitle,
+                        checked = uiState.budgetAlertsEnabled,
+                        onCheckedChange = { enabled ->
+                            viewModel.setBudgetAlertsEnabled(enabled)
+                            if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                val granted = ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.POST_NOTIFICATIONS,
+                                ) == PackageManager.PERMISSION_GRANTED
+                                if (!granted) {
+                                    notificationPermissionLauncher.launch(
+                                        Manifest.permission.POST_NOTIFICATIONS,
+                                    )
+                                }
+                            }
+                            osNotificationsEnabled =
+                                NotificationManagerCompat.from(context).areNotificationsEnabled()
+                        },
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SettingsItem(
                         icon = Icons.Default.Notifications,
-                        title = stringResource(R.string.settings_notifications),
-                        subtitle = stringResource(R.string.settings_notifications_coming_soon),
-                        onClick = {},
-                        enabled = false,
+                        title = stringResource(R.string.settings_budget_alert_threshold),
+                        subtitle = stringResource(
+                            R.string.settings_budget_alert_threshold_option,
+                            uiState.budgetAlertThresholdPercent,
+                        ),
+                        onClick = viewModel::openBudgetAlertThresholdPicker,
+                        enabled = uiState.budgetAlertsEnabled,
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SettingsItem(

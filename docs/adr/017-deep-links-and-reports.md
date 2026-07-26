@@ -25,7 +25,7 @@ Custom URI scheme registered in `AndroidManifest.xml`:
 | `pledger://account/{id}` | Account detail |
 | `pledger://budgets?year=Y&month=M` | Budgets tab for month |
 
-`DeepLinkParser` maps URIs to a sealed `DeepLink` type. `MainActivity` forwards pending links to `PledgerRoot`, which navigates after login.
+`DeepLinkParser` maps URIs to a sealed `DeepLink` type. `MainActivity` forwards pending links to `PledgerRoot`, which navigates after login. Budget alert notifications use the budgets URI as their `PendingIntent` content intent (see [ADR-010](010-workmanager-background-sync.md)).
 
 ### Reports
 

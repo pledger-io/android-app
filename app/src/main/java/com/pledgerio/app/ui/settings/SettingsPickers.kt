@@ -234,3 +234,46 @@ internal fun SettingsExperiencePickerDialog(
         },
     )
 }
+
+@Composable
+internal fun SettingsBudgetAlertThresholdPickerDialog(
+    selected: Int,
+    options: List<Int>,
+    onDismiss: () -> Unit,
+    onSelect: (Int) -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_budget_alert_threshold)) },
+        text = {
+            Column {
+                options.forEach { percent ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(percent) }
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(
+                            selected = selected == percent,
+                            onClick = { onSelect(percent) },
+                        )
+                        Text(
+                            text = stringResource(
+                                R.string.settings_budget_alert_threshold_option,
+                                percent,
+                            ),
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+    )
+}

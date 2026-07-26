@@ -12,6 +12,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import java.time.YearMonth
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -75,7 +76,10 @@ class SyncWorkRunnerTest {
 
             val outcome = runner().run("active")
 
-            assertEquals(SyncRunOutcome.Completed(listOf(budget)), outcome)
+            assertEquals(
+                SyncRunOutcome.Completed(listOf(budget), YearMonth.now()),
+                outcome,
+            )
         }
 
     @Test

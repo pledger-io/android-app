@@ -37,11 +37,14 @@ data class SettingsUiState(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val financeExperienceMode: FinanceExperienceMode = FinanceExperienceMode.GUIDED,
     val appLocale: AppLocale = AppLocale.SYSTEM,
+    val budgetAlertsEnabled: Boolean = true,
+    val budgetAlertThresholdPercent: Int = 80,
     val currencies: List<Currency> = emptyList(),
     val showCurrencyPicker: Boolean = false,
     val showThemePicker: Boolean = false,
     val showExperiencePicker: Boolean = false,
     val showLanguagePicker: Boolean = false,
+    val showBudgetAlertThresholdPicker: Boolean = false,
     val isLoggingOut: Boolean = false,
     val logoutFailed: Boolean = false,
 )
@@ -90,6 +93,16 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferences.appLocale.collect { locale ->
                 _uiState.update { it.copy(appLocale = locale) }
+            }
+        }
+        viewModelScope.launch {
+            userPreferences.budgetAlertsEnabled.collect { enabled ->
+                _uiState.update { it.copy(budgetAlertsEnabled = enabled) }
+            }
+        }
+        viewModelScope.launch {
+            userPreferences.budgetAlertThresholdPercent.collect { percent ->
+                _uiState.update { it.copy(budgetAlertThresholdPercent = percent) }
             }
         }
         loadCurrencies()
@@ -154,6 +167,28 @@ class SettingsViewModel @Inject constructor(
 
     fun dismissLanguagePicker() {
         _uiState.update { it.copy(showLanguagePicker = false) }
+    }
+
+    fun openBudgetAlertThresholdPicker() {
+        if (!_uiState.value.budgetAlertsEnabled) return
+        _uiState.update { it.copy(showBudgetAlertThresholdPicker = true) }
+    }
+
+    fun dismissBudgetAlertThresholdPicker() {
+        _uiState.update { it.copy(showBudgetAlertThresholdPicker = false) }
+    }
+
+    fun setBudgetAlertsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferences.setBudgetAlertsEnabled(enabled)
+        }
+    }
+
+    fun selectBudgetAlertThreshold(percent: Int) {
+        viewModelScope.launch {
+            userPreferences.setBudgetAlertThresholdPercent(percent)
+            dismissBudgetAlertThresholdPicker()
+        }
     }
 
     fun selectAppLocale(locale: AppLocale, onLocaleApplied: () -> Unit) {

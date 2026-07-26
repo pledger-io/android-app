@@ -77,7 +77,11 @@ There is **no delete** endpoint for expense groups in the current API.
 
 ### Background sync
 
-`SyncWorker` loads current-month budgets and notifies when any group exceeds **80%** spent. Skipped when no budget exists yet (`needsInitialSetup`).
+`SyncWorker` loads current-month budgets and, when budget alerts are enabled in Settings,
+notifies when any group meets or exceeds the configured threshold (default **80%**).
+Notification taps open `pledger://budgets?year=&month=` for that month. Duplicate alerts for
+the same over-threshold set within a calendar month are suppressed via a fingerprint.
+Skipped when no budget exists yet (`needsInitialSetup`) or alerts are disabled.
 
 ## Code map
 

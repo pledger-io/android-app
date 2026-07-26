@@ -59,7 +59,20 @@
     <string name="empty_parties_message">Versuche eine andere Suche oder füge ein Gegenkonto hinzu.</string>
 
     <string name="settings_change_server">Server-URL ändern</string>
-    <string name="settings_notifications_coming_soon">Kommt in einem zukünftigen Update</string>
+    <string name="settings_budget_alerts">Budgetwarnungen</string>
+    <string name="settings_budget_alerts_subtitle">Benachrichtigung nach Hintergrundsynchronisation, wenn Ausgabengruppen deinen Schwellenwert überschreiten</string>
+    <string name="settings_budget_alerts_os_disabled">Warnungen sind aktiv, aber Benachrichtigungen sind in den Systemeinstellungen deaktiviert</string>
+    <string name="settings_budget_alerts_permission_denied">Für Budgetwarnungen ist die Benachrichtigungsberechtigung erforderlich. Du kannst sie in den Systemeinstellungen aktivieren.</string>
+    <string name="settings_budget_alerts_open_system_settings">Einstellungen öffnen</string>
+    <string name="settings_budget_alert_threshold">Warnschwelle</string>
+    <string name="settings_budget_alert_threshold_option">%1$d%%</string>
+    <string name="budget_alert_channel_name">Budgetwarnungen</string>
+    <string name="budget_alert_channel_description">Benachrichtigungen, wenn Budgets Schwellenwerte überschreiten</string>
+    <string name="budget_alert_notification_title">Budgetwarnung</string>
+    <plurals name="budget_alert_notification_body">
+        <item quantity="one">%1$d Budget über %2$d%%: %3$s</item>
+        <item quantity="other">%1$d Budgets über %2$d%%: %3$s</item>
+    </plurals>
     <string name="settings_biometric_enabled">Entsperrung beim Öffnen der App erforderlich</string>
     <string name="settings_biometric_disabled">Aus</string>
     <string name="settings_biometric_unavailable">Biometrie auf diesem Gerät nicht verfügbar</string>
@@ -172,7 +185,6 @@
     <string name="settings_tags">Tags</string>
     <string name="settings_tags_subtitle">Transaktions-Tags verwalten</string>
     <string name="settings_display_currency">Anzeigewährung</string>
-    <string name="settings_notifications">Benachrichtigungen</string>
     <string name="settings_version">Version</string>
     <string name="settings_sign_out">Abmelden</string>
     <string name="settings_sign_out_confirm_title">Abmelden</string>

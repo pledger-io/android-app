@@ -225,7 +225,7 @@ expense groups), 24 h for currencies and account types.
 Periodic work (every 12 h, requires network) scheduled from `PledgerApp.onCreate`. Each run
 refreshes currencies, account types, categories, contracts, expense groups, owned accounts,
 counterparty accounts, and the current-month budget; fires local notifications when any
-budget group exceeds 80% spend.
+budget group meets or exceeds the user-configured alert threshold (default 80%).
 
 Transactions are refreshed on screen load rather than in the worker.
 
