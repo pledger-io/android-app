@@ -76,4 +76,20 @@ class TokenRefresherTest {
 
         assertFalse(tokenRefresher.refreshToken())
     }
+
+    @Test
+    fun `forced refresh calls server even when access token is not near expiry`() {
+        every { sessionManager.isTokenExpiringSoon() } returns false
+        every { sessionManager.getToken() } returns "rejected-access"
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setBody("""{"access_token":"replacement","expires_in":3600}"""),
+        )
+
+        assertTrue(tokenRefresher.refreshToken(force = true))
+
+        verify { sessionManager.saveToken("replacement") }
+        assertTrue(server.requestCount == 1)
+    }
 }

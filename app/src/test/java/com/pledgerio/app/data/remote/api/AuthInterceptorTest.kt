@@ -1,6 +1,6 @@
 package com.pledgerio.app.data.remote.api
 
-import com.pledgerio.app.data.local.LocalDataCleaner
+import com.pledgerio.app.util.AuthenticatedSessionCoordinator
 import com.pledgerio.app.util.SessionManager
 import io.mockk.Runs
 import io.mockk.every
@@ -21,15 +21,19 @@ class AuthInterceptorTest {
 
     private lateinit var sessionManager: SessionManager
     private lateinit var tokenRefresher: TokenRefresher
-    private lateinit var localDataCleaner: LocalDataCleaner
+    private lateinit var authenticatedSessionCoordinator: AuthenticatedSessionCoordinator
     private lateinit var interceptor: AuthInterceptor
 
     @Before
     fun setUp() {
         sessionManager = mockk(relaxed = true)
         tokenRefresher = mockk(relaxed = true)
-        localDataCleaner = mockk(relaxed = true)
-        interceptor = AuthInterceptor(sessionManager, tokenRefresher, localDataCleaner)
+        authenticatedSessionCoordinator = mockk(relaxed = true)
+        interceptor = AuthInterceptor(
+            sessionManager,
+            tokenRefresher,
+            authenticatedSessionCoordinator,
+        )
     }
 
     @Test
@@ -41,8 +45,8 @@ class AuthInterceptorTest {
 
         every { chain.request() } returns original
         every { sessionManager.getToken() } returnsMany listOf("old-token", "new-token")
-        every { tokenRefresher.refreshToken() } returns true
-        every { localDataCleaner.clearAllUserDataAsync() } just Runs
+        every { tokenRefresher.refreshToken(force = true) } returns true
+        every { authenticatedSessionCoordinator.terminateSessionAsync(any()) } just Runs
 
         val capturedRequests = mutableListOf<Request>()
         every { chain.proceed(capture(capturedRequests)) } returnsMany listOf(
@@ -57,8 +61,8 @@ class AuthInterceptorTest {
         assertEquals("Bearer old-token", capturedRequests[0].header("Authorization"))
         assertEquals("Bearer new-token", capturedRequests[1].header("Authorization"))
         verify(exactly = 1) { tokenRefresher.refreshTokenIfNeeded() }
-        verify(exactly = 1) { tokenRefresher.refreshToken() }
-        verify(exactly = 0) { localDataCleaner.clearAllUserDataAsync() }
+        verify(exactly = 1) { tokenRefresher.refreshToken(force = true) }
+        verify(exactly = 0) { authenticatedSessionCoordinator.terminateSessionAsync(any()) }
         verify(exactly = 0) { sessionManager.clearAuthTokens() }
     }
 
@@ -71,18 +75,42 @@ class AuthInterceptorTest {
 
         every { chain.request() } returns original
         every { sessionManager.getToken() } returns "old-token"
-        every { tokenRefresher.refreshToken() } returns false
+        every { tokenRefresher.refreshToken(force = true) } returns false
         every { chain.proceed(any()) } returns responseFor(original, 401)
-        every { localDataCleaner.clearAllUserDataAsync() } just Runs
-        every { sessionManager.clearAuthTokens() } just Runs
+        every { authenticatedSessionCoordinator.terminateSessionAsync(any()) } just Runs
 
         val result = interceptor.intercept(chain)
 
         assertEquals(401, result.code)
         verify(exactly = 1) { tokenRefresher.refreshTokenIfNeeded() }
-        verify(exactly = 1) { tokenRefresher.refreshToken() }
-        verify(exactly = 1) { localDataCleaner.clearAllUserDataAsync() }
-        verify(exactly = 1) { sessionManager.clearAuthTokens() }
+        verify(exactly = 1) { tokenRefresher.refreshToken(force = true) }
+        verify(exactly = 1) {
+            authenticatedSessionCoordinator.terminateSessionAsync("old-token")
+        }
+        verify(exactly = 0) { sessionManager.clearAuthTokens() }
+    }
+
+    @Test
+    fun `intercept terminates refreshed session when retry is also unauthorized`() {
+        val original = Request.Builder()
+            .url("https://example.com/v2/api/accounts")
+            .build()
+        val chain = mockk<Interceptor.Chain>()
+        every { chain.request() } returns original
+        every { sessionManager.getToken() } returnsMany listOf("old-token", "new-token")
+        every { tokenRefresher.refreshToken(force = true) } returns true
+        every { authenticatedSessionCoordinator.terminateSessionAsync(any()) } just Runs
+        every { chain.proceed(any()) } returnsMany listOf(
+            responseFor(original, 401),
+            responseFor(original, 401),
+        )
+
+        val result = interceptor.intercept(chain)
+
+        assertEquals(401, result.code)
+        verify(exactly = 1) {
+            authenticatedSessionCoordinator.terminateSessionAsync("new-token")
+        }
     }
 
     @Test
@@ -99,7 +127,7 @@ class AuthInterceptorTest {
         interceptor.intercept(chain)
 
         verify(exactly = 0) { tokenRefresher.refreshTokenIfNeeded() }
-        verify(exactly = 0) { tokenRefresher.refreshToken() }
+        verify(exactly = 0) { tokenRefresher.refreshToken(force = any()) }
     }
 
     private fun responseFor(request: Request, code: Int): Response =

@@ -28,8 +28,8 @@ class TokenRefresher @Inject constructor(
         return refreshToken()
     }
 
-    fun refreshToken(): Boolean = synchronized(refreshLock) {
-        if (!sessionManager.isTokenExpiringSoon() && sessionManager.getToken() != null) {
+    fun refreshToken(force: Boolean = false): Boolean = synchronized(refreshLock) {
+        if (!force && !sessionManager.isTokenExpiringSoon() && sessionManager.getToken() != null) {
             return true
         }
 

@@ -1,6 +1,6 @@
 package com.pledgerio.app.data.remote.api
 
-import com.pledgerio.app.data.local.LocalDataCleaner
+import com.pledgerio.app.util.AuthenticatedSessionCoordinator
 import com.pledgerio.app.util.SessionManager
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -9,7 +9,7 @@ import javax.inject.Inject
 class AuthInterceptor @Inject constructor(
     private val sessionManager: SessionManager,
     private val tokenRefresher: TokenRefresher,
-    private val localDataCleaner: LocalDataCleaner,
+    private val authenticatedSessionCoordinator: AuthenticatedSessionCoordinator,
 ) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -35,18 +35,22 @@ class AuthInterceptor @Inject constructor(
             token != null &&
             !isAuthEndpoint(originalRequest.url.encodedPath)
         ) {
-            response.close()
-            if (tokenRefresher.refreshToken()) {
+            if (tokenRefresher.refreshToken(force = true)) {
                 val newToken = sessionManager.getToken()
                 if (newToken != null) {
+                    response.close()
                     val retryRequest = originalRequest.newBuilder()
                         .header("Authorization", "Bearer $newToken")
                         .build()
-                    return chain.proceed(retryRequest)
+                    val retryResponse = chain.proceed(retryRequest)
+                    if (retryResponse.code != 401) {
+                        return retryResponse
+                    }
+                    authenticatedSessionCoordinator.terminateSessionAsync(newToken)
+                    return retryResponse
                 }
             }
-            localDataCleaner.clearAllUserDataAsync()
-            sessionManager.clearAuthTokens()
+            authenticatedSessionCoordinator.terminateSessionAsync(token)
         }
 
         return response
@@ -55,5 +59,6 @@ class AuthInterceptor @Inject constructor(
     private fun isAuthEndpoint(path: String): Boolean =
         path.endsWith("/v2/api/security/authenticate") ||
             path.endsWith("/v2/api/security/oauth") ||
+            path.endsWith("/v2/api/security/logout") ||
             path.endsWith("/health")
 }

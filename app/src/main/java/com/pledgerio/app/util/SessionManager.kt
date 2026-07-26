@@ -1,10 +1,12 @@
 package com.pledgerio.app.util
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,6 +33,7 @@ class SessionManager @Inject constructor(
         private const val KEY_BASE_URL = "base_url"
         private const val KEY_USERNAME = "username"
         private const val KEY_BIOMETRIC_ENABLED = "biometric_enabled"
+        private const val KEY_SYNC_GENERATION = "sync_generation"
 
         /** Refresh the access token this long before it expires. */
         const val TOKEN_REFRESH_BUFFER_MS = 60_000L
@@ -77,6 +80,52 @@ class SessionManager @Inject constructor(
 
     fun getUsername(): String? = prefs.getString(KEY_USERNAME, null)
 
+    /**
+     * Starts a new opaque generation for authenticated background work.
+     *
+     * The value is encrypted at rest and contains no account or credential data.
+     */
+    @SuppressLint("ApplySharedPref")
+    @Synchronized
+    fun rotateSyncGeneration(): String {
+        val generation = UUID.randomUUID().toString()
+        check(prefs.edit().putString(KEY_SYNC_GENERATION, generation).commit()) {
+            "Could not persist background work generation"
+        }
+        return generation
+    }
+
+    @Synchronized
+    fun getSyncGeneration(): String? = prefs.getString(KEY_SYNC_GENERATION, null)
+
+    /**
+     * Invalidates workers synchronously before cancellation is dispatched.
+     *
+     * commit() is intentional: callers rely on the generation being durably removed before
+     * allowing a different authenticated session to be installed.
+     */
+    @SuppressLint("ApplySharedPref")
+    @Synchronized
+    fun invalidateSyncGeneration() {
+        check(prefs.edit().remove(KEY_SYNC_GENERATION).commit()) {
+            "Could not invalidate background work generation"
+        }
+    }
+
+    /**
+     * Runs a non-suspending side effect only while [generation] is the active session.
+     *
+     * Used for notifications so invalidation and publication have a single ordering point.
+     */
+    @Synchronized
+    fun runIfSyncGenerationCurrent(generation: String, action: () -> Unit): Boolean {
+        val isCurrent = generation.isNotBlank() &&
+            getToken() != null &&
+            prefs.getString(KEY_SYNC_GENERATION, null) == generation
+        if (isCurrent) action()
+        return isCurrent
+    }
+
     fun setBiometricEnabled(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_BIOMETRIC_ENABLED, enabled).apply()
     }
@@ -86,13 +135,20 @@ class SessionManager @Inject constructor(
     fun isLoggedIn(): Boolean = getToken() != null
 
     /** Clears auth credentials but keeps server URL and biometric preference. */
+    @SuppressLint("ApplySharedPref", "UseKtx")
+    @Synchronized
     fun clearAuthTokens() {
-        prefs.edit()
-            .remove(KEY_TOKEN)
-            .remove(KEY_REFRESH_TOKEN)
-            .remove(KEY_TOKEN_EXPIRES_AT)
-            .remove(KEY_USERNAME)
-            .apply()
+        check(
+            prefs.edit()
+                .remove(KEY_TOKEN)
+                .remove(KEY_REFRESH_TOKEN)
+                .remove(KEY_TOKEN_EXPIRES_AT)
+                .remove(KEY_USERNAME)
+                .remove(KEY_SYNC_GENERATION)
+                .commit(),
+        ) {
+            "Could not clear authentication state"
+        }
     }
 
     fun clearSession() {
