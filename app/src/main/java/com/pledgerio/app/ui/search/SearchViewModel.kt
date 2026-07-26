@@ -74,6 +74,12 @@ class SearchViewModel @Inject constructor(
         queryFlow.value = query
     }
 
+    fun removeDeletedTransaction(id: Long) {
+        _uiState.update { state ->
+            state.copy(transactions = state.transactions.filterNot { it.id == id })
+        }
+    }
+
     private fun search(query: String) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch {

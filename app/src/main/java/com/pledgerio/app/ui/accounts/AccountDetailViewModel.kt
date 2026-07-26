@@ -91,6 +91,22 @@ class AccountDetailViewModel @Inject constructor(
         }
     }
 
+    fun removeDeletedTransaction(id: Long) {
+        _uiState.update { state ->
+            val filtered = state.transactions.filterNot { it.id == id }
+            if (filtered.size == state.transactions.size) {
+                state
+            } else {
+                val total = (state.totalTransactionCount - 1).coerceAtLeast(0)
+                state.copy(
+                    transactions = filtered,
+                    totalTransactionCount = total,
+                    hasMore = filtered.size.toLong() < total,
+                )
+            }
+        }
+    }
+
     private fun loadAccount() {
         viewModelScope.launch {
             when (val result = accountRepository.getAccount(accountId)) {

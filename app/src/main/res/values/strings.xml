@@ -378,6 +378,13 @@
     <!-- Transaction form -->
     <string name="transaction_form_new_title">New transaction</string>
     <string name="transaction_form_edit_title">Edit transaction</string>
+    <string name="transaction_detail_fallback_title">Transaction</string>
+    <string name="transaction_delete_content_description">Delete transaction</string>
+    <string name="transaction_delete_title">Delete transaction?</string>
+    <string name="transaction_delete_message">“%1$s” will be permanently deleted. This cannot be undone.</string>
+    <string name="transaction_delete_in_progress">Deleting…</string>
+    <string name="transaction_delete_failed">The transaction could not be deleted. Check your connection and try again.</string>
+    <string name="transaction_delete_retry">Retry delete</string>
     <string name="transaction_form_create">Create transaction</string>
     <string name="transaction_form_save_changes">Save changes</string>
     <string name="transaction_form_saving">Saving…</string>

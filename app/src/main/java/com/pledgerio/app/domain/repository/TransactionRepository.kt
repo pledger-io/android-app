@@ -36,7 +36,10 @@ interface TransactionRepository {
     suspend fun createTransaction(transaction: Transaction): Resource<Transaction>
     suspend fun updateTransaction(transaction: Transaction): Resource<Transaction>
     suspend fun patchTransactionSplits(id: Long, splits: List<TransactionSplit>): Resource<Transaction>
-    suspend fun deleteTransaction(id: Long): Resource<Unit>
+    suspend fun deleteTransaction(
+        id: Long,
+        transactionDate: LocalDate? = null,
+    ): Resource<Unit>
     suspend fun suggestClassifications(
         amount: Double? = null,
         description: String? = null,

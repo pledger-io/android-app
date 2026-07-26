@@ -68,6 +68,14 @@ class DashboardViewModel @Inject constructor(
         loadDashboard()
     }
 
+    fun removeDeletedTransaction(id: Long) {
+        _uiState.update { state ->
+            state.copy(
+                recentTransactions = state.recentTransactions.filterNot { it.id == id },
+            )
+        }
+    }
+
     private fun loadDashboard() {
         dashboardJob?.cancel()
         dashboardJob = viewModelScope.launch {
