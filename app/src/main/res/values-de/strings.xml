@@ -194,6 +194,12 @@
     <string name="settings_section_preferences">Einstellungen</string>
     <string name="settings_section_about">Über</string>
     <string name="settings_biometric_login">Biometrische Anmeldung</string>
+    <string name="settings_mfa">Zwei-Faktor-Authentifizierung</string>
+    <string name="settings_mfa_enabled">Aktiviert</string>
+    <string name="settings_mfa_disabled">Deaktiviert</string>
+    <string name="settings_mfa_unknown">Status nicht verfügbar</string>
+    <string name="settings_api_tokens">API-Tokens</string>
+    <string name="settings_api_tokens_subtitle">Dauerhafte Zugriffstoken verwalten</string>
     <string name="settings_categories">Kategorien</string>
     <string name="settings_categories_subtitle">Transaktionskategorien verwalten</string>
     <string name="settings_tags">Tags</string>
@@ -345,6 +351,32 @@
     <string name="action_new">Neu</string>
     <string name="label_name">Name</string>
     <string name="label_description_optional">Beschreibung (optional)</string>
+
+    <!-- API token sessions -->
+    <string name="api_sessions_title">API-Tokens</string>
+    <string name="api_sessions_subtitle">Dauerhafte Zugriffstoken für Integrationen</string>
+    <string name="api_sessions_back">Zurück</string>
+    <string name="api_sessions_create">Token erstellen</string>
+    <string name="api_sessions_create_title">API-Token erstellen</string>
+    <string name="api_sessions_description_label">Beschreibung</string>
+    <string name="api_sessions_description_hint">Mindestens 8 Zeichen</string>
+    <string name="api_sessions_description_too_short">Beschreibung muss mindestens 8 Zeichen haben</string>
+    <string name="api_sessions_expires_label">Gültig bis</string>
+    <string name="api_sessions_pick_date">Datum wählen</string>
+    <string name="api_sessions_empty_title">Keine API-Tokens</string>
+    <string name="api_sessions_empty_message">Erstelle ein dauerhaftes Token für Skripte oder Integrationen. Tokens werden nur bei der Erstellung angezeigt.</string>
+    <string name="api_sessions_token_masked">Token %1$s</string>
+    <string name="api_sessions_valid_range">Gültig %1$s – %2$s</string>
+    <string name="api_sessions_valid_until">Läuft ab %1$s</string>
+    <string name="api_sessions_valid_from">Ab %1$s</string>
+    <string name="api_sessions_valid_unknown">Gültigkeit unbekannt</string>
+    <string name="api_sessions_token_ready_title">Token erstellt</string>
+    <string name="api_sessions_token_ready_message">Kopiere dieses Token jetzt. Du kannst es danach nicht mehr sehen.</string>
+    <string name="api_sessions_copy_token">Kopieren</string>
+    <string name="api_sessions_token_copied">Token kopiert</string>
+    <string name="api_sessions_revoke">Widerrufen</string>
+    <string name="api_sessions_revoke_title">Token widerrufen?</string>
+    <string name="api_sessions_revoke_message">„%1$s“ widerrufen? Apps mit diesem Token funktionieren nicht mehr.</string>
 
     <!-- Transaction form -->
     <string name="transaction_description_label">Wofür war das?</string>

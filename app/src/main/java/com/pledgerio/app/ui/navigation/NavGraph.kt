@@ -25,6 +25,7 @@ import com.pledgerio.app.ui.onboarding.ServerSetupScreen
 import com.pledgerio.app.ui.reports.ReportsScreen
 import com.pledgerio.app.ui.search.SearchScreen
 import com.pledgerio.app.ui.search.SearchViewModel
+import com.pledgerio.app.ui.settings.ApiSessionsScreen
 import com.pledgerio.app.ui.settings.SettingsScreen
 import com.pledgerio.app.ui.transactions.TransactionDetailScreen
 import com.pledgerio.app.ui.transactions.TransactionFormScreen
@@ -457,6 +458,9 @@ fun NavGraph(
                 onNavigateToTags = {
                     navController.navigate(Screen.Tags.route)
                 },
+                onNavigateToApiSessions = {
+                    navController.navigate(Screen.ApiSessions.route)
+                },
                 onNavigateToChangeServer = {
                     navController.navigate(Screen.ServerSetup.createRoute(changeServer = true))
                 },
@@ -466,6 +470,10 @@ fun NavGraph(
                     }
                 },
             )
+        }
+
+        composable(Screen.ApiSessions.route) {
+            ApiSessionsScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.Categories.route) {

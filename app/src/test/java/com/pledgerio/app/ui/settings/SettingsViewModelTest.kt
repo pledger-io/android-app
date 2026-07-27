@@ -3,13 +3,16 @@ package com.pledgerio.app.ui.settings
 import com.pledgerio.app.domain.model.AppLocale
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.ThemeMode
+import com.pledgerio.app.domain.model.UserProfile
 import com.pledgerio.app.domain.repository.AuthRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
+import com.pledgerio.app.domain.repository.UserSessionRepository
 import com.pledgerio.app.util.BiometricAuthenticator
 import com.pledgerio.app.util.BiometricAvailability
 import com.pledgerio.app.util.BiometricLockManager
 import com.pledgerio.app.util.BudgetAlertLogic
 import com.pledgerio.app.util.DurableLogoutException
+import com.pledgerio.app.util.Resource
 import com.pledgerio.app.util.SessionManager
 import com.pledgerio.app.util.UserPreferences
 import io.mockk.coEvery
@@ -28,6 +31,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -37,6 +41,7 @@ class SettingsViewModelTest {
 
     private val sessionManager = mockk<SessionManager>(relaxed = true)
     private val authRepository = mockk<AuthRepository>()
+    private val userSessionRepository = mockk<UserSessionRepository>()
     private val userPreferences = mockk<UserPreferences>()
     private val currencyRepository = mockk<CurrencyRepository>()
     private val biometricAuthenticator = mockk<BiometricAuthenticator>()
@@ -68,6 +73,9 @@ class SettingsViewModelTest {
         } returns BiometricAvailability.NotAvailable
         coEvery { currencyRepository.sync() } returns true
         every { currencyRepository.getCurrencies() } returns flowOf(emptyList())
+        coEvery { userSessionRepository.getProfile() } returns Resource.Success(
+            UserProfile(mfa = false),
+        )
     }
 
     @After
@@ -137,9 +145,33 @@ class SettingsViewModelTest {
         assertFalse(viewModel.uiState.value.showBudgetAlertThresholdPicker)
     }
 
+    @Test
+    fun `loads MFA status from profile`() = runTest {
+        coEvery { userSessionRepository.getProfile() } returns Resource.Success(
+            UserProfile(mfa = true),
+        )
+
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        assertEquals(true, viewModel.uiState.value.mfaEnabled)
+        coVerify(exactly = 1) { userSessionRepository.getProfile() }
+    }
+
+    @Test
+    fun `keeps MFA unknown when profile load fails`() = runTest {
+        coEvery { userSessionRepository.getProfile() } returns Resource.Error("offline")
+
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.mfaEnabled)
+    }
+
     private fun viewModel() = SettingsViewModel(
         sessionManager = sessionManager,
         authRepository = authRepository,
+        userSessionRepository = userSessionRepository,
         userPreferences = userPreferences,
         currencyRepository = currencyRepository,
         biometricAuthenticator = biometricAuthenticator,

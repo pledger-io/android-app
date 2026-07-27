@@ -32,6 +32,12 @@ interface PledgerApiService {
         @Body request: SessionRequest,
     ): Response<SessionResponse>
 
+    @DELETE("v2/api/user-account/{user}/sessions/{session}")
+    suspend fun revokeSession(
+        @Path("user") user: String,
+        @Path("session") sessionId: Long,
+    ): Response<Unit>
+
     @POST("v2/api/user-account/verify-2-factor")
     suspend fun verify2Factor(@Body request: Map<String, String>): Response<Any>
 
