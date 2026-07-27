@@ -13,6 +13,7 @@ import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -218,7 +219,7 @@ class AuthInterceptorTest {
         val verifyRequest = Request.Builder()
             .url("https://example.com/v2/api/user-account/verify-2-factor")
             .header("Authorization", "Bearer pre-verify-token")
-            .post("{}".toByteArray().toResponseBody("application/json".toMediaType()))
+            .post("{}".toByteArray().toRequestBody("application/json".toMediaType()))
             .build()
         val chain = mockk<Interceptor.Chain>()
         val capturedRequests = mutableListOf<Request>()

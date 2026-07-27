@@ -15,6 +15,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -43,7 +44,7 @@ class Verify2FactorViewModelTest {
     @Test
     fun `verify success syncs currency and invokes callback`() = runTest {
         coEvery { authRepository.verifyTwoFactor("123456") } returns Resource.Success(Unit)
-        coEvery { currencyRepository.sync() } returns Resource.Success(Unit)
+        coEvery { currencyRepository.sync() } returns true
 
         val viewModel = Verify2FactorViewModel(authRepository, currencyRepository)
         var success = false
