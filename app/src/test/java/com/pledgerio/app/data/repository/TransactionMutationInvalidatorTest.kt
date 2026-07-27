@@ -21,7 +21,7 @@ class TransactionMutationInvalidatorTest {
     )
 
     @Test
-    fun `invalidate clears report and budget cache for the transaction month`() = runTest {
+    fun `invalidate clears report cache for transaction month and next month MoM`() = runTest {
         val date = LocalDate.of(2026, 7, 18)
         val month = YearMonth.from(date)
 
@@ -29,6 +29,7 @@ class TransactionMutationInvalidatorTest {
 
         coVerifyOrder {
             reportsOverviewStore.invalidate(month)
+            reportsOverviewStore.invalidate(month.plusMonths(1))
             cacheRefresher.invalidate(SyncKeys.budgetMonth(month))
         }
     }

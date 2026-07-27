@@ -2,7 +2,6 @@ package com.pledgerio.app.ui.navigation
 
 import android.net.Uri
 import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 sealed class Screen(val route: String) {
     data object ServerSetup : Screen("server_setup?changeServer={changeServer}") {
@@ -107,5 +106,5 @@ sealed class Screen(val route: String) {
 
 /** JVM-safe query encoding (avoids android.net.Uri in unit tests). */
 private fun encodeQueryParam(value: String): String =
-    URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20")
+    URLEncoder.encode(value, "UTF-8").replace("+", "%20")
 
