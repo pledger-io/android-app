@@ -19,7 +19,8 @@ credentials with durable API tokens would confuse users and revoke the wrong cre
 2. Treat JWT login as separate from durable API tokens; do not list the device JWT as a
    revocable session row.
 3. Always **mask** tokens in the list UI; show the full secret only once after create (copy).
-4. Surface profile **`mfa`** as read-only on Settings; defer OIDC login and MFA enroll/verify.
+4. Surface profile **`mfa`** as read-only on Settings; defer OIDC login and MFA enroll/verify
+   (see [ADR-021](021-mfa-enroll-verify.md)).
 
 Design details: [api-token-sessions.md](../design/api-token-sessions.md).
 
@@ -32,5 +33,5 @@ Design details: [api-token-sessions.md](../design/api-token-sessions.md).
 
 ### Negative / follow-ups
 
-- OIDC AppAuth onboarding and MFA enroll/challenge remain unimplemented.
+- OIDC AppAuth onboarding remains unimplemented; MFA enroll/challenge is ADR-021.
 - Server may still return full tokens on list — UI masking is required forever.
