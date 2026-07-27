@@ -146,7 +146,20 @@ Requires **JDK 21**.
 | Workflow | Trigger | Result |
 |----------|---------|--------|
 | [CI](.github/workflows/ci.yml) | Push / PR to `main` or `master` | Unit tests + lint + instrumented smoke test + debug APK artifact |
+| [Development build](.github/workflows/development-build.yml) | **Manual** (Actions → Development build → Run workflow) | Sideloadable debug APK from the selected branch (use `main` for tip-of-main). **Expires after 7 days** with a blocking warning. |
 | [Release](.github/workflows/release.yml) | **Publish** a GitHub Release, or manual run | Release APK attached to the release |
+
+**Install a development APK on your phone**
+
+1. Open **Actions → Development build → Run workflow**.
+2. Choose the **main** branch (or another branch you want to try) and run.
+3. When the job finishes, download the **`pledger-dev-apk`** artifact from the run page.
+4. Transfer the `.apk` to your phone and open it (allow install from this source if prompted), or install with USB debugging:
+   ```bash
+   adb install -r pledger-io-dev-*.apk
+   ```
+5. The package id is `com.pledgerio.app` (debug-signed). Uninstall a previous debug build first if Android refuses the update.
+6. **Expiry:** these APKs stop after **7 days** from build time and show a warning until you install a fresh Development build. Local/`assembleDebug` builds are not time-limited.
 
 **Distributing an APK on GitHub Release**
 

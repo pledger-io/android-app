@@ -206,6 +206,8 @@
     <string name="settings_tags_subtitle">Transactietags beheren</string>
     <string name="settings_display_currency">Weergavevaluta</string>
     <string name="settings_version">Versie</string>
+    <string name="dev_build_expired_title">Ontwikkelbuild verlopen</string>
+    <string name="dev_build_expired_message">Deze geïnstalleerde ontwikkelbuild is slechts 7 dagen geldig na het bouwen. Download een nieuwe APK via GitHub Actions → Development build.</string>
     <string name="settings_sign_out">Uitloggen</string>
     <string name="settings_sign_out_confirm_title">Uitloggen</string>
     <string name="settings_sign_out_confirm_message">Weet je zeker dat je wilt uitloggen?</string>
