@@ -194,6 +194,12 @@
     <string name="settings_section_preferences">Voorkeuren</string>
     <string name="settings_section_about">Over</string>
     <string name="settings_biometric_login">Biometrische login</string>
+    <string name="settings_mfa">Tweefactorauthenticatie</string>
+    <string name="settings_mfa_enabled">Ingeschakeld</string>
+    <string name="settings_mfa_disabled">Uitgeschakeld</string>
+    <string name="settings_mfa_unknown">Status niet beschikbaar</string>
+    <string name="settings_api_tokens">API-tokens</string>
+    <string name="settings_api_tokens_subtitle">Beheer duurzame toegangstokens</string>
     <string name="settings_categories">Categorieën</string>
     <string name="settings_categories_subtitle">Transactiecategorieën beheren</string>
     <string name="settings_tags">Tags</string>
@@ -345,6 +351,32 @@
     <string name="action_new">Nieuw</string>
     <string name="label_name">Naam</string>
     <string name="label_description_optional">Beschrijving (optioneel)</string>
+
+    <!-- API token sessions -->
+    <string name="api_sessions_title">API-tokens</string>
+    <string name="api_sessions_subtitle">Duurzame toegangstokens voor integraties</string>
+    <string name="api_sessions_back">Terug</string>
+    <string name="api_sessions_create">Token maken</string>
+    <string name="api_sessions_create_title">API-token maken</string>
+    <string name="api_sessions_description_label">Beschrijving</string>
+    <string name="api_sessions_description_hint">Minimaal 8 tekens</string>
+    <string name="api_sessions_description_too_short">Beschrijving moet minstens 8 tekens zijn</string>
+    <string name="api_sessions_expires_label">Verloopt</string>
+    <string name="api_sessions_pick_date">Datum kiezen</string>
+    <string name="api_sessions_empty_title">Geen API-tokens</string>
+    <string name="api_sessions_empty_message">Maak een duurzaam token voor scripts of integraties. Tokens worden alleen getoond bij aanmaken.</string>
+    <string name="api_sessions_token_masked">Token %1$s</string>
+    <string name="api_sessions_valid_range">Geldig %1$s – %2$s</string>
+    <string name="api_sessions_valid_until">Verloopt %1$s</string>
+    <string name="api_sessions_valid_from">Vanaf %1$s</string>
+    <string name="api_sessions_valid_unknown">Geldigheid onbekend</string>
+    <string name="api_sessions_token_ready_title">Token aangemaakt</string>
+    <string name="api_sessions_token_ready_message">Kopieer dit token nu. Je kunt het daarna niet meer zien.</string>
+    <string name="api_sessions_copy_token">Kopiëren</string>
+    <string name="api_sessions_token_copied">Token gekopieerd</string>
+    <string name="api_sessions_revoke">Intrekken</string>
+    <string name="api_sessions_revoke_title">Token intrekken?</string>
+    <string name="api_sessions_revoke_message">“%1$s” intrekken? Apps die dit token gebruiken stoppen met werken.</string>
 
     <!-- Transaction form -->
     <string name="transaction_description_label">Waar was dit voor?</string>

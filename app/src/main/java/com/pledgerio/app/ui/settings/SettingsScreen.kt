@@ -30,8 +30,10 @@ import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Tag
@@ -82,6 +84,7 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToCategories: () -> Unit,
     onNavigateToTags: () -> Unit,
+    onNavigateToApiSessions: () -> Unit,
     onNavigateToChangeServer: () -> Unit,
     onLogout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
@@ -293,6 +296,26 @@ fun SettingsScreen(
                                 },
                             )
                         },
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    val mfaSubtitle = when (uiState.mfaEnabled) {
+                        true -> stringResource(R.string.settings_mfa_enabled)
+                        false -> stringResource(R.string.settings_mfa_disabled)
+                        null -> stringResource(R.string.settings_mfa_unknown)
+                    }
+                    SettingsItem(
+                        icon = Icons.Default.Security,
+                        title = stringResource(R.string.settings_mfa),
+                        subtitle = mfaSubtitle,
+                        onClick = { },
+                        enabled = false,
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    SettingsItem(
+                        icon = Icons.Default.Key,
+                        title = stringResource(R.string.settings_api_tokens),
+                        subtitle = stringResource(R.string.settings_api_tokens_subtitle),
+                        onClick = onNavigateToApiSessions,
                     )
                 }
             }

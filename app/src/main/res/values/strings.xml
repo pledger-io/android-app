@@ -199,6 +199,12 @@
     <string name="settings_section_preferences">Preferences</string>
     <string name="settings_section_about">About</string>
     <string name="settings_biometric_login">Biometric login</string>
+    <string name="settings_mfa">Two-factor authentication</string>
+    <string name="settings_mfa_enabled">Enabled</string>
+    <string name="settings_mfa_disabled">Disabled</string>
+    <string name="settings_mfa_unknown">Status unavailable</string>
+    <string name="settings_api_tokens">API tokens</string>
+    <string name="settings_api_tokens_subtitle">Manage durable access tokens</string>
     <string name="settings_categories">Categories</string>
     <string name="settings_categories_subtitle">Manage transaction categories</string>
     <string name="settings_tags">Tags</string>
@@ -350,6 +356,32 @@
     <string name="action_new">New</string>
     <string name="label_name">Name</string>
     <string name="label_description_optional">Description (optional)</string>
+
+    <!-- API token sessions -->
+    <string name="api_sessions_title">API tokens</string>
+    <string name="api_sessions_subtitle">Durable access tokens for integrations</string>
+    <string name="api_sessions_back">Back</string>
+    <string name="api_sessions_create">Create token</string>
+    <string name="api_sessions_create_title">Create API token</string>
+    <string name="api_sessions_description_label">Description</string>
+    <string name="api_sessions_description_hint">At least 8 characters</string>
+    <string name="api_sessions_description_too_short">Description must be at least 8 characters</string>
+    <string name="api_sessions_expires_label">Expires</string>
+    <string name="api_sessions_pick_date">Pick date</string>
+    <string name="api_sessions_empty_title">No API tokens</string>
+    <string name="api_sessions_empty_message">Create a durable token for scripts or integrations. Tokens are shown only once when created.</string>
+    <string name="api_sessions_token_masked">Token %1$s</string>
+    <string name="api_sessions_valid_range">Valid %1$s – %2$s</string>
+    <string name="api_sessions_valid_until">Expires %1$s</string>
+    <string name="api_sessions_valid_from">From %1$s</string>
+    <string name="api_sessions_valid_unknown">Validity unknown</string>
+    <string name="api_sessions_token_ready_title">Token created</string>
+    <string name="api_sessions_token_ready_message">Copy this token now. You will not be able to see it again.</string>
+    <string name="api_sessions_copy_token">Copy</string>
+    <string name="api_sessions_token_copied">Token copied</string>
+    <string name="api_sessions_revoke">Revoke</string>
+    <string name="api_sessions_revoke_title">Revoke token?</string>
+    <string name="api_sessions_revoke_message">Revoke “%1$s”? Apps using this token will stop working.</string>
 
     <!-- Transaction form -->
     <string name="transaction_description_label">What was this for?</string>

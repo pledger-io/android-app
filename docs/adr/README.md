@@ -25,6 +25,7 @@ This directory contains Architecture Decision Records (ADRs) for the Pledger.io 
 | [017](017-deep-links-and-reports.md) | Deep Links and Reports Data | Accepted |
 | [018](018-app-localization.md) | App Localization (en / nl / de) | Accepted |
 | [019](019-security-and-quality-hardening.md) | Security and Quality Hardening Baseline | Accepted |
+| [020](020-api-token-sessions.md) | Durable API Token Sessions | Accepted |
 
 ## ADR Format
 

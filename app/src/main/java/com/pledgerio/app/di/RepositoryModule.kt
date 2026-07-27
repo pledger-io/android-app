@@ -11,6 +11,7 @@ import com.pledgerio.app.data.repository.ReportRepositoryImpl
 import com.pledgerio.app.data.repository.TagRepositoryImpl
 import com.pledgerio.app.data.repository.TransactionOutboxRepositoryImpl
 import com.pledgerio.app.data.repository.TransactionRepositoryImpl
+import com.pledgerio.app.data.repository.UserSessionRepositoryImpl
 import com.pledgerio.app.data.cache.ReportsOverviewCache
 import com.pledgerio.app.data.ocr.InvoiceTextExtractor
 import com.pledgerio.app.domain.repository.AccountRepository
@@ -26,6 +27,7 @@ import com.pledgerio.app.domain.repository.ReportsOverviewStore
 import com.pledgerio.app.domain.repository.TagRepository
 import com.pledgerio.app.domain.repository.TransactionOutboxRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
+import com.pledgerio.app.domain.repository.UserSessionRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -39,6 +41,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindAuthRepository(impl: AuthRepositoryImpl): AuthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindUserSessionRepository(impl: UserSessionRepositoryImpl): UserSessionRepository
 
     @Binds
     @Singleton

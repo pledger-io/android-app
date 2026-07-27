@@ -116,8 +116,8 @@ See [Budgets](BUDGETS.md) for API and screen details.
 
 ### Domain Layer (`domain/`)
 
-- **Models** — `Account`, `Transaction`, `Budget`, `Category`, `Currency`, `TransactionFilters`, `FilterOption`, `AccountTypeOption`, etc.
-- **Repositories** — `AuthRepository`, `AccountRepository`, `TransactionRepository`, `BudgetRepository`, `CategoryRepository`, `ContractRepository`, `CurrencyRepository`.
+- **Models** — `Account`, `Transaction`, `Budget`, `Category`, `Currency`, `ApiSession`, `UserProfile`, `TransactionFilters`, `FilterOption`, `AccountTypeOption`, etc.
+- **Repositories** — `AuthRepository`, `UserSessionRepository`, `AccountRepository`, `TransactionRepository`, `BudgetRepository`, `CategoryRepository`, `ContractRepository`, `CurrencyRepository`.
 - **Use cases** — e.g. `GetDashboardDataUseCase`, `CreateInitialBudgetUseCase`, `SaveBudgetExpenseUseCase`.
 
 `AccountRepository` additionally supports `searchAccounts(typeCode, nameQuery)` and `getAccountsByTypes(typeCodes)` for the transaction form.
@@ -175,11 +175,14 @@ Screen → ViewModel → Repository → Retrofit
 3. Subsequent API and image requests use the stored base URL and token; `TokenRefresher` calls the oauth endpoint when the access token is near expiry.
 4. Logout calls `POST /v2/api/security/logout` when possible, then `clearAuthTokens()` (base URL and biometric preference remain).
 
+**Durable API sessions vs JWT:** Interactive login uses short-lived JWTs (with refresh) stored in `SessionManager`. Separately, `UserSessionRepository` manages **durable API tokens** (`GET/POST/DELETE …/user-account/{user}/sessions`) for integrations. Those tokens are not the device’s JWT and are never logged in full; the list UI always masks them. MFA status is read from `GET …/user-account/{user}` (`mfa`) on Settings (enroll/verify UI is a follow-up). See [design/api-token-sessions.md](design/api-token-sessions.md) and [ADR-020](adr/020-api-token-sessions.md).
+
 ### Key API surface (non-exhaustive)
 
 | Area | Endpoints |
 |------|-----------|
 | Auth | `/v2/api/security/authenticate`, `/v2/api/security/oauth`, `/v2/api/security/logout` |
+| User sessions / profile | `/v2/api/user-account/{user}/sessions`, `/v2/api/user-account/{user}` |
 | Accounts | `/v2/api/accounts`, `/v2/api/accounts/{id}`, `/v2/api/account-types` |
 | Transactions | `/v2/api/transactions`, `/v2/api/transactions/{id}`, `/v2/api/ai/auto-complete` |
 | Categories | `/v2/api/categories` |
@@ -240,6 +243,8 @@ Transactions are refreshed on screen load rather than in the worker.
 | Token storage | `EncryptedSharedPreferences` (AES-256-GCM) |
 | Transport | User-supplied URL; cleartext denied by default and enabled only in debug override config |
 | Biometric | Optional via settings (`BiometricPrompt`) |
+| MFA status | Read-only from profile (`mfa`); enroll/verify not in app yet |
+| API tokens | Durable sessions via Settings → API tokens; mask in list; show once on create |
 | Session expiry | Proactive JWT refresh + 401 retry; `clearAuthTokens` keeps server URL |
 | Platform | compile/target SDK 36 (Android 16); edge-to-edge in `MainActivity` |
 | Build | Version catalog `gradle/libs.versions.toml`; AGP 8.13 / Gradle 8.13 |

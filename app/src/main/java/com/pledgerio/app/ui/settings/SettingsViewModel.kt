@@ -6,12 +6,14 @@ import com.pledgerio.app.domain.model.AppLocale
 import com.pledgerio.app.domain.model.Currency
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.ThemeMode
-import com.pledgerio.app.util.LocaleManager
 import com.pledgerio.app.domain.repository.AuthRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
+import com.pledgerio.app.domain.repository.UserSessionRepository
 import com.pledgerio.app.util.BiometricAuthenticator
 import com.pledgerio.app.util.BiometricAvailability
 import com.pledgerio.app.util.BiometricLockManager
+import com.pledgerio.app.util.LocaleManager
+import com.pledgerio.app.util.Resource
 import com.pledgerio.app.util.SessionManager
 import com.pledgerio.app.util.UserPreferences
 import androidx.fragment.app.FragmentActivity
@@ -32,6 +34,7 @@ data class SettingsUiState(
     val username: String? = null,
     val biometricEnabled: Boolean = false,
     val biometricAvailability: BiometricAvailability = BiometricAvailability.NotAvailable,
+    val mfaEnabled: Boolean? = null,
     val displayCurrencyCode: String = "EUR",
     val displayCurrencyLabel: String = "EUR",
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
@@ -53,6 +56,7 @@ data class SettingsUiState(
 class SettingsViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val authRepository: AuthRepository,
+    private val userSessionRepository: UserSessionRepository,
     private val userPreferences: UserPreferences,
     private val currencyRepository: CurrencyRepository,
     private val biometricAuthenticator: BiometricAuthenticator,
@@ -106,6 +110,18 @@ class SettingsViewModel @Inject constructor(
             }
         }
         loadCurrencies()
+        loadMfaStatus()
+    }
+
+    private fun loadMfaStatus() {
+        viewModelScope.launch {
+            when (val result = userSessionRepository.getProfile()) {
+                is Resource.Success -> _uiState.update {
+                    it.copy(mfaEnabled = result.data.mfa)
+                }
+                is Resource.Error, is Resource.Loading -> Unit
+            }
+        }
     }
 
     fun toggleBiometric(enabled: Boolean) {
