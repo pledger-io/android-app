@@ -24,6 +24,8 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -81,9 +83,14 @@ fun TransactionFormScreen(
     val today = remember { LocalDate.now() }
     val yesterday = remember { today.minusDays(1) }
     val defaultTemplateName = stringResource(R.string.transaction_template_default_name)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val savedOfflineMessage = stringResource(R.string.transaction_saved_offline)
 
     LaunchedEffect(uiState.saveSuccess) {
         if (uiState.saveSuccess) {
+            if (uiState.savedOffline) {
+                snackbarHostState.showSnackbar(savedOfflineMessage)
+            }
             onNavigateBack()
         }
     }
@@ -168,6 +175,7 @@ fun TransactionFormScreen(
                 },
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             if (!uiState.isLoading) {
                 TransactionFormFooter(

@@ -12,6 +12,7 @@ import com.pledgerio.app.util.MainDispatcherRule
 import com.pledgerio.app.util.Resource
 import com.pledgerio.app.util.UserPreferences
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -34,6 +35,7 @@ class TransactionsViewModelTest {
 
     private val transactionRepository = mockk<TransactionRepository>()
     private val getTransactionsUseCase = mockk<GetTransactionsUseCase>()
+    private val outboxRepository = mockk<com.pledgerio.app.domain.repository.TransactionOutboxRepository>()
     private val categoryRepository = mockk<CategoryRepository>(relaxed = true)
     private val budgetRepository = mockk<BudgetRepository>(relaxed = true)
     private val contractRepository = mockk<ContractRepository>(relaxed = true)
@@ -52,12 +54,14 @@ class TransactionsViewModelTest {
     init {
         every { userPreferences.financeExperienceMode } returns
             MutableStateFlow(FinanceExperienceMode.GUIDED)
+        every { outboxRepository.observePending() } returns MutableStateFlow(emptyList())
     }
 
     private fun createViewModel() = TransactionsViewModel(
         savedStateHandle = savedStateHandle,
         getTransactionsUseCase = getTransactionsUseCase,
         transactionRepository = transactionRepository,
+        outboxRepository = outboxRepository,
         categoryRepository = categoryRepository,
         budgetRepository = budgetRepository,
         contractRepository = contractRepository,
@@ -151,6 +155,7 @@ class TransactionsViewModelTest {
             savedStateHandle = handle,
             getTransactionsUseCase = getTransactionsUseCase,
             transactionRepository = transactionRepository,
+            outboxRepository = outboxRepository,
             categoryRepository = categoryRepository,
             budgetRepository = budgetRepository,
             contractRepository = contractRepository,
@@ -163,5 +168,52 @@ class TransactionsViewModelTest {
         assertEquals(15L, state.selectedCategory?.id)
         assertEquals("Food", state.selectedCategory?.label)
         assertEquals(true, state.filtersExpanded)
+    }
+
+    @Test
+    fun `observePending updates pendingCreates and discard calls repository`() = runTest {
+        coEvery {
+            getTransactionsUseCase(
+                startDate = any(),
+                endDate = any(),
+                accountId = any(),
+                type = any(),
+                filters = any(),
+                page = any(),
+                pageSize = any(),
+            )
+        } returns Resource.Success(
+            PagedResult(emptyList(), totalRecords = 0, totalPages = 0, pageSize = 25),
+        )
+        val pendingFlow = MutableStateFlow(
+            listOf(
+                com.pledgerio.app.domain.model.PendingTransactionCreate(
+                    localId = "local-1",
+                    createdAtMillis = 1L,
+                    status = com.pledgerio.app.domain.model.OutboxStatus.PENDING,
+                    lastError = null,
+                    attemptCount = 0,
+                    date = java.time.LocalDate.of(2026, 7, 27),
+                    currency = "EUR",
+                    description = "Queued coffee",
+                    amount = 3.5,
+                    sourceAccountId = 1,
+                    destinationAccountId = 2,
+                ),
+            ),
+        )
+        every { outboxRepository.observePending() } returns pendingFlow
+        coEvery { outboxRepository.discard("local-1") } returns Resource.Success(Unit)
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.uiState.value.pendingCreates.size)
+        assertEquals("Queued coffee", viewModel.uiState.value.pendingCreates.first().description)
+
+        viewModel.discardPendingCreate("local-1")
+        advanceUntilIdle()
+
+        coVerify { outboxRepository.discard("local-1") }
     }
 }

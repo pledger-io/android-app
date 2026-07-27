@@ -4,8 +4,11 @@ import androidx.lifecycle.SavedStateHandle
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.BudgetExpense
 import com.pledgerio.app.domain.model.Category
+import com.pledgerio.app.domain.model.CreateOutcome
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.FilterOption
+import com.pledgerio.app.domain.model.OutboxStatus
+import com.pledgerio.app.domain.model.PendingTransactionCreate
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionClassificationSuggestion
 import com.pledgerio.app.domain.model.TransactionType
@@ -384,5 +387,42 @@ class TransactionFormViewModelTest {
                 match { it.categoryId == 10L && it.expenseId == 20L },
             )
         }
+    }
+
+    @Test
+    fun `create submit Queued sets saveSuccess and savedOffline`() = runTest {
+        setupRepository()
+        coEvery {
+            transactionRepository.createTransactionOrEnqueue(any())
+        } returns Resource.Success(
+            CreateOutcome.Queued(
+                PendingTransactionCreate(
+                    localId = "local-1",
+                    createdAtMillis = 1L,
+                    status = OutboxStatus.PENDING,
+                    lastError = null,
+                    attemptCount = 0,
+                    date = LocalDate.now(),
+                    currency = "EUR",
+                    description = "Coffee",
+                    amount = 4.5,
+                    sourceAccountId = checking.id,
+                    destinationAccountId = 9L,
+                ),
+            ),
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onDescriptionChanged("Coffee")
+        viewModel.onAmountChanged("4.5")
+        viewModel.onSourceDropdownSelected(checking.id)
+        viewModel.selectTargetAutocomplete(FilterOption(9, "Cafe"))
+        viewModel.submit()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.saveSuccess)
+        assertTrue(viewModel.uiState.value.savedOffline)
+        coVerify { transactionRepository.createTransactionOrEnqueue(any()) }
     }
 }

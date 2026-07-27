@@ -13,6 +13,7 @@ import com.pledgerio.app.data.local.dao.ExpenseGroupDao
 import com.pledgerio.app.data.local.dao.SyncMetadataDao
 import com.pledgerio.app.data.local.dao.TagDao
 import com.pledgerio.app.data.local.dao.TransactionDao
+import com.pledgerio.app.data.local.dao.TransactionOutboxDao
 import com.pledgerio.app.data.local.entity.AccountEntity
 import com.pledgerio.app.data.local.entity.AccountTypeEntity
 import com.pledgerio.app.data.local.entity.BudgetEntity
@@ -23,6 +24,7 @@ import com.pledgerio.app.data.local.entity.ExpenseGroupEntity
 import com.pledgerio.app.data.local.entity.SyncMetadataEntity
 import com.pledgerio.app.data.local.entity.TagEntity
 import com.pledgerio.app.data.local.entity.TransactionEntity
+import com.pledgerio.app.data.local.entity.TransactionOutboxEntity
 
 @Database(
     entities = [
@@ -36,8 +38,9 @@ import com.pledgerio.app.data.local.entity.TransactionEntity
         ExpenseGroupEntity::class,
         AccountTypeEntity::class,
         SyncMetadataEntity::class,
+        TransactionOutboxEntity::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -52,4 +55,5 @@ abstract class PledgerDatabase : RoomDatabase() {
     abstract fun expenseGroupDao(): ExpenseGroupDao
     abstract fun accountTypeDao(): AccountTypeDao
     abstract fun syncMetadataDao(): SyncMetadataDao
+    abstract fun transactionOutboxDao(): TransactionOutboxDao
 }

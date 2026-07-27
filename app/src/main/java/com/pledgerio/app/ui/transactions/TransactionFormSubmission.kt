@@ -32,6 +32,12 @@ internal fun buildTransactionForSubmit(
         sourceAccountName = sourceName,
         destinationAccountId = state.targetAccountId,
         destinationAccountName = targetName,
+        categoryName = state.categorySelected?.label
+            ?: state.categoryQuery.trim().takeIf { it.isNotEmpty() },
+        budgetName = state.expenseSelected?.label
+            ?: state.expenseQuery.trim().takeIf { it.isNotEmpty() },
+        contractName = state.contractSelected?.label
+            ?: state.contractQuery.trim().takeIf { it.isNotEmpty() },
         categoryId = categoryId,
         expenseId = expenseId,
         contractId = contractId,

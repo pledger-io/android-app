@@ -15,6 +15,7 @@ import com.pledgerio.app.util.AppLog
 import com.pledgerio.app.util.AuthenticatedSessionCoordinator
 import com.pledgerio.app.util.CurrencyProvider
 import com.pledgerio.app.util.DebugLogcatNoiseFilter
+import com.pledgerio.app.util.OutboxFlushOnReconnect
 import com.pledgerio.app.di.ApplicationScope
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -46,6 +47,9 @@ class PledgerApp : Application(), Configuration.Provider {
     lateinit var authenticatedSessionCoordinator: AuthenticatedSessionCoordinator
 
     @Inject
+    lateinit var outboxFlushOnReconnect: OutboxFlushOnReconnect
+
+    @Inject
     @ApplicationScope
     lateinit var applicationScope: CoroutineScope
 
@@ -65,6 +69,7 @@ class PledgerApp : Application(), Configuration.Provider {
         applicationScope.launch {
             authenticatedSessionCoordinator.reconcileAtStartup()
         }
+        outboxFlushOnReconnect.start()
         ProcessLifecycleOwner.get().lifecycle.addObserver(biometricLockManager)
         biometricLockManager.onColdStart()
     }

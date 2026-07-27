@@ -8,6 +8,7 @@ import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.repository.TagRepository
+import com.pledgerio.app.domain.repository.TransactionOutboxRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -27,6 +28,7 @@ class SyncWorkRunnerTest {
     private val contractRepository = mockk<ContractRepository>(relaxed = true)
     private val currencyRepository = mockk<CurrencyRepository>(relaxed = true)
     private val tagRepository = mockk<TagRepository>(relaxed = true)
+    private val outboxRepository = mockk<TransactionOutboxRepository>(relaxed = true)
     private val sessionGuard = mockk<SyncSessionGuard>()
     private val sessionDataBarrier = SessionDataBarrier()
 
@@ -70,6 +72,8 @@ class SyncWorkRunnerTest {
             coEvery {
                 accountRepository.refreshCounterpartyAccounts()
             } returns Resource.Success(emptyList())
+            coEvery { outboxRepository.flushPending("active") } returns
+                com.pledgerio.app.domain.model.FlushResult.Completed
             every {
                 budgetRepository.getBudgets(any(), any())
             } returns flowOf(
@@ -83,6 +87,7 @@ class SyncWorkRunnerTest {
                 SyncRunOutcome.Completed(listOf(budget), YearMonth.now()),
                 outcome,
             )
+            coVerify { outboxRepository.flushPending("active") }
         }
 
     @Test
@@ -99,6 +104,8 @@ class SyncWorkRunnerTest {
         coEvery {
             accountRepository.refreshCounterpartyAccounts()
         } returns Resource.Success(emptyList())
+        coEvery { outboxRepository.flushPending("active") } returns
+            com.pledgerio.app.domain.model.FlushResult.Completed
         every {
             budgetRepository.getBudgets(any(), any())
         } returns flowOf(
@@ -140,6 +147,7 @@ class SyncWorkRunnerTest {
         contractRepository = contractRepository,
         currencyRepository = currencyRepository,
         tagRepository = tagRepository,
+        outboxRepository = outboxRepository,
         sessionGuard = sessionGuard,
         sessionDataBarrier = sessionDataBarrier,
     )

@@ -14,6 +14,7 @@ import com.pledgerio.app.data.local.dao.ExpenseGroupDao
 import com.pledgerio.app.data.local.dao.SyncMetadataDao
 import com.pledgerio.app.data.local.dao.TagDao
 import com.pledgerio.app.data.local.dao.TransactionDao
+import com.pledgerio.app.data.local.dao.TransactionOutboxDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -65,4 +66,8 @@ object DatabaseModule {
 
     @Provides
     fun provideSyncMetadataDao(db: PledgerDatabase): SyncMetadataDao = db.syncMetadataDao()
+
+    @Provides
+    fun provideTransactionOutboxDao(db: PledgerDatabase): TransactionOutboxDao =
+        db.transactionOutboxDao()
 }

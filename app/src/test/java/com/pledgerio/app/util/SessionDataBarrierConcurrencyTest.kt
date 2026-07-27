@@ -163,6 +163,7 @@ class SessionDataBarrierConcurrencyTest {
         contractRepository = mockk<ContractRepository>(relaxed = true),
         currencyRepository = currencyRepository,
         tagRepository = mockk<TagRepository>(relaxed = true),
+        outboxRepository = mockk(relaxed = true),
         sessionGuard = sessionGuard,
         sessionDataBarrier = barrier,
     )

@@ -35,4 +35,40 @@ class PledgerDatabaseMigrationsTest {
             )
         }
     }
+
+    @Test
+    fun `migration 6 to 7 creates transaction_outbox table`() {
+        val db = mockk<SupportSQLiteDatabase>(relaxed = true)
+
+        PledgerDatabaseMigrations.MIGRATION_6_7.migrate(db)
+
+        verify {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `transaction_outbox` (
+                    `localId` TEXT NOT NULL,
+                    `createdAtMillis` INTEGER NOT NULL,
+                    `status` TEXT NOT NULL,
+                    `lastError` TEXT,
+                    `attemptCount` INTEGER NOT NULL,
+                    `date` TEXT NOT NULL,
+                    `currency` TEXT NOT NULL,
+                    `description` TEXT NOT NULL,
+                    `amount` REAL NOT NULL,
+                    `sourceAccountId` INTEGER NOT NULL,
+                    `destinationAccountId` INTEGER NOT NULL,
+                    `categoryId` INTEGER,
+                    `expenseId` INTEGER,
+                    `contractId` INTEGER,
+                    `tagsJson` TEXT,
+                    `displaySourceName` TEXT,
+                    `displayDestinationName` TEXT,
+                    `displayCategoryName` TEXT,
+                    `type` TEXT,
+                    PRIMARY KEY(`localId`)
+                )
+                """.trimIndent(),
+            )
+        }
+    }
 }

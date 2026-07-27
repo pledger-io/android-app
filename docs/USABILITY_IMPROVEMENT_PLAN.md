@@ -1,6 +1,6 @@
 # Usability Improvement Plan
 
-**Status:** Active (Tier 3 partial — T3.3–T3.4 deferred)  
+**Status:** Active (Tier 3 partial — T3.3 create-outbox MVP in progress; T3.4 deferred)  
 **Related:** [ADR-016](adr/016-usability-improvement-program.md), [USABILITY_MODES.md](USABILITY_MODES.md), [TRANSACTION_FORM_REDESIGN.md](TRANSACTION_FORM_REDESIGN.md)
 
 ## Purpose
@@ -108,7 +108,7 @@ The app already provides:
 
 - [x] T3.1 Deep links
 - [x] T3.2 Reports data
-- [ ] T3.3 Offline writes (deferred)
+- [~] T3.3 Offline writes — create-only outbox MVP (queue + flush + pending list); edit/delete drafts still deferred
 - [ ] T3.4 Budget notifications (deferred)
 - [x] T3.5 Global search
 - [x] T3.6 Guided/Power extensions (transaction filters default)

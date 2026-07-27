@@ -52,6 +52,7 @@ class WorkManagerSyncWorkScheduler @Inject constructor(
 
     override suspend fun cancelAndAwait() {
         workManager.cancelUniqueWork(WORK_NAME).await()
+        workManager.cancelUniqueWork(WorkManagerOutboxFlushScheduler.WORK_NAME).await()
     }
 
     companion object {

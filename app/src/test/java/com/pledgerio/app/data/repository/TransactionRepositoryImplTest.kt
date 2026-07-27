@@ -9,6 +9,7 @@ import com.pledgerio.app.util.Resource
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
+import io.mockk.every
 import io.mockk.mockk
 import java.time.LocalDate
 import kotlinx.coroutines.test.runTest
@@ -23,10 +24,18 @@ class TransactionRepositoryImplTest {
     private val apiService = mockk<PledgerApiService>()
     private val transactionDao = mockk<TransactionDao>(relaxed = true)
     private val mutationInvalidator = mockk<TransactionMutationInvalidator>(relaxed = true)
+    private val outboxRepository = mockk<com.pledgerio.app.domain.repository.TransactionOutboxRepository>()
+    private val networkMonitor = mockk<com.pledgerio.app.util.NetworkMonitor>()
+    private val outboxFlushScheduler = mockk<com.pledgerio.app.util.OutboxFlushScheduler>(relaxed = true)
+    private val sessionManager = mockk<com.pledgerio.app.util.SessionManager>(relaxed = true)
     private val repository = TransactionRepositoryImpl(
         apiService,
         transactionDao,
         mutationInvalidator,
+        outboxRepository,
+        networkMonitor,
+        outboxFlushScheduler,
+        sessionManager,
     )
 
     @Test
@@ -124,6 +133,103 @@ class TransactionRepositoryImplTest {
         coVerify(exactly = 0) { transactionDao.deleteById(any()) }
         coVerify(exactly = 0) { mutationInvalidator.invalidate(any()) }
     }
+
+    @Test
+    fun `createTransactionOrEnqueue queues when offline`() = runTest {
+        every { networkMonitor.isCurrentlyOnline() } returns false
+        val pending = com.pledgerio.app.domain.model.PendingTransactionCreate(
+            localId = "local-1",
+            createdAtMillis = 1L,
+            status = com.pledgerio.app.domain.model.OutboxStatus.PENDING,
+            lastError = null,
+            attemptCount = 0,
+            date = LocalDate.of(2026, 7, 27),
+            currency = "EUR",
+            description = "Coffee",
+            amount = 4.5,
+            sourceAccountId = 1,
+            destinationAccountId = 2,
+        )
+        coEvery { outboxRepository.enqueueCreate(any()) } returns Resource.Success(pending)
+
+        val result = repository.createTransactionOrEnqueue(createSample())
+
+        assertTrue(result is Resource.Success)
+        assertTrue((result as Resource.Success).data is com.pledgerio.app.domain.model.CreateOutcome.Queued)
+        coVerify(exactly = 0) { apiService.createTransaction(any()) }
+    }
+
+    @Test
+    fun `createTransactionOrEnqueue syncs when online success`() = runTest {
+        every { networkMonitor.isCurrentlyOnline() } returns true
+        coEvery { apiService.createTransaction(any()) } returns Response.success(
+            com.pledgerio.app.data.remote.dto.TransactionDto(
+                id = 10,
+                description = "Coffee",
+                amount = 4.5,
+                currency = "EUR",
+                type = "CREDIT",
+            ),
+        )
+
+        val result = repository.createTransactionOrEnqueue(createSample())
+
+        assertTrue(result is Resource.Success)
+        assertTrue((result as Resource.Success).data is com.pledgerio.app.domain.model.CreateOutcome.Synced)
+        coVerify(exactly = 0) { outboxRepository.enqueueCreate(any()) }
+    }
+
+    @Test
+    fun `createTransactionOrEnqueue HTTP 400 returns error without enqueue`() = runTest {
+        every { networkMonitor.isCurrentlyOnline() } returns true
+        coEvery { apiService.createTransaction(any()) } returns Response.error(
+            400,
+            "".toResponseBody(null),
+        )
+
+        val result = repository.createTransactionOrEnqueue(createSample())
+
+        assertTrue(result is Resource.Error)
+        coVerify(exactly = 0) { outboxRepository.enqueueCreate(any()) }
+    }
+
+    @Test
+    fun `createTransactionOrEnqueue IOException enqueues`() = runTest {
+        every { networkMonitor.isCurrentlyOnline() } returns true
+        coEvery { apiService.createTransaction(any()) } throws java.io.IOException("timeout")
+        every { sessionManager.getSyncGeneration() } returns "gen"
+        val pending = com.pledgerio.app.domain.model.PendingTransactionCreate(
+            localId = "local-2",
+            createdAtMillis = 2L,
+            status = com.pledgerio.app.domain.model.OutboxStatus.PENDING,
+            lastError = null,
+            attemptCount = 0,
+            date = LocalDate.of(2026, 7, 27),
+            currency = "EUR",
+            description = "Coffee",
+            amount = 4.5,
+            sourceAccountId = 1,
+            destinationAccountId = 2,
+        )
+        coEvery { outboxRepository.enqueueCreate(any()) } returns Resource.Success(pending)
+
+        val result = repository.createTransactionOrEnqueue(createSample())
+
+        assertTrue(result is Resource.Success)
+        assertTrue((result as Resource.Success).data is com.pledgerio.app.domain.model.CreateOutcome.Queued)
+        coVerify { outboxFlushScheduler.schedule("gen") }
+    }
+
+    private fun createSample() = com.pledgerio.app.domain.model.Transaction(
+        id = 0,
+        description = "Coffee",
+        amount = 4.5,
+        currency = "EUR",
+        type = TransactionType.CREDIT,
+        date = LocalDate.of(2026, 7, 27),
+        sourceAccountId = 1,
+        destinationAccountId = 2,
+    )
 
     private fun cachedTransaction(id: Long, date: LocalDate) = TransactionEntity(
         id = id,
