@@ -15,6 +15,8 @@ import com.pledgerio.app.domain.model.TransactionSplit
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.TransactionOutboxRepository
 import com.pledgerio.app.util.Resource
+import com.pledgerio.app.util.SessionDataBarrier
+import com.pledgerio.app.util.SessionManager
 import com.pledgerio.app.util.SyncSessionGuard
 import com.pledgerio.app.util.formatApi
 import java.io.IOException
@@ -22,6 +24,7 @@ import java.time.LocalDate
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -32,27 +35,40 @@ class TransactionOutboxRepositoryImpl @Inject constructor(
     private val apiService: PledgerApiService,
     private val mutationInvalidator: TransactionMutationInvalidator,
     private val sessionGuard: SyncSessionGuard,
+    private val sessionManager: SessionManager,
+    private val sessionDataBarrier: SessionDataBarrier,
 ) : TransactionOutboxRepository {
 
     override fun observePending(): Flow<List<PendingTransactionCreate>> =
         outboxDao.observeAll().map { entities -> entities.map { it.toDomain() } }
 
     override suspend fun enqueueCreate(transaction: Transaction): Resource<PendingTransactionCreate> {
-        return try {
-            val entity = transaction.toOutboxEntity()
-            outboxDao.insert(entity)
-            Resource.Success(entity.toDomain())
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Failed to queue transaction")
+        return sessionDataBarrier.withWorkerStep {
+            if (sessionManager.getSyncGeneration().isNullOrBlank()) {
+                return@withWorkerStep Resource.Error("Not signed in")
+            }
+            try {
+                val entity = transaction.toOutboxEntity()
+                outboxDao.insert(entity)
+                Resource.Success(entity.toDomain())
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Resource.Error(e.message ?: "Failed to queue transaction")
+            }
         }
     }
 
     override suspend fun discard(localId: String): Resource<Unit> {
-        return try {
-            outboxDao.deleteByLocalId(localId)
-            Resource.Success(Unit)
-        } catch (e: Exception) {
-            Resource.Error(e.message ?: "Failed to discard queued transaction")
+        return sessionDataBarrier.withWorkerStep {
+            try {
+                outboxDao.deleteByLocalId(localId)
+                Resource.Success(Unit)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Resource.Error(e.message ?: "Failed to discard queued transaction")
+            }
         }
     }
 
@@ -81,6 +97,8 @@ class TransactionOutboxRepositoryImpl @Inject constructor(
                     // 5xx — leave PENDING for a later cycle
                     return FlushResult.StoppedOnNetworkError
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (_: IOException) {
                 return FlushResult.StoppedOnNetworkError
             } catch (e: Exception) {

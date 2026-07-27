@@ -10,6 +10,8 @@ import com.pledgerio.app.domain.model.OutboxStatus
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.util.Resource
+import com.pledgerio.app.util.SessionDataBarrier
+import com.pledgerio.app.util.SessionManager
 import com.pledgerio.app.util.SyncSessionGuard
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -18,6 +20,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import java.io.IOException
 import java.time.LocalDate
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -34,6 +37,8 @@ class TransactionOutboxRepositoryImplTest {
     private val apiService = mockk<PledgerApiService>()
     private val mutationInvalidator = mockk<TransactionMutationInvalidator>(relaxed = true)
     private val sessionGuard = mockk<SyncSessionGuard>()
+    private val sessionManager = mockk<SessionManager>()
+    private val sessionDataBarrier = SessionDataBarrier()
 
     private val repository = TransactionOutboxRepositoryImpl(
         outboxDao = outboxDao,
@@ -41,10 +46,13 @@ class TransactionOutboxRepositoryImplTest {
         apiService = apiService,
         mutationInvalidator = mutationInvalidator,
         sessionGuard = sessionGuard,
+        sessionManager = sessionManager,
+        sessionDataBarrier = sessionDataBarrier,
     )
 
     @Test
     fun `enqueueCreate persists row and observePending emits it`() = runTest {
+        every { sessionManager.getSyncGeneration() } returns "gen"
         val inserted = slot<TransactionOutboxEntity>()
         coEvery { outboxDao.insert(capture(inserted)) } returns Unit
         every { outboxDao.observeAll() } answers {
@@ -62,6 +70,16 @@ class TransactionOutboxRepositoryImplTest {
         val observed = repository.observePending().first()
         assertEquals(1, observed.size)
         assertEquals(pending.localId, observed.first().localId)
+    }
+
+    @Test
+    fun `enqueueCreate refuses when session generation missing`() = runTest {
+        every { sessionManager.getSyncGeneration() } returns null
+
+        val result = repository.enqueueCreate(sampleTransaction())
+
+        assertTrue(result is Resource.Error)
+        coVerify(exactly = 0) { outboxDao.insert(any()) }
     }
 
     @Test
@@ -131,6 +149,23 @@ class TransactionOutboxRepositoryImplTest {
         assertEquals(FlushResult.AbortedStaleSession, result)
         coVerify(exactly = 0) { outboxDao.getByStatus(any()) }
         coVerify(exactly = 0) { apiService.createTransaction(any()) }
+    }
+
+    @Test
+    fun `flushPending CancellationException leaves row pending`() = runTest {
+        every { sessionGuard.isCurrent("gen") } returns true
+        coEvery { outboxDao.getByStatus(OutboxStatus.PENDING.name) } returns listOf(sampleEntity())
+        coEvery { apiService.createTransaction(any()) } throws CancellationException("replaced")
+
+        try {
+            repository.flushPending("gen")
+            org.junit.Assert.fail("Expected CancellationException")
+        } catch (_: CancellationException) {
+            // expected
+        }
+
+        coVerify(exactly = 0) { outboxDao.updateStatus(any(), OutboxStatus.FAILED.name, any(), any()) }
+        coVerify(exactly = 0) { outboxDao.deleteByLocalId(any()) }
     }
 
     @Test

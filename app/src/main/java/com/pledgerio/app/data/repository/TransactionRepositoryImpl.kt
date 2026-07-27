@@ -22,6 +22,7 @@ import com.pledgerio.app.util.OutboxFlushScheduler
 import com.pledgerio.app.util.Resource
 import com.pledgerio.app.util.SessionManager
 import com.pledgerio.app.util.formatApi
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.io.IOException
@@ -183,6 +184,8 @@ class TransactionRepositoryImpl @Inject constructor(
             }
         } catch (_: IOException) {
             enqueueCreateOutcome(transaction, scheduleFlush = true)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Network error")
         }
