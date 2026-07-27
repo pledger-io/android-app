@@ -34,6 +34,10 @@
     <string name="budget_income_edit_title">Monatliches Einkommen bearbeiten</string>
 
     <string name="offline_banner">Du bist offline. Zwischengespeicherte Daten werden angezeigt.</string>
+    <string name="transaction_saved_offline">Offline gespeichert — wird synchronisiert, sobald du wieder online bist</string>
+    <string name="transaction_outbox_pending_title">Wartet auf Synchronisierung</string>
+    <string name="transaction_outbox_discard">Verwerfen</string>
+    <string name="transaction_outbox_flush_failed">Diese Transaktion konnte nicht synchronisiert werden</string>
 
     <string name="reports_coming_soon_title">Berichte demnächst verfügbar</string>
     <string name="reports_coming_soon_message">Diagramme und Einblicke erscheinen hier in einem zukünftigen Update. Nutze vorerst Dashboard und Budgets.</string>

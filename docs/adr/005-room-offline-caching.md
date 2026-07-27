@@ -17,14 +17,15 @@ Options considered:
 
 Use **Room** as the local database for offline caching of accounts, transactions, budgets, categories, and currencies.
 
-Current schema (**version 5**): `AccountEntity` (includes `iconFileCode`), `TransactionEntity`, `BudgetEntity`, `CategoryEntity`, `CurrencyEntity`, `ContractEntity`, `ExpenseGroupEntity`, `AccountTypeEntity`, `SyncMetadataEntity`.
+Current schema (**version 7**): `AccountEntity` (includes `iconFileCode`), `TransactionEntity`, `BudgetEntity`, `CategoryEntity`, `CurrencyEntity`, `ContractEntity`, `ExpenseGroupEntity`, `AccountTypeEntity`, `SyncMetadataEntity`, `TransactionOutboxEntity` (create-only write outbox).
 
 Design choices:
 - Entities are separate from domain models — they contain `toDomain()` / `fromDomain()` mapping functions
 - `TypeConverters` handle `LocalDate` and `List<String>` serialization
 - DAOs expose `Flow<List<Entity>>` for observable queries and `suspend` functions for writes
-- `fallbackToDestructiveMigration()` for schema changes (cache is repopulated from server)
-- Each entity includes a `lastSynced` timestamp for staleness detection
+- Explicit migrations for schema bumps (`MIGRATION_5_6`, `MIGRATION_6_7`); destructive fallback is not the primary path
+- Each cache entity includes a `lastSynced` timestamp for staleness detection
+- **Write outbox (create-only MVP):** offline or `IOException` transaction creates persist in `transaction_outbox` and flush under the current sync generation (see [offline-transaction-outbox design](../design/offline-transaction-outbox.md)). Edit/delete remain online-only. Ambiguous timeouts may rarely duplicate a create — accepted for MVP without server idempotency keys.
 
 ## Consequences
 

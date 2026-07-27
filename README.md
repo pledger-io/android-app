@@ -12,7 +12,7 @@ A native Android client for [Pledger.io](https://github.com/pledger-io) — a se
 | DI | Hilt (KSP) |
 | Networking | Retrofit + OkHttp + Moshi |
 | Images | Coil (authenticated via shared OkHttp client) |
-| Database | Room (offline cache, v6 schema with explicit migrations) |
+| Database | Room (offline cache, v7 schema with explicit migrations) |
 | Async | Coroutines + Flow |
 | Navigation | Jetpack Navigation Compose |
 | Background work | WorkManager |
@@ -77,7 +77,7 @@ app/src/main/java/com/pledgerio/app/
 - **Reports** — Report type selector UI (chart data integration in progress)
 - **Search** — Global search from the Dashboard for transactions (last 6 months), owned/counterparty accounts (cache-first owned), and categories; category rows open Transactions for the current month
 - **Settings** — Storage, biometric unlock, **language** (English / Dutch / German / system), theme, display currency, finance experience mode (Guided/Power), **budget alerts** (enable + threshold), in-app bug reports (logs + GitHub issue), logout
-- **Offline** — Room cache with network fallback; periodic sync via WorkManager (accounts, currencies, budget alerts with deep links)
+- **Offline** — Room cache with network fallback; create-transaction outbox queues offline/IO failures and flushes via WorkManager; periodic sync (accounts, currencies, budget alerts with deep links)
 - **Account logos** — `iconFileCode` loaded from `GET /v2/api/files/{fileCode}` on account and transaction detail screens
 
 ### Planned / partial

@@ -34,6 +34,10 @@
     <string name="budget_income_edit_title">Edit monthly income</string>
 
     <string name="offline_banner">You\'re offline. Showing cached data.</string>
+    <string name="transaction_saved_offline">Saved offline — will sync when you\'re back online</string>
+    <string name="transaction_outbox_pending_title">Waiting to sync</string>
+    <string name="transaction_outbox_discard">Discard</string>
+    <string name="transaction_outbox_flush_failed">Could not sync this transaction</string>
 
     <string name="reports_coming_soon_title">Reports coming soon</string>
     <string name="reports_coming_soon_message">Charts and insights will appear here in a future update. Use Dashboard and Budgets for now.</string>

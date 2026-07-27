@@ -7,6 +7,7 @@ import com.pledgerio.app.data.remote.dto.CreateTransactionRequest
 import com.pledgerio.app.data.remote.dto.TransactionDto
 import com.pledgerio.app.data.remote.dto.TransactionExtract
 import com.pledgerio.app.data.remote.dto.TransactionSplitDto
+import com.pledgerio.app.domain.model.CreateOutcome
 import com.pledgerio.app.domain.model.TransactionSplit
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionClassificationSuggestion
@@ -14,11 +15,17 @@ import com.pledgerio.app.domain.model.TransactionExtractionDraft
 import com.pledgerio.app.domain.model.TransactionFilters
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.PagedResult
+import com.pledgerio.app.domain.repository.TransactionOutboxRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
+import com.pledgerio.app.util.NetworkMonitor
+import com.pledgerio.app.util.OutboxFlushScheduler
 import com.pledgerio.app.util.Resource
+import com.pledgerio.app.util.SessionManager
 import com.pledgerio.app.util.formatApi
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import java.io.IOException
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -26,6 +33,10 @@ class TransactionRepositoryImpl @Inject constructor(
     private val apiService: PledgerApiService,
     private val transactionDao: TransactionDao,
     private val mutationInvalidator: TransactionMutationInvalidator,
+    private val outboxRepository: TransactionOutboxRepository,
+    private val networkMonitor: NetworkMonitor,
+    private val outboxFlushScheduler: OutboxFlushScheduler,
+    private val sessionManager: SessionManager,
 ) : TransactionRepository {
 
     override suspend fun getTransactionsPage(
@@ -140,19 +151,7 @@ class TransactionRepositoryImpl @Inject constructor(
 
     override suspend fun createTransaction(transaction: Transaction): Resource<Transaction> {
         return try {
-            val request = CreateTransactionRequest(
-                date = transaction.date.formatApi(),
-                currency = transaction.currency,
-                description = transaction.description,
-                amount = transaction.amount,
-                source = transaction.sourceAccountId ?: 0,
-                target = transaction.destinationAccountId ?: 0,
-                category = transaction.categoryId,
-                expense = transaction.expenseId,
-                contract = transaction.contractId,
-                tags = transaction.tags.ifEmpty { null },
-            )
-            val response = apiService.createTransaction(request)
+            val response = apiService.createTransaction(transaction.toCreateRequest())
             if (response.isSuccessful) {
                 val created = response.body()?.toDomain() ?: return Resource.Error("Invalid response")
                 transactionDao.insert(TransactionEntity.fromDomain(created))
@@ -164,6 +163,65 @@ class TransactionRepositoryImpl @Inject constructor(
             Resource.Error(e.message ?: "Network error")
         }
     }
+
+    override suspend fun createTransactionOrEnqueue(
+        transaction: Transaction,
+    ): Resource<CreateOutcome> {
+        if (!networkMonitor.isCurrentlyOnline()) {
+            return enqueueCreateOutcome(transaction)
+        }
+        return try {
+            val response = apiService.createTransaction(transaction.toCreateRequest())
+            if (response.isSuccessful) {
+                val created = response.body()?.toDomain()
+                    ?: return Resource.Error("Invalid response")
+                transactionDao.insert(TransactionEntity.fromDomain(created))
+                runCatching { mutationInvalidator.invalidate(created.date) }
+                Resource.Success(CreateOutcome.Synced(created))
+            } else {
+                // HTTP 4xx/5xx — do not enqueue bad or server-rejected payloads.
+                Resource.Error("Failed to create transaction: ${response.code()}")
+            }
+        } catch (_: IOException) {
+            enqueueCreateOutcome(transaction, scheduleFlush = true)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    private suspend fun enqueueCreateOutcome(
+        transaction: Transaction,
+        scheduleFlush: Boolean = false,
+    ): Resource<CreateOutcome> {
+        return when (val queued = outboxRepository.enqueueCreate(transaction)) {
+            is Resource.Success -> {
+                if (scheduleFlush) {
+                    sessionManager.getSyncGeneration()?.let { generation ->
+                        runCatching { outboxFlushScheduler.schedule(generation) }
+                    }
+                }
+                Resource.Success(CreateOutcome.Queued(queued.data))
+            }
+            is Resource.Error -> Resource.Error(queued.message, queued.exception)
+            is Resource.Loading -> Resource.Loading
+        }
+    }
+
+    private fun Transaction.toCreateRequest(): CreateTransactionRequest =
+        CreateTransactionRequest(
+            date = date.formatApi(),
+            currency = currency,
+            description = description,
+            amount = amount,
+            source = sourceAccountId ?: 0,
+            target = destinationAccountId ?: 0,
+            category = categoryId,
+            expense = expenseId,
+            contract = contractId,
+            tags = tags.ifEmpty { null },
+        )
 
     override suspend fun updateTransaction(transaction: Transaction): Resource<Transaction> {
         return try {

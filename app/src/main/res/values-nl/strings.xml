@@ -34,6 +34,10 @@
     <string name="budget_income_edit_title">Maandelijks inkomen bewerken</string>
 
     <string name="offline_banner">Je bent offline. Gecachte gegevens worden getoond.</string>
+    <string name="transaction_saved_offline">Offline opgeslagen — wordt gesynchroniseerd wanneer je weer online bent</string>
+    <string name="transaction_outbox_pending_title">Wachten op synchronisatie</string>
+    <string name="transaction_outbox_discard">Verwijderen</string>
+    <string name="transaction_outbox_flush_failed">Deze transactie kon niet worden gesynchroniseerd</string>
 
     <string name="reports_coming_soon_title">Rapporten komen binnenkort</string>
     <string name="reports_coming_soon_message">Grafieken en inzichten verschijnen hier in een toekomstige update. Gebruik voorlopig Dashboard en Budgetten.</string>

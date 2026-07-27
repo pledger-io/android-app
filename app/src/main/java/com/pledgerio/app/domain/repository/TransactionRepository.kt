@@ -1,5 +1,6 @@
 package com.pledgerio.app.domain.repository
 
+import com.pledgerio.app.domain.model.CreateOutcome
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionClassificationSuggestion
 import com.pledgerio.app.domain.model.TransactionExtractionDraft
@@ -34,6 +35,7 @@ interface TransactionRepository {
 
     suspend fun getTransaction(id: Long): Resource<Transaction>
     suspend fun createTransaction(transaction: Transaction): Resource<Transaction>
+    suspend fun createTransactionOrEnqueue(transaction: Transaction): Resource<CreateOutcome>
     suspend fun updateTransaction(transaction: Transaction): Resource<Transaction>
     suspend fun patchTransactionSplits(id: Long, splits: List<TransactionSplit>): Resource<Transaction>
     suspend fun deleteTransaction(

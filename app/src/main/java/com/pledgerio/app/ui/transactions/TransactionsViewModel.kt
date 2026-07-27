@@ -5,12 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.FilterOption
+import com.pledgerio.app.domain.model.PendingTransactionCreate
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionFilters
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ContractRepository
+import com.pledgerio.app.domain.repository.TransactionOutboxRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.domain.usecase.GetTransactionsUseCase
 import com.pledgerio.app.util.Resource
@@ -44,6 +46,7 @@ data class TransactionsUiState(
     val isRefreshing: Boolean = false,
     val error: String? = null,
     val transactions: List<Transaction> = emptyList(),
+    val pendingCreates: List<PendingTransactionCreate> = emptyList(),
     val selectedType: TransactionType? = null,
     val currentMonth: YearMonth = YearMonth.now(),
     val currentPage: Int = 0,
@@ -84,6 +87,7 @@ class TransactionsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getTransactionsUseCase: GetTransactionsUseCase,
     private val transactionRepository: TransactionRepository,
+    private val outboxRepository: TransactionOutboxRepository,
     private val categoryRepository: CategoryRepository,
     private val budgetRepository: BudgetRepository,
     private val contractRepository: ContractRepository,
@@ -127,6 +131,7 @@ class TransactionsViewModel @Inject constructor(
             )
         }
         loadFirstPage()
+        observePendingCreates()
         viewModelScope.launch {
             var appliedModeDefault = false
             userPreferences.financeExperienceMode.collect { mode ->
@@ -361,6 +366,20 @@ class TransactionsViewModel @Inject constructor(
             transactionRepository.deleteTransaction(id)
             _uiState.update { it.copy(transactions = emptyList()) }
             loadFirstPage()
+        }
+    }
+
+    fun discardPendingCreate(localId: String) {
+        viewModelScope.launch {
+            outboxRepository.discard(localId)
+        }
+    }
+
+    private fun observePendingCreates() {
+        viewModelScope.launch {
+            outboxRepository.observePending().collect { pending ->
+                _uiState.update { it.copy(pendingCreates = pending) }
+            }
         }
     }
 

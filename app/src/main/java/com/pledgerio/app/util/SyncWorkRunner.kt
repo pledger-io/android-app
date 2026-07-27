@@ -8,6 +8,7 @@ import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.repository.TagRepository
+import com.pledgerio.app.domain.repository.TransactionOutboxRepository
 import java.time.YearMonth
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
@@ -40,6 +41,7 @@ class SyncWorkRunner @Inject constructor(
     private val contractRepository: ContractRepository,
     private val currencyRepository: CurrencyRepository,
     private val tagRepository: TagRepository,
+    private val outboxRepository: TransactionOutboxRepository,
     private val sessionGuard: SyncSessionGuard,
     private val sessionDataBarrier: SessionDataBarrier,
 ) {
@@ -62,6 +64,9 @@ class SyncWorkRunner @Inject constructor(
             return SyncRunOutcome.StaleSession
         }
         if (!runStep(generation) { accountRepository.refreshCounterpartyAccounts() }) {
+            return SyncRunOutcome.StaleSession
+        }
+        if (!runStep(generation) { outboxRepository.flushPending(generation) }) {
             return SyncRunOutcome.StaleSession
         }
 

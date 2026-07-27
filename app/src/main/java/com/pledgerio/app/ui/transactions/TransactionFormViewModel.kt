@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.AccountTypeCodes
+import com.pledgerio.app.domain.model.CreateOutcome
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.FilterOption
 import com.pledgerio.app.domain.model.Transaction
@@ -80,6 +81,7 @@ data class TransactionFormUiState(
     val editingTransactionId: Long? = null,
     val moreOptionsExpanded: Boolean = false,
     val ownedAccountPickerSide: OwnedAccountPickerSide? = null,
+    val savedOffline: Boolean = false,
     val description: String = "",
     val amount: String = "",
     val date: LocalDate = LocalDate.now(),
@@ -981,8 +983,11 @@ class TransactionFormViewModel @Inject constructor(
                     is Resource.Loading -> {}
                 }
             } else {
-                when (val result = transactionRepository.createTransaction(transaction)) {
-                    is Resource.Success -> finishSave(state.type)
+                when (val result = transactionRepository.createTransactionOrEnqueue(transaction)) {
+                    is Resource.Success -> when (val outcome = result.data) {
+                        is CreateOutcome.Synced -> finishSave(state.type, savedOffline = false)
+                        is CreateOutcome.Queued -> finishSave(state.type, savedOffline = true)
+                    }
                     is Resource.Error -> {
                         _uiState.update { it.copy(isSaving = false, error = result.message) }
                     }
@@ -992,9 +997,11 @@ class TransactionFormViewModel @Inject constructor(
         }
     }
 
-    private suspend fun finishSave(type: TransactionType) {
+    private suspend fun finishSave(type: TransactionType, savedOffline: Boolean = false) {
         userPreferences.setLastTransactionType(type)
-        _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
+        _uiState.update {
+            it.copy(isSaving = false, saveSuccess = true, savedOffline = savedOffline)
+        }
     }
 
     private suspend fun resolveCategoryOptionByName(name: String): FilterOption? {

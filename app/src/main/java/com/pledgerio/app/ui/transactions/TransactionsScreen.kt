@@ -46,6 +46,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.R
+import com.pledgerio.app.domain.model.OutboxStatus
+import com.pledgerio.app.domain.model.PendingTransactionCreate
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.ui.components.EmptyScreen
@@ -57,6 +59,7 @@ import com.pledgerio.app.ui.theme.PledgerThemeExt
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.dashboard.TransactionItem
+import com.pledgerio.app.util.formatCurrency
 import com.pledgerio.app.util.formatDisplay
 import java.time.YearMonth
 
@@ -228,15 +231,18 @@ fun TransactionsScreen(
                 onRefresh = viewModel::refresh,
                 modifier = Modifier.fillMaxSize(),
             ) {
+                val hasPending = uiState.pendingCreates.isNotEmpty()
                 when {
-                    uiState.isLoading && !uiState.isRefreshing -> LoadingScreen()
-                    uiState.error != null && uiState.transactions.isEmpty() -> {
+                    uiState.isLoading && !uiState.isRefreshing && !hasPending -> LoadingScreen()
+                    uiState.error != null &&
+                        uiState.transactions.isEmpty() &&
+                        !hasPending -> {
                         ErrorScreen(
                             message = uiState.error ?: "Unknown error",
                             onRetry = viewModel::refresh,
                         )
                     }
-                    uiState.transactions.isEmpty() -> {
+                    uiState.transactions.isEmpty() && !hasPending -> {
                         val guided = uiState.financeExperienceMode == FinanceExperienceMode.GUIDED
                         EmptyScreen(
                             icon = Icons.Default.Receipt,
@@ -262,6 +268,32 @@ fun TransactionsScreen(
                             state = listState,
                             modifier = Modifier.fillMaxSize(),
                         ) {
+                            if (hasPending) {
+                                item(key = "pending-header") {
+                                    Text(
+                                        text = stringResource(R.string.transaction_outbox_pending_title),
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(
+                                            horizontal = 16.dp,
+                                            vertical = 8.dp,
+                                        ),
+                                    )
+                                }
+                                items(
+                                    items = uiState.pendingCreates,
+                                    key = { "pending-${it.localId}" },
+                                ) { pending ->
+                                    PendingOutboxItem(
+                                        pending = pending,
+                                        onDiscard = {
+                                            viewModel.discardPendingCreate(pending.localId)
+                                        },
+                                        modifier = Modifier.padding(horizontal = 16.dp),
+                                    )
+                                }
+                            }
+
                             grouped.forEach { (date, transactions) ->
                                 item(key = "header-$date") {
                                     Text(
@@ -308,6 +340,66 @@ fun TransactionsScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PendingOutboxItem(
+    pending: PendingTransactionCreate,
+    onDiscard: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = pending.description.ifBlank {
+                    stringResource(R.string.transaction_detail_fallback_title)
+                },
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+            )
+            val subtitle = buildString {
+                append(pending.date.formatDisplay())
+                val account = pending.displaySourceName
+                    ?: pending.displayDestinationName
+                    ?: pending.displayCategoryName
+                if (!account.isNullOrBlank()) {
+                    append(" · ")
+                    append(account)
+                }
+                if (pending.status == OutboxStatus.FAILED) {
+                    append(" · ")
+                    append(
+                        pending.lastError
+                            ?: stringResource(R.string.transaction_outbox_flush_failed),
+                    )
+                }
+            }
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (pending.status == OutboxStatus.FAILED) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            )
+        }
+        Text(
+            text = pending.amount.formatCurrency(pending.currency),
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
+        )
+        TextButton(onClick = onDiscard) {
+            Text(stringResource(R.string.transaction_outbox_discard))
         }
     }
 }
