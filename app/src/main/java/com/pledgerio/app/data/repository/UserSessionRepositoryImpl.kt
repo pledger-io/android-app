@@ -1,6 +1,7 @@
 package com.pledgerio.app.data.repository
 
 import com.pledgerio.app.data.remote.api.PledgerApiService
+import com.pledgerio.app.data.remote.dto.Patch2FactorRequest
 import com.pledgerio.app.data.remote.dto.SessionRequest
 import com.pledgerio.app.data.remote.dto.SessionResponse
 import com.pledgerio.app.data.remote.dto.UserProfileResponse
@@ -99,6 +100,71 @@ class UserSessionRepositoryImpl @Inject constructor(
                 Resource.Success(body.toDomain())
             } else {
                 httpError(response.code(), "Load profile")
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun get2FactorQr(): Resource<ByteArray> {
+        val username = requireUsername() ?: return missingUsername()
+        return try {
+            val response = apiService.get2FactorQr(username)
+            if (response.isSuccessful) {
+                val bytes = response.body()?.bytes()
+                    ?: return Resource.Error("No QR image returned")
+                if (bytes.isEmpty()) {
+                    return Resource.Error("No QR image returned")
+                }
+                Resource.Success(bytes)
+            } else {
+                httpError(response.code(), "Load QR code")
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun enableMfa(verificationCode: String): Resource<Unit> {
+        val username = requireUsername() ?: return missingUsername()
+        val code = verificationCode.trim()
+        if (code.length !in 4..8 || !code.all { it.isDigit() }) {
+            return Resource.Error("Enter the 6-digit code from your authenticator app")
+        }
+        return try {
+            val response = apiService.patch2Factor(
+                user = username,
+                request = Patch2FactorRequest.enable(code),
+            )
+            if (response.isSuccessful || response.code() == 204) {
+                Resource.Success(Unit)
+            } else if (response.code() == 400 || response.code() == 403) {
+                Resource.Error("Invalid verification code")
+            } else {
+                httpError(response.code(), "Enable two-factor")
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun disableMfa(): Resource<Unit> {
+        val username = requireUsername() ?: return missingUsername()
+        return try {
+            val response = apiService.patch2Factor(
+                user = username,
+                request = Patch2FactorRequest.disable(),
+            )
+            if (response.isSuccessful || response.code() == 204) {
+                Resource.Success(Unit)
+            } else {
+                httpError(response.code(), "Disable two-factor")
             }
         } catch (e: CancellationException) {
             throw e

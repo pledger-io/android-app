@@ -1,6 +1,7 @@
 package com.pledgerio.app.data.remote.api
 
 import com.pledgerio.app.data.remote.dto.*
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -39,11 +40,23 @@ interface PledgerApiService {
     ): Response<Unit>
 
     @POST("v2/api/user-account/verify-2-factor")
-    suspend fun verify2Factor(@Body request: Map<String, String>): Response<Any>
+    suspend fun verify2Factor(
+        @Header("Authorization") authorization: String,
+        @Body request: Verify2FactorRequest,
+    ): Response<LoginResponse>
 
     // Profile
     @GET("v2/api/user-account/{user}")
     suspend fun getProfile(@Path("user") user: String): Response<UserProfileResponse>
+
+    @GET("v2/api/user-account/{user}/2-factor")
+    suspend fun get2FactorQr(@Path("user") user: String): Response<ResponseBody>
+
+    @PATCH("v2/api/user-account/{user}/2-factor")
+    suspend fun patch2Factor(
+        @Path("user") user: String,
+        @Body request: Patch2FactorRequest,
+    ): Response<Unit>
 
     // Accounts
     @GET("v2/api/accounts")

@@ -171,18 +171,21 @@ Screen → ViewModel → Repository → Retrofit
 ### Authentication flow
 
 1. User enters server URL → validated with `GET {baseUrl}/health` (OkHttp, not Retrofit).
-2. URL saved → `POST /v2/api/security/authenticate` → access token, refresh token, and `expires_in` in `SessionManager`.
+2. URL saved → `POST /v2/api/security/authenticate` → access/refresh tokens. If the JWT roles
+   include `PRE_VERIFICATION_USER`, credentials stay in an in-memory pending MFA store until
+   `POST /v2/api/user-account/verify-2-factor` succeeds; only then does `activateSession` install
+   tokens in `SessionManager` and schedule sync.
 3. Subsequent API and image requests use the stored base URL and token; `TokenRefresher` calls the oauth endpoint when the access token is near expiry.
 4. Logout calls `POST /v2/api/security/logout` when possible, then `clearAuthTokens()` (base URL and biometric preference remain).
 
-**Durable API sessions vs JWT:** Interactive login uses short-lived JWTs (with refresh) stored in `SessionManager`. Separately, `UserSessionRepository` manages **durable API tokens** (`GET/POST/DELETE …/user-account/{user}/sessions`) for integrations. Those tokens are not the device’s JWT and are never logged in full; the list UI always masks them. MFA status is read from `GET …/user-account/{user}` (`mfa`) on Settings (enroll/verify UI is a follow-up). See [design/api-token-sessions.md](design/api-token-sessions.md) and [ADR-020](adr/020-api-token-sessions.md).
+**Durable API sessions vs JWT:** Interactive login uses short-lived JWTs (with refresh) stored in `SessionManager`. Separately, `UserSessionRepository` manages **durable API tokens** (`GET/POST/DELETE …/user-account/{user}/sessions`) for integrations. Those tokens are not the device’s JWT and are never logged in full; the list UI always masks them. MFA enroll/disable uses `GET/PATCH …/user-account/{user}/2-factor`; login OTP uses `verify-2-factor`. See [design/api-token-sessions.md](design/api-token-sessions.md), [design/mfa-enroll-verify.md](design/mfa-enroll-verify.md), [ADR-020](adr/020-api-token-sessions.md), and [ADR-021](adr/021-mfa-enroll-verify.md).
 
 ### Key API surface (non-exhaustive)
 
 | Area | Endpoints |
 |------|-----------|
-| Auth | `/v2/api/security/authenticate`, `/v2/api/security/oauth`, `/v2/api/security/logout` |
-| User sessions / profile | `/v2/api/user-account/{user}/sessions`, `/v2/api/user-account/{user}` |
+| Auth | `/v2/api/security/authenticate`, `/v2/api/security/oauth`, `/v2/api/security/logout`, `/v2/api/user-account/verify-2-factor` |
+| User sessions / profile | `/v2/api/user-account/{user}/sessions`, `/v2/api/user-account/{user}`, `/v2/api/user-account/{user}/2-factor` |
 | Accounts | `/v2/api/accounts`, `/v2/api/accounts/{id}`, `/v2/api/account-types` |
 | Transactions | `/v2/api/transactions`, `/v2/api/transactions/{id}`, `/v2/api/ai/auto-complete` |
 | Categories | `/v2/api/categories` |
@@ -243,7 +246,7 @@ Transactions are refreshed on screen load rather than in the worker.
 | Token storage | `EncryptedSharedPreferences` (AES-256-GCM) |
 | Transport | User-supplied URL; cleartext denied by default and enabled only in debug override config |
 | Biometric | Optional via settings (`BiometricPrompt`) |
-| MFA status | Read-only from profile (`mfa`); enroll/verify not in app yet |
+| MFA | Profile `mfa`; Settings enroll (QR) / disable; login OTP via `verify-2-factor` |
 | API tokens | Durable sessions via Settings → API tokens; mask in list; show once on create |
 | Session expiry | Proactive JWT refresh + 401 retry; `clearAuthTokens` keeps server URL |
 | Platform | compile/target SDK 36 (Android 16); edge-to-edge in `MainActivity` |

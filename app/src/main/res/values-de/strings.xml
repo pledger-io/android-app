@@ -378,6 +378,28 @@
     <string name="api_sessions_revoke_title">Token widerrufen?</string>
     <string name="api_sessions_revoke_message">„%1$s“ widerrufen? Apps mit diesem Token funktionieren nicht mehr.</string>
 
+    <string name="verify_2fa_title">Identität bestätigen</string>
+    <string name="verify_2fa_message">Gib den 6-stelligen Code aus deiner Authenticator-App ein, um die Anmeldung abzuschließen.</string>
+    <string name="verify_2fa_code_label">Authentifizierungscode</string>
+    <string name="verify_2fa_action">Bestätigen</string>
+    <string name="verify_2fa_back">Zurück zur Anmeldung</string>
+
+    <string name="mfa_setup_title">Zwei-Faktor-Authentifizierung</string>
+    <string name="mfa_setup_subtitle">Authenticator-App</string>
+    <string name="mfa_setup_back">Zurück</string>
+    <string name="mfa_setup_enroll_explain">Scanne diesen QR-Code mit deiner Authenticator-App und gib danach den angezeigten Code ein, um die Zwei-Faktor-Authentifizierung zu aktivieren.</string>
+    <string name="mfa_setup_qr_content_description">Zwei-Faktor-QR-Code</string>
+    <string name="mfa_setup_code_label">Authentifizierungscode</string>
+    <string name="mfa_setup_enable">Aktivieren</string>
+    <string name="mfa_setup_disable">Deaktivieren</string>
+    <string name="mfa_setup_disable_explain">Zwei-Faktor-Authentifizierung ist aktiviert. Deaktivieren meldet andere Geräte nicht ab und widerruft keine API-Tokens.</string>
+    <string name="mfa_setup_disable_title">Zwei-Faktor deaktivieren?</string>
+    <string name="mfa_setup_disable_confirm">Jeder mit deinem Passwort kann sich dann ohne Authenticator-Code anmelden.</string>
+    <string name="mfa_setup_cancel">Abbrechen</string>
+    <string name="mfa_setup_retry">Erneut versuchen</string>
+    <string name="mfa_setup_enabled_success">Zwei-Faktor-Authentifizierung aktiviert</string>
+    <string name="mfa_setup_disabled_success">Zwei-Faktor-Authentifizierung deaktiviert</string>
+
     <!-- Transaction form -->
     <string name="transaction_description_label">Wofür war das?</string>
     <string name="transaction_description_hint">Lebensmittel, Gehalt, Miete…</string>

@@ -26,6 +26,7 @@ This directory contains Architecture Decision Records (ADRs) for the Pledger.io 
 | [018](018-app-localization.md) | App Localization (en / nl / de) | Accepted |
 | [019](019-security-and-quality-hardening.md) | Security and Quality Hardening Baseline | Accepted |
 | [020](020-api-token-sessions.md) | Durable API Token Sessions | Accepted |
+| [021](021-mfa-enroll-verify.md) | MFA Enroll and Login Verification | Accepted |
 
 ## ADR Format
 

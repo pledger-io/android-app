@@ -10,4 +10,7 @@ interface UserSessionRepository {
     suspend fun createSession(description: String, expires: LocalDate): Resource<ApiSession>
     suspend fun revokeSession(id: Long): Resource<Unit>
     suspend fun getProfile(): Resource<UserProfile>
+    suspend fun get2FactorQr(): Resource<ByteArray>
+    suspend fun enableMfa(verificationCode: String): Resource<Unit>
+    suspend fun disableMfa(): Resource<Unit>
 }

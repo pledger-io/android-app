@@ -2,6 +2,8 @@ package com.pledgerio.app.ui.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pledgerio.app.domain.model.LoginResult
+import com.pledgerio.app.domain.repository.AuthRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.usecase.LoginUseCase
 import com.pledgerio.app.util.Resource
@@ -24,6 +26,7 @@ data class LoginUiState(
 class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
     private val currencyRepository: CurrencyRepository,
+    private val authRepository: AuthRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -37,7 +40,10 @@ class LoginViewModel @Inject constructor(
         _uiState.update { it.copy(password = password, error = null) }
     }
 
-    fun login(onSuccess: () -> Unit) {
+    fun login(
+        onSuccess: () -> Unit,
+        onMfaRequired: () -> Unit,
+    ) {
         val state = _uiState.value
         if (state.username.isBlank() || state.password.isBlank()) {
             _uiState.update { it.copy(error = "Please fill in all fields") }
@@ -48,10 +54,16 @@ class LoginViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             when (val result = loginUseCase(state.username, state.password)) {
-                is Resource.Success -> {
-                    currencyRepository.sync()
-                    _uiState.update { it.copy(isLoading = false) }
-                    onSuccess()
+                is Resource.Success -> when (result.data) {
+                    LoginResult.FullyAuthenticated -> {
+                        currencyRepository.sync()
+                        _uiState.update { it.copy(isLoading = false) }
+                        onSuccess()
+                    }
+                    LoginResult.MfaRequired -> {
+                        _uiState.update { it.copy(isLoading = false, password = "") }
+                        onMfaRequired()
+                    }
                 }
                 is Resource.Error -> {
                     _uiState.update {
@@ -61,5 +73,9 @@ class LoginViewModel @Inject constructor(
                 is Resource.Loading -> {}
             }
         }
+    }
+
+    fun cancelPendingMfa() {
+        authRepository.clearPendingMfa()
     }
 }

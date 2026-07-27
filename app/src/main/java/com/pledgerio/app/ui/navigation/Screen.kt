@@ -35,6 +35,7 @@ sealed class Screen(val route: String) {
         }
     }
     data object Login : Screen("login")
+    data object Verify2Factor : Screen("login/verify-2fa")
     data object Dashboard : Screen("dashboard")
     data object TransactionDetail : Screen("transaction/{transactionId}") {
         fun createRoute(transactionId: Long) = "transaction/$transactionId"
@@ -101,6 +102,7 @@ sealed class Screen(val route: String) {
     data object Reports : Screen("reports")
     data object Settings : Screen("settings")
     data object ApiSessions : Screen("settings/sessions")
+    data object MfaSetup : Screen("settings/mfa")
     data object Categories : Screen("categories")
     data object Tags : Screen("tags")
 }

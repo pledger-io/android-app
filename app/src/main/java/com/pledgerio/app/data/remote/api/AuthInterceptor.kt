@@ -41,12 +41,13 @@ class AuthInterceptor @Inject constructor(
             originalRequest.newBuilder()
                 .header("Authorization", "Bearer ${requestScope.accessToken}")
                 .build()
-        } else if (!path.endsWith("/v2/api/security/logout")) {
+        } else if (allowsExplicitAuthorization(path)) {
+            // Logout and MFA verify pass Authorization explicitly (no installed session yet).
+            originalRequest
+        } else {
             originalRequest.newBuilder()
                 .removeHeader("Authorization")
                 .build()
-        } else {
-            originalRequest
         }
 
         val response = chain.proceed(authenticatedRequest)
@@ -94,12 +95,19 @@ class AuthInterceptor @Inject constructor(
             path.endsWith("/v2/api/security/oauth") ||
             path.endsWith("/health")
 
+    private fun allowsExplicitAuthorization(path: String): Boolean =
+        path.endsWith("/v2/api/security/logout") ||
+            path.endsWith("/v2/api/user-account/verify-2-factor")
+
     private fun shouldSkipProactiveRefresh(path: String): Boolean =
-        isRefreshEndpoint(path) || path.endsWith("/v2/api/security/logout")
+        isRefreshEndpoint(path) ||
+            path.endsWith("/v2/api/security/logout") ||
+            path.endsWith("/v2/api/user-account/verify-2-factor")
 
     private fun shouldSkipReactiveRefresh(path: String): Boolean =
         path.endsWith("/v2/api/security/authenticate") ||
             path.endsWith("/v2/api/security/oauth") ||
             path.endsWith("/v2/api/security/logout") ||
+            path.endsWith("/v2/api/user-account/verify-2-factor") ||
             path.endsWith("/health")
 }

@@ -13,6 +13,7 @@ import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -211,6 +212,32 @@ class AuthInterceptorTest {
             capturedRequests.single().header("Authorization"),
         )
         verify(exactly = 0) { tokenRefresher.tokenForRequest(any()) }
+    }
+
+    @Test
+    fun `pending MFA verify preserves explicit Authorization without installed session`() {
+        val verifyRequest = Request.Builder()
+            .url("https://example.com/v2/api/user-account/verify-2-factor")
+            .header("Authorization", "Bearer pre-verify-token")
+            .post("{}".toByteArray().toRequestBody("application/json".toMediaType()))
+            .build()
+        val chain = mockk<Interceptor.Chain>()
+        val capturedRequests = mutableListOf<Request>()
+        every { sessionManager.getAuthenticatedSessionScope() } returns null
+        every { chain.request() } returns verifyRequest
+        every {
+            chain.proceed(capture(capturedRequests))
+        } returns responseFor(verifyRequest, 403)
+
+        val result = interceptor.intercept(chain)
+
+        assertEquals(403, result.code)
+        assertEquals(
+            "Bearer pre-verify-token",
+            capturedRequests.single().header("Authorization"),
+        )
+        verify(exactly = 0) { tokenRefresher.tokenForRequest(any()) }
+        verify(exactly = 0) { authenticatedSessionCoordinator.terminateSessionAsync(any()) }
     }
 
     private fun responseFor(request: Request, code: Int): Response =

@@ -1,5 +1,6 @@
 package com.pledgerio.app.domain.usecase
 
+import com.pledgerio.app.domain.model.LoginResult
 import com.pledgerio.app.domain.repository.AuthRepository
 import com.pledgerio.app.util.Resource
 import io.mockk.coEvery
@@ -37,11 +38,21 @@ class LoginUseCaseTest {
 
     @Test
     fun `login with valid credentials returns success`() = runTest {
-        coEvery { authRepository.login("user", "pass") } returns Resource.Success("token123")
+        coEvery { authRepository.login("user", "pass") } returns
+            Resource.Success(LoginResult.FullyAuthenticated)
 
         val result = loginUseCase("user", "pass")
         assertTrue(result is Resource.Success)
-        assertEquals("token123", (result as Resource.Success).data)
+        assertEquals(LoginResult.FullyAuthenticated, (result as Resource.Success).data)
+    }
+
+    @Test
+    fun `login with MFA required returns MfaRequired`() = runTest {
+        coEvery { authRepository.login("user", "pass") } returns
+            Resource.Success(LoginResult.MfaRequired)
+
+        val result = loginUseCase("user", "pass")
+        assertEquals(LoginResult.MfaRequired, (result as Resource.Success).data)
     }
 
     @Test
