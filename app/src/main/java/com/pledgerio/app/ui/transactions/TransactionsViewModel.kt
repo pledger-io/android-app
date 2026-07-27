@@ -104,18 +104,27 @@ class TransactionsViewModel @Inject constructor(
     }
 
     init {
-        val now = YearMonth.now()
-        _uiState.update { it.copy(currentMonth = now) }
         val expenseId = savedStateHandle.get<Long>("expenseId")?.takeIf { it >= 0 }
         val expenseName = savedStateHandle.get<String>("expenseName").orEmpty()
-        if (expenseId != null) {
-            _uiState.update {
-                it.copy(
-                    selectedExpense = FilterOption(expenseId, expenseName),
-                    expenseQuery = expenseName,
-                    filtersExpanded = true,
-                )
-            }
+        val categoryId = savedStateHandle.get<Long>("categoryId")?.takeIf { it >= 0 }
+        val categoryName = savedStateHandle.get<String>("categoryName").orEmpty()
+        val year = savedStateHandle.get<Int>("year")?.takeIf { it > 0 }
+        val monthValue = savedStateHandle.get<Int>("month")?.takeIf { it in 1..12 }
+        val initialMonth = if (year != null && monthValue != null) {
+            YearMonth.of(year, monthValue)
+        } else {
+            YearMonth.now()
+        }
+        val hasFilterDeepLink = expenseId != null || categoryId != null
+        _uiState.update {
+            it.copy(
+                currentMonth = initialMonth,
+                selectedExpense = expenseId?.let { id -> FilterOption(id, expenseName) },
+                expenseQuery = if (expenseId != null) expenseName else it.expenseQuery,
+                selectedCategory = categoryId?.let { id -> FilterOption(id, categoryName) },
+                categoryQuery = if (categoryId != null) categoryName else it.categoryQuery,
+                filtersExpanded = hasFilterDeepLink,
+            )
         }
         loadFirstPage()
         viewModelScope.launch {
@@ -123,7 +132,7 @@ class TransactionsViewModel @Inject constructor(
             userPreferences.financeExperienceMode.collect { mode ->
                 _uiState.update { state ->
                     val filtersExpanded = when {
-                        expenseId != null -> state.filtersExpanded
+                        hasFilterDeepLink -> state.filtersExpanded
                         !appliedModeDefault -> mode == FinanceExperienceMode.POWER
                         else -> state.filtersExpanded
                     }

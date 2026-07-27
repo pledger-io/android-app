@@ -51,3 +51,5 @@ Power mode expands transaction filters by default on first load (unless opened v
 - Custom scheme only; App Links (`https://`) can be added later with host verification.
 - Report partitions depend on server support for `category`, `account`, and `balance` partition keys; errors surface in UI.
 - Search loads owned accounts via refresh — acceptable for MVP, may be optimized with cache-only reads later.
+- Reports Overview loads prior-month income/expense (and categories) in parallel for MoM Δ/%; prior-month failures are soft and do not fail the overview.
+- Report rows can navigate to Transactions (category/expense + month) or Account detail when ids are resolved; category name→id matching may leave some rows non-clickable.

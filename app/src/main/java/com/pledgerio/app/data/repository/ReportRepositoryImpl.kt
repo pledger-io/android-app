@@ -10,6 +10,7 @@ import com.pledgerio.app.domain.model.PartitionAmount
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
+import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ReportRepository
 import com.pledgerio.app.util.Resource
 import kotlinx.coroutines.flow.first
@@ -22,6 +23,7 @@ class ReportRepositoryImpl @Inject constructor(
     private val apiService: PledgerApiService,
     private val accountRepository: AccountRepository,
     private val budgetRepository: BudgetRepository,
+    private val categoryRepository: CategoryRepository,
 ) : ReportRepository {
 
     override suspend fun getIncomeExpenseSummary(month: YearMonth): Resource<IncomeExpenseSummary> {
@@ -59,8 +61,13 @@ class ReportRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getCategoryBreakdown(month: YearMonth): Resource<List<PartitionAmount>> =
-        loadPartitioned("category", month)
+    override suspend fun getCategoryBreakdown(month: YearMonth): Resource<List<PartitionAmount>> {
+        return when (val partitions = loadPartitioned("category", month)) {
+            is Resource.Success -> Resource.Success(resolveCategoryIds(partitions.data))
+            is Resource.Error -> partitions
+            is Resource.Loading -> partitions
+        }
+    }
 
     override suspend fun getAccountBalances(month: YearMonth): Resource<List<PartitionAmount>> {
         return try {
@@ -88,6 +95,7 @@ class ReportRepositoryImpl @Inject constructor(
                             PartitionAmount(
                                 label = account.name,
                                 amount = kotlin.math.abs(balancesByName[account.name] ?: 0.0),
+                                id = account.id,
                             )
                         }
                         .sortedByDescending { it.amount }
@@ -110,6 +118,7 @@ class ReportRepositoryImpl @Inject constructor(
                             name = budget.name,
                             spent = budget.spent,
                             budgeted = budget.amount,
+                            expenseId = budget.id,
                         )
                     }
                     Resource.Success(items)
@@ -136,6 +145,25 @@ class ReportRepositoryImpl @Inject constructor(
             Resource.Success(items)
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Could not load net worth trend")
+        }
+    }
+
+    private suspend fun resolveCategoryIds(partitions: List<PartitionAmount>): List<PartitionAmount> {
+        if (partitions.isEmpty()) return partitions
+        val categories = loadCategoriesForLookup()
+        if (categories.isEmpty()) return partitions
+        val byName = categories.associateBy { it.name }
+        return partitions.map { partition ->
+            partition.copy(id = byName[partition.label]?.id)
+        }
+    }
+
+    private suspend fun loadCategoriesForLookup(): List<com.pledgerio.app.domain.model.Category> {
+        val cached = runCatching { categoryRepository.observeCategories().first() }.getOrDefault(emptyList())
+        if (cached.isNotEmpty()) return cached
+        return when (val refreshed = categoryRepository.refreshCategories()) {
+            is Resource.Success -> refreshed.data
+            else -> emptyList()
         }
     }
 

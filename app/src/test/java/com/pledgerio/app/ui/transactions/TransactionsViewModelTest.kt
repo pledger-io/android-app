@@ -39,7 +39,14 @@ class TransactionsViewModelTest {
     private val contractRepository = mockk<ContractRepository>(relaxed = true)
     private val userPreferences = mockk<UserPreferences>(relaxed = true)
     private val savedStateHandle = SavedStateHandle(
-        mapOf("expenseId" to -1L, "expenseName" to ""),
+        mapOf(
+            "expenseId" to -1L,
+            "expenseName" to "",
+            "categoryId" to -1L,
+            "categoryName" to "",
+            "year" to -1,
+            "month" to -1,
+        ),
     )
 
     init {
@@ -113,5 +120,48 @@ class TransactionsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(YearMonth.now(), viewModel.uiState.value.currentMonth)
+    }
+
+    @Test
+    fun `init applies category and month from SavedStateHandle`() = runTest {
+        coEvery {
+            getTransactionsUseCase(
+                startDate = any(),
+                endDate = any(),
+                accountId = any(),
+                type = any(),
+                filters = any(),
+                page = any(),
+                pageSize = any(),
+            )
+        } returns Resource.Success(
+            PagedResult(emptyList(), totalRecords = 0, totalPages = 0, pageSize = 25),
+        )
+        val handle = SavedStateHandle(
+            mapOf(
+                "expenseId" to -1L,
+                "expenseName" to "",
+                "categoryId" to 15L,
+                "categoryName" to "Food",
+                "year" to 2026,
+                "month" to 3,
+            ),
+        )
+        val viewModel = TransactionsViewModel(
+            savedStateHandle = handle,
+            getTransactionsUseCase = getTransactionsUseCase,
+            transactionRepository = transactionRepository,
+            categoryRepository = categoryRepository,
+            budgetRepository = budgetRepository,
+            contractRepository = contractRepository,
+            userPreferences = userPreferences,
+        )
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(YearMonth.of(2026, 3), state.currentMonth)
+        assertEquals(15L, state.selectedCategory?.id)
+        assertEquals("Food", state.selectedCategory?.label)
+        assertEquals(true, state.filtersExpanded)
     }
 }

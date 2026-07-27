@@ -143,6 +143,22 @@ fun NavGraph(
                     type = NavType.StringType
                     defaultValue = ""
                 },
+                navArgument("categoryId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                },
+                navArgument("categoryName") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument("year") {
+                    type = NavType.IntType
+                    defaultValue = -1
+                },
+                navArgument("month") {
+                    type = NavType.IntType
+                    defaultValue = -1
+                },
             ),
         ) { backStackEntry ->
             val transactionsViewModel: TransactionsViewModel =
@@ -383,6 +399,39 @@ fun NavGraph(
             ReportsScreen(
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
+                },
+                onCategoryClick = { categoryId, categoryName, yearMonth ->
+                    navController.navigate(
+                        Screen.Transactions.createRoute(
+                            categoryId = categoryId,
+                            categoryName = categoryName,
+                            year = yearMonth.year,
+                            month = yearMonth.monthValue,
+                        ),
+                    ) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                onAccountClick = { accountId ->
+                    navController.navigate(Screen.AccountDetail.createRoute(accountId))
+                },
+                onBudgetExpenseClick = { expenseId, expenseName, yearMonth ->
+                    navController.navigate(
+                        Screen.Transactions.createRoute(
+                            expenseId = expenseId,
+                            expenseName = expenseName,
+                            year = yearMonth.year,
+                            month = yearMonth.monthValue,
+                        ),
+                    ) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                    }
                 },
             )
         }

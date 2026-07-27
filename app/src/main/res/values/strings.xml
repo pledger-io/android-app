@@ -173,6 +173,15 @@
     <string name="reports_budgets_on_track">%1$d / %2$d on track</string>
     <string name="reports_top_categories">Top categories</string>
     <string name="reports_drill_down_hint">Use the chips above for full category, budget, balance, and net worth reports.</string>
+    <string name="reports_mom_vs_previous">%1$s (%2$s) vs previous month</string>
+    <string name="reports_mom_delta_up">+%1$s</string>
+    <string name="reports_mom_delta_down">-%1$s</string>
+    <string name="reports_mom_percent_up">+%1$s</string>
+    <string name="reports_mom_percent_down">-%1$s</string>
+    <string name="reports_mom_percent_na">n/a</string>
+    <string name="reports_open_category">Open transactions for category %1$s</string>
+    <string name="reports_open_account">Open account %1$s</string>
+    <string name="reports_open_budget">Open transactions for budget %1$s</string>
     <string name="settings_title">Settings</string>
     <string name="settings_subtitle">Server, security &amp; preferences</string>
     <string name="categories_title">Manage categories</string>
