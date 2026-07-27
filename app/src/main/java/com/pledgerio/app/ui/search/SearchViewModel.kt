@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.YearMonth
@@ -92,12 +93,9 @@ class SearchViewModel @Inject constructor(
                 page = 0,
                 pageSize = 20,
             )
-            val ownedAccounts = when (val result = accountRepository.refreshOwnedAccounts()) {
-                is Resource.Success -> result.data.filter {
-                    it.name.contains(query, ignoreCase = true)
-                }
-                else -> emptyList()
-            }
+            val ownedAccounts = accountRepository.observeOwnedAccounts()
+                .first()
+                .filter { it.name.contains(query, ignoreCase = true) }
             val partyAccounts = when (
                 val result = accountRepository.getCounterpartyAccountsPage(
                     offset = 0,
@@ -120,6 +118,7 @@ class SearchViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isSearching = false,
+                            error = null,
                             transactions = txResult.data.items,
                             accounts = accounts,
                             categories = categories,
@@ -131,6 +130,7 @@ class SearchViewModel @Inject constructor(
                         it.copy(
                             isSearching = false,
                             error = txResult.message,
+                            transactions = emptyList(),
                             accounts = accounts,
                             categories = categories,
                         )

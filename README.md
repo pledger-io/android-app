@@ -75,6 +75,7 @@ app/src/main/java/com/pledgerio/app/
 - **Currencies** — Fetched from API, cached in Room, used for `formatCurrency()` across the app
 - **Budgets** — Initial budget setup on 404; monthly overview per expense group; manage groups (add/edit); detail screen (see [Budgets](docs/BUDGETS.md))
 - **Reports** — Report type selector UI (chart data integration in progress)
+- **Search** — Global search from the Dashboard for transactions (last 6 months), owned/counterparty accounts (cache-first owned), and categories; category rows open Transactions for the current month
 - **Settings** — Storage, biometric unlock, **language** (English / Dutch / German / system), theme, display currency, finance experience mode (Guided/Power), **budget alerts** (enable + threshold), in-app bug reports (logs + GitHub issue), logout
 - **Offline** — Room cache with network fallback; periodic sync via WorkManager (accounts, currencies, budget alerts with deep links)
 - **Account logos** — `iconFileCode` loaded from `GET /v2/api/files/{fileCode}` on account and transaction detail screens
@@ -101,6 +102,7 @@ app/src/main/java/com/pledgerio/app/
 | `budgets` | Budget overview (current month); add expense groups via FAB |
 | `budget/{id}` | Expense group detail; edit monthly budget |
 | `reports` | Reports (bottom tab) |
+| `search` | Global search (from Dashboard) |
 | `settings` | Settings |
 
 ## Documentation
