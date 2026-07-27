@@ -11,9 +11,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.pledgerio.app.ui.DevBuildExpiredScreen
 import com.pledgerio.app.ui.PledgerRoot
 import com.pledgerio.app.ui.navigation.DeepLink
 import com.pledgerio.app.ui.navigation.DeepLinkParser
+import com.pledgerio.app.ui.theme.PledgerTheme
+import com.pledgerio.app.util.DevBuildExpiry
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -34,10 +37,16 @@ class MainActivity : AppCompatActivity() {
         )
 
         setContent {
-            PledgerRoot(
-                deepLink = pendingDeepLink,
-                onDeepLinkHandled = { pendingDeepLink = null },
-            )
+            if (DevBuildExpiry.isExpired()) {
+                PledgerTheme {
+                    DevBuildExpiredScreen(onExit = ::finishAffinity)
+                }
+            } else {
+                PledgerRoot(
+                    deepLink = pendingDeepLink,
+                    onDeepLinkHandled = { pendingDeepLink = null },
+                )
+            }
         }
     }
 

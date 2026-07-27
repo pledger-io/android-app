@@ -206,6 +206,8 @@
     <string name="settings_tags_subtitle">Transaktions-Tags verwalten</string>
     <string name="settings_display_currency">Anzeigewährung</string>
     <string name="settings_version">Version</string>
+    <string name="dev_build_expired_title">Entwicklungsbuild abgelaufen</string>
+    <string name="dev_build_expired_message">Dieser per Sideload installierte Entwicklungsbuild ist nur 7 Tage nach dem Build gültig. Lade eine neue APK über GitHub Actions → Development build herunter.</string>
     <string name="settings_sign_out">Abmelden</string>
     <string name="settings_sign_out_confirm_title">Abmelden</string>
     <string name="settings_sign_out_confirm_message">Möchtest du dich wirklich abmelden?</string>

@@ -12,6 +12,9 @@ val isCi = !System.getenv("CI").isNullOrBlank()
 val buildingReleaseTask = gradle.startParameter.taskNames.any { task ->
     task.contains("Release", ignoreCase = true)
 }
+/** Epoch millis when a time-limited development APK stops working; 0 = no expiry. */
+val devBuildExpiresAtEpochMs =
+    (findProperty("devBuildExpiresAtEpochMs") as String?)?.toLongOrNull() ?: 0L
 
 if (isCi && buildingReleaseTask && releaseKeystorePath.isNullOrBlank()) {
     throw GradleException(
@@ -43,6 +46,13 @@ android {
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // 0 = unlimited (local/CI debug). Development-build workflow stamps a future epoch.
+        buildConfigField(
+            "long",
+            "DEV_BUILD_EXPIRES_AT_EPOCH_MS",
+            "${devBuildExpiresAtEpochMs}L",
+        )
     }
 
     signingConfigs {

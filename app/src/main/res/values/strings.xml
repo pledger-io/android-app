@@ -211,6 +211,8 @@
     <string name="settings_tags_subtitle">Manage transaction tags</string>
     <string name="settings_display_currency">Display currency</string>
     <string name="settings_version">Version</string>
+    <string name="dev_build_expired_title">Development build expired</string>
+    <string name="dev_build_expired_message">This sideloaded development build is only valid for 7 days after it was built. Download a fresh APK from GitHub Actions → Development build.</string>
     <string name="settings_sign_out">Sign out</string>
     <string name="settings_sign_out_confirm_title">Sign out</string>
     <string name="settings_sign_out_confirm_message">Are you sure you want to sign out?</string>
