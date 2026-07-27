@@ -1,6 +1,6 @@
 # ADR-010: WorkManager for Background Sync and Notifications
 
-**Date:** 2026-05-13 (updated 2026-05-16)
+**Date:** 2026-05-13 (updated 2026-07-26)
 **Status:** Accepted
 
 ## Context
@@ -40,8 +40,8 @@ Implementation:
   cancellation is not treated as proof that a running worker has completed.
 - Syncs the SWR-cached resources from [ADR-015](015-stale-while-revalidate-cache.md):
   currencies, categories, contracts, expense groups, owned accounts, counterparty accounts
-- Loads the current-month budget and fires local notifications when any budget exceeds 80%
-  (skipped when no budget exists yet for the current month)
+- Loads the current-month budget and fires local notifications when any expense group meets
+  or exceeds the user-configured alert threshold (default 80%; see Notification Strategy)
 - Transaction cache is **not** refreshed here; lists load from the API when screens are opened
 - Uses `ExistingPeriodicWorkPolicy.UPDATE` so startup reconciliation replaces stale generation input
   without creating a second periodic worker
@@ -64,7 +64,16 @@ Implementation:
 - Notifications require `POST_NOTIFICATIONS` permission on Android 13+
 
 ### Notification Strategy
-- **Budget alert**: Fires when any budget group's spending exceeds 80% of allocation
-- Notification channel: "Budget Alerts" with default importance
-- Auto-cancel on tap
-- Future: Deep link to the specific budget detail screen on tap
+- **Budget alert**: Configurable in Settings (enabled by default). Fires when any expense
+  group’s spending meets or exceeds the user’s threshold (**50 / 70 / 80 / 90 / 100%**,
+  default **80**) after a successful sync
+- Preference keys live in `UserPreferences` and survive logout (like theme/locale)
+- Dedup via a month+threshold+over-budget-ids fingerprint so the same over-set does not
+  re-notify every 12h sync; a new group crossing the threshold (or a threshold change)
+  produces a new fingerprint and alerts again
+- Notification channel id `budget_alerts`; localized channel name/description and alert copy
+  (en / nl / de)
+- Auto-cancel on tap; `PendingIntent` opens `pledger://budgets?year=&month=` for the synced
+  month via `MainActivity` (see [ADR-017](017-deep-links-and-reports.md))
+- Enabling alerts on API 33+ requests `POST_NOTIFICATIONS`; if denied, the preference can stay
+  on and the OS may still suppress delivery until the user grants permission in system settings

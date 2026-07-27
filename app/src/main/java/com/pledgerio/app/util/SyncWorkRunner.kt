@@ -8,12 +8,16 @@ import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.repository.TagRepository
+import java.time.YearMonth
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 
 sealed interface SyncRunOutcome {
     data object StaleSession : SyncRunOutcome
-    data class Completed(val budgetsForAlerts: List<Budget>) : SyncRunOutcome
+    data class Completed(
+        val budgetsForAlerts: List<Budget>,
+        val yearMonth: YearMonth,
+    ) : SyncRunOutcome
 }
 
 class SyncSessionGuard @Inject constructor(
@@ -61,11 +65,13 @@ class SyncWorkRunner @Inject constructor(
             return SyncRunOutcome.StaleSession
         }
 
-        val now = java.time.LocalDate.now()
+        val yearMonth = YearMonth.now()
         var budgetsResult: Resource<BudgetListState>? = null
         if (
             !runStep(generation) {
-                budgetsResult = budgetRepository.getBudgets(now.year, now.monthValue).first()
+                budgetsResult = budgetRepository
+                    .getBudgets(yearMonth.year, yearMonth.monthValue)
+                    .first { it !is Resource.Loading }
             }
         ) {
             return SyncRunOutcome.StaleSession
@@ -76,7 +82,7 @@ class SyncWorkRunner @Inject constructor(
             ?.takeUnless { it.needsInitialSetup }
             ?.budgets
             .orEmpty()
-        return SyncRunOutcome.Completed(budgets)
+        return SyncRunOutcome.Completed(budgets, yearMonth)
     }
 
     private suspend fun runStep(

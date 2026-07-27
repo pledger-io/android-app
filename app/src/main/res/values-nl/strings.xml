@@ -59,7 +59,20 @@
     <string name="empty_parties_message">Probeer een andere zoekopdracht of voeg een tegenpartijrekening toe.</string>
 
     <string name="settings_change_server">Server-URL wijzigen</string>
-    <string name="settings_notifications_coming_soon">Komt in een toekomstige update</string>
+    <string name="settings_budget_alerts">Budgetwaarschuwingen</string>
+    <string name="settings_budget_alerts_subtitle">Melding na achtergrondsynchronisatie wanneer uitgavengroepen je drempel overschrijden</string>
+    <string name="settings_budget_alerts_os_disabled">Waarschuwingen staan aan, maar meldingen zijn uitgeschakeld in de systeeminstellingen</string>
+    <string name="settings_budget_alerts_permission_denied">Toestemming voor meldingen is vereist om budgetwaarschuwingen te tonen. Je kunt dit inschakelen in de systeeminstellingen.</string>
+    <string name="settings_budget_alerts_open_system_settings">Open instellingen</string>
+    <string name="settings_budget_alert_threshold">Waarschuwingsdrempel</string>
+    <string name="settings_budget_alert_threshold_option">%1$d%%</string>
+    <string name="budget_alert_channel_name">Budgetwaarschuwingen</string>
+    <string name="budget_alert_channel_description">Meldingen wanneer budgetten drempels overschrijden</string>
+    <string name="budget_alert_notification_title">Budgetwaarschuwing</string>
+    <plurals name="budget_alert_notification_body">
+        <item quantity="one">%1$d budget boven %2$d%%: %3$s</item>
+        <item quantity="other">%1$d budgetten boven %2$d%%: %3$s</item>
+    </plurals>
     <string name="settings_biometric_enabled">Ontgrendeling vereisen bij openen van de app</string>
     <string name="settings_biometric_disabled">Uit</string>
     <string name="settings_biometric_unavailable">Biometrie niet beschikbaar op dit apparaat</string>
@@ -172,7 +185,6 @@
     <string name="settings_tags">Tags</string>
     <string name="settings_tags_subtitle">Transactietags beheren</string>
     <string name="settings_display_currency">Weergavevaluta</string>
-    <string name="settings_notifications">Meldingen</string>
     <string name="settings_version">Versie</string>
     <string name="settings_sign_out">Uitloggen</string>
     <string name="settings_sign_out_confirm_title">Uitloggen</string>

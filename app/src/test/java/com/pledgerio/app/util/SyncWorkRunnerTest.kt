@@ -12,6 +12,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import java.time.YearMonth
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -71,12 +72,47 @@ class SyncWorkRunnerTest {
             } returns Resource.Success(emptyList())
             every {
                 budgetRepository.getBudgets(any(), any())
-            } returns flowOf(Resource.Success(BudgetListState(budgets = listOf(budget))))
+            } returns flowOf(
+                Resource.Loading,
+                Resource.Success(BudgetListState(budgets = listOf(budget))),
+            )
 
             val outcome = runner().run("active")
 
-            assertEquals(SyncRunOutcome.Completed(listOf(budget)), outcome)
+            assertEquals(
+                SyncRunOutcome.Completed(listOf(budget), YearMonth.now()),
+                outcome,
+            )
         }
+
+    @Test
+    fun `budget fetch skips Loading emission before collecting Success`() = runTest {
+        val budget = Budget(id = 2, name = "Rent", amount = 1000.0, spent = 950.0)
+        every { sessionGuard.isCurrent("active") } returns true
+        coEvery { currencyRepository.sync() } returns true
+        coEvery { accountRepository.refreshAccountTypes() } returns Resource.Success(emptyList())
+        coEvery { categoryRepository.refreshCategories() } returns Resource.Success(emptyList())
+        coEvery { tagRepository.refreshTags() } returns Resource.Success(emptyList())
+        coEvery { contractRepository.refreshContracts() } returns Resource.Success(emptyList())
+        coEvery { budgetRepository.refreshExpenseGroups() } returns Resource.Success(emptyList())
+        coEvery { accountRepository.refreshOwnedAccounts() } returns Resource.Success(emptyList())
+        coEvery {
+            accountRepository.refreshCounterpartyAccounts()
+        } returns Resource.Success(emptyList())
+        every {
+            budgetRepository.getBudgets(any(), any())
+        } returns flowOf(
+            Resource.Loading,
+            Resource.Success(BudgetListState(budgets = listOf(budget))),
+        )
+
+        val outcome = runner().run("active")
+
+        assertEquals(
+            SyncRunOutcome.Completed(listOf(budget), YearMonth.now()),
+            outcome,
+        )
+    }
 
     @Test
     fun `session guard does not publish after generation invalidation`() = runTest {

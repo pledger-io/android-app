@@ -59,7 +59,20 @@
     <string name="empty_parties_message">Try a different search or add a counterparty account.</string>
 
     <string name="settings_change_server">Change server URL</string>
-    <string name="settings_notifications_coming_soon">Coming in a future update</string>
+    <string name="settings_budget_alerts">Budget alerts</string>
+    <string name="settings_budget_alerts_subtitle">Notify after background sync when expense groups exceed your threshold</string>
+    <string name="settings_budget_alerts_os_disabled">Alerts are on, but notifications are disabled in system settings</string>
+    <string name="settings_budget_alerts_permission_denied">Notification permission is required to show budget alerts. You can enable it in system settings.</string>
+    <string name="settings_budget_alerts_open_system_settings">Open settings</string>
+    <string name="settings_budget_alert_threshold">Alert threshold</string>
+    <string name="settings_budget_alert_threshold_option">%1$d%%</string>
+    <string name="budget_alert_channel_name">Budget Alerts</string>
+    <string name="budget_alert_channel_description">Notifications when budgets exceed thresholds</string>
+    <string name="budget_alert_notification_title">Budget Alert</string>
+    <plurals name="budget_alert_notification_body">
+        <item quantity="one">%1$d budget over %2$d%%: %3$s</item>
+        <item quantity="other">%1$d budgets over %2$d%%: %3$s</item>
+    </plurals>
     <string name="settings_biometric_enabled">Require unlock when opening the app</string>
     <string name="settings_biometric_disabled">Off</string>
     <string name="settings_biometric_unavailable">Biometrics not available on this device</string>
@@ -177,7 +190,6 @@
     <string name="settings_tags">Tags</string>
     <string name="settings_tags_subtitle">Manage transaction tags</string>
     <string name="settings_display_currency">Display currency</string>
-    <string name="settings_notifications">Notifications</string>
     <string name="settings_version">Version</string>
     <string name="settings_sign_out">Sign out</string>
     <string name="settings_sign_out_confirm_title">Sign out</string>

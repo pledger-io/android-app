@@ -3,7 +3,9 @@ package com.pledgerio.app.util
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.pledgerio.app.domain.model.AppLocale
@@ -46,6 +48,13 @@ class UserPreferences @Inject constructor(
     private val _appLocale = MutableStateFlow(AppLocale.SYSTEM)
     val appLocale: StateFlow<AppLocale> = _appLocale.asStateFlow()
 
+    private val _budgetAlertsEnabled = MutableStateFlow(BudgetAlertLogic.DEFAULT_ENABLED)
+    val budgetAlertsEnabled: StateFlow<Boolean> = _budgetAlertsEnabled.asStateFlow()
+
+    private val _budgetAlertThresholdPercent =
+        MutableStateFlow(BudgetAlertLogic.DEFAULT_THRESHOLD_PERCENT)
+    val budgetAlertThresholdPercent: StateFlow<Int> = _budgetAlertThresholdPercent.asStateFlow()
+
     init {
         scope.launch {
             dataStore.data.map { prefs ->
@@ -66,6 +75,19 @@ class UserPreferences @Inject constructor(
             dataStore.data.map { prefs ->
                 AppLocale.fromStorage(prefs[KEY_APP_LOCALE])
             }.collect { _appLocale.value = it }
+        }
+        scope.launch {
+            dataStore.data.map { prefs ->
+                prefs[KEY_BUDGET_ALERTS_ENABLED] ?: BudgetAlertLogic.DEFAULT_ENABLED
+            }.collect { _budgetAlertsEnabled.value = it }
+        }
+        scope.launch {
+            dataStore.data.map { prefs ->
+                BudgetAlertLogic.normalizeThresholdPercent(
+                    prefs[KEY_BUDGET_ALERT_THRESHOLD_PERCENT]
+                        ?: BudgetAlertLogic.DEFAULT_THRESHOLD_PERCENT,
+                )
+            }.collect { _budgetAlertThresholdPercent.value = it }
         }
         companionInstance = this
     }
@@ -89,6 +111,52 @@ class UserPreferences @Inject constructor(
         dataStore.edit { it[KEY_APP_LOCALE] = locale.storageValue }
     }
 
+    suspend fun getBudgetAlertsEnabled(): Boolean =
+        dataStore.data.map { prefs ->
+            prefs[KEY_BUDGET_ALERTS_ENABLED] ?: BudgetAlertLogic.DEFAULT_ENABLED
+        }.first()
+
+    suspend fun setBudgetAlertsEnabled(enabled: Boolean) {
+        dataStore.edit { it[KEY_BUDGET_ALERTS_ENABLED] = enabled }
+    }
+
+    suspend fun getBudgetAlertThresholdPercent(): Int =
+        dataStore.data.map { prefs ->
+            BudgetAlertLogic.normalizeThresholdPercent(
+                prefs[KEY_BUDGET_ALERT_THRESHOLD_PERCENT]
+                    ?: BudgetAlertLogic.DEFAULT_THRESHOLD_PERCENT,
+            )
+        }.first()
+
+    suspend fun setBudgetAlertThresholdPercent(percent: Int) {
+        val normalized = BudgetAlertLogic.normalizeThresholdPercent(percent)
+        dataStore.edit { it[KEY_BUDGET_ALERT_THRESHOLD_PERCENT] = normalized }
+    }
+
+    /**
+     * Returns true when [fingerprint] differs from the last successfully published alert.
+     * Does not mutate storage — call [markBudgetAlertFingerprint] only after a successful notify.
+     */
+    suspend fun isNewBudgetAlertFingerprint(fingerprint: String): Boolean {
+        val previous = dataStore.data.map { prefs ->
+            prefs[KEY_BUDGET_ALERT_LAST_FINGERPRINT]
+        }.first()
+        return BudgetAlertLogic.isFingerprintNew(previous, fingerprint)
+    }
+
+    suspend fun markBudgetAlertFingerprint(fingerprint: String) {
+        dataStore.edit { prefs ->
+            prefs[KEY_BUDGET_ALERT_LAST_FINGERPRINT] = fingerprint
+        }
+    }
+
+    /** Clears the dedup token so a later over-threshold set can alert again. */
+    suspend fun clearBudgetAlertFingerprint() {
+        dataStore.edit { prefs ->
+            prefs.remove(KEY_BUDGET_ALERT_LAST_FINGERPRINT)
+        }
+    }
+
     suspend fun getLastTransactionType(): TransactionType? {
         val stored = dataStore.data.map { prefs ->
             prefs[KEY_LAST_TRANSACTION_TYPE]
@@ -100,7 +168,10 @@ class UserPreferences @Inject constructor(
         dataStore.edit { it[KEY_LAST_TRANSACTION_TYPE] = type.name }
     }
 
-    /** Clears preferences tied to the previous signed-in user (keeps theme & experience mode). */
+    /**
+     * Clears preferences tied to the previous signed-in user
+     * (keeps theme, experience mode, locale, and budget alert prefs).
+     */
     suspend fun clearSessionData() {
         dataStore.edit { prefs ->
             prefs.remove(KEY_DISPLAY_CURRENCY)
@@ -116,6 +187,11 @@ class UserPreferences @Inject constructor(
         private val KEY_FINANCE_EXPERIENCE_MODE = stringPreferencesKey("finance_experience_mode")
         private val KEY_APP_LOCALE = stringPreferencesKey("app_locale")
         private val KEY_LAST_TRANSACTION_TYPE = stringPreferencesKey("last_transaction_type")
+        private val KEY_BUDGET_ALERTS_ENABLED = booleanPreferencesKey("budget_alerts_enabled")
+        private val KEY_BUDGET_ALERT_THRESHOLD_PERCENT =
+            intPreferencesKey("budget_alert_threshold_percent")
+        private val KEY_BUDGET_ALERT_LAST_FINGERPRINT =
+            stringPreferencesKey("budget_alert_last_fingerprint")
 
         @Volatile
         private var companionInstance: UserPreferences? = null

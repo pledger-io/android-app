@@ -8,10 +8,12 @@ import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.util.BiometricAuthenticator
 import com.pledgerio.app.util.BiometricAvailability
 import com.pledgerio.app.util.BiometricLockManager
+import com.pledgerio.app.util.BudgetAlertLogic
 import com.pledgerio.app.util.DurableLogoutException
 import com.pledgerio.app.util.SessionManager
 import com.pledgerio.app.util.UserPreferences
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +26,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -39,6 +42,10 @@ class SettingsViewModelTest {
     private val biometricAuthenticator = mockk<BiometricAuthenticator>()
     private val biometricLockManager = mockk<BiometricLockManager>(relaxed = true)
 
+    private val budgetAlertsEnabled = MutableStateFlow(BudgetAlertLogic.DEFAULT_ENABLED)
+    private val budgetAlertThreshold =
+        MutableStateFlow(BudgetAlertLogic.DEFAULT_THRESHOLD_PERCENT)
+
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -48,6 +55,14 @@ class SettingsViewModelTest {
             userPreferences.financeExperienceMode
         } returns MutableStateFlow(FinanceExperienceMode.GUIDED)
         every { userPreferences.appLocale } returns MutableStateFlow(AppLocale.SYSTEM)
+        every { userPreferences.budgetAlertsEnabled } returns budgetAlertsEnabled
+        every { userPreferences.budgetAlertThresholdPercent } returns budgetAlertThreshold
+        coEvery { userPreferences.setBudgetAlertsEnabled(any()) } coAnswers {
+            budgetAlertsEnabled.value = firstArg()
+        }
+        coEvery { userPreferences.setBudgetAlertThresholdPercent(any()) } coAnswers {
+            budgetAlertThreshold.value = BudgetAlertLogic.normalizeThresholdPercent(firstArg())
+        }
         every {
             biometricAuthenticator.getAvailability()
         } returns BiometricAvailability.NotAvailable
@@ -78,6 +93,49 @@ class SettingsViewModelTest {
             assertFalse(viewModel.uiState.value.isLoggingOut)
             assertTrue(viewModel.uiState.value.logoutFailed)
         }
+
+    @Test
+    fun `toggle budget alerts updates preferences and ui state`() = runTest {
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.budgetAlertsEnabled)
+
+        viewModel.setBudgetAlertsEnabled(false)
+        advanceUntilIdle()
+
+        coVerify { userPreferences.setBudgetAlertsEnabled(false) }
+        assertFalse(viewModel.uiState.value.budgetAlertsEnabled)
+
+        viewModel.setBudgetAlertsEnabled(true)
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.budgetAlertsEnabled)
+    }
+
+    @Test
+    fun `select budget alert threshold updates preferences and dismisses picker`() = runTest {
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        viewModel.openBudgetAlertThresholdPicker()
+        assertTrue(viewModel.uiState.value.showBudgetAlertThresholdPicker)
+
+        viewModel.selectBudgetAlertThreshold(90)
+        advanceUntilIdle()
+
+        coVerify { userPreferences.setBudgetAlertThresholdPercent(90) }
+        assertEquals(90, viewModel.uiState.value.budgetAlertThresholdPercent)
+        assertFalse(viewModel.uiState.value.showBudgetAlertThresholdPicker)
+    }
+
+    @Test
+    fun `threshold picker stays closed when alerts disabled`() = runTest {
+        budgetAlertsEnabled.value = false
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        viewModel.openBudgetAlertThresholdPicker()
+        assertFalse(viewModel.uiState.value.showBudgetAlertThresholdPicker)
+    }
 
     private fun viewModel() = SettingsViewModel(
         sessionManager = sessionManager,
