@@ -96,6 +96,7 @@
     <string name="search_hint">Zoek transacties, rekeningen, categorieën…</string>
     <string name="search_prompt">Typ om in je gegevens te zoeken.</string>
     <string name="search_no_results">Geen resultaten gevonden.</string>
+    <string name="search_transactions_error">Transacties konden niet worden geladen</string>
     <string name="search_section_transactions">Transacties</string>
     <string name="search_section_accounts">Rekeningen</string>
     <string name="search_section_categories">Categorieën</string>

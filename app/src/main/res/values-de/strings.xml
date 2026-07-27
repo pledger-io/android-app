@@ -96,6 +96,7 @@
     <string name="search_hint">Transaktionen, Konten, Kategorien suchen…</string>
     <string name="search_prompt">Tippe, um in deinen Daten zu suchen.</string>
     <string name="search_no_results">Keine Ergebnisse gefunden.</string>
+    <string name="search_transactions_error">Transaktionen konnten nicht geladen werden</string>
     <string name="search_section_transactions">Transaktionen</string>
     <string name="search_section_accounts">Konten</string>
     <string name="search_section_categories">Kategorien</string>

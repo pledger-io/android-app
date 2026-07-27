@@ -40,9 +40,13 @@ fun SearchScreen(
     onNavigateBack: () -> Unit,
     onNavigateToTransaction: (Long) -> Unit,
     onNavigateToAccount: (Long) -> Unit,
+    onNavigateToCategory: (Long, String) -> Unit,
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val hasResults = uiState.transactions.isNotEmpty() ||
+        uiState.accounts.isNotEmpty() ||
+        uiState.categories.isNotEmpty()
 
     Scaffold(
         topBar = {
@@ -75,15 +79,6 @@ fun SearchScreen(
             )
             Spacer(modifier = Modifier.height(12.dp))
             when {
-                uiState.isSearching -> {
-                    CircularProgressIndicator(modifier = Modifier.padding(24.dp))
-                }
-                uiState.error != null -> {
-                    Text(
-                        text = uiState.error ?: "",
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
                 uiState.query.isBlank() -> {
                     Text(
                         text = stringResource(R.string.search_prompt),
@@ -91,8 +86,21 @@ fun SearchScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                uiState.isSearching && !hasResults -> {
+                    CircularProgressIndicator(modifier = Modifier.padding(24.dp))
+                }
                 else -> {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (uiState.error != null) {
+                            item {
+                                Text(
+                                    text = stringResource(R.string.search_transactions_error),
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(bottom = 4.dp),
+                                )
+                            }
+                        }
                         if (uiState.transactions.isNotEmpty()) {
                             item {
                                 Text(
@@ -148,16 +156,18 @@ fun SearchScreen(
                                 )
                             }
                             items(uiState.categories, key = { it.id }) { category ->
-                                PledgerCard(modifier = Modifier.fillMaxWidth()) {
+                                PledgerCard(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            onNavigateToCategory(category.id, category.name)
+                                        },
+                                ) {
                                     Text(category.name, style = MaterialTheme.typography.bodyLarge)
                                 }
                             }
                         }
-                        if (
-                            uiState.transactions.isEmpty() &&
-                            uiState.accounts.isEmpty() &&
-                            uiState.categories.isEmpty()
-                        ) {
+                        if (!hasResults && uiState.error == null) {
                             item {
                                 Text(
                                     stringResource(R.string.search_no_results),

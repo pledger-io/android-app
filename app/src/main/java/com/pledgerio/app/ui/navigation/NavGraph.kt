@@ -32,6 +32,7 @@ import com.pledgerio.app.ui.transactions.TransactionsScreen
 import com.pledgerio.app.ui.transactions.TransactionsViewModel
 import com.pledgerio.app.ui.transactions.scan.InvoiceScanScreen
 import com.pledgerio.app.ui.accounts.AccountDetailViewModel
+import java.time.YearMonth
 
 @Composable
 fun NavGraph(
@@ -127,6 +128,17 @@ fun NavGraph(
                 },
                 onNavigateToAccount = { id ->
                     navController.navigate(Screen.AccountDetail.createRoute(id))
+                },
+                onNavigateToCategory = { categoryId, categoryName ->
+                    val month = YearMonth.now()
+                    navController.navigate(
+                        Screen.Transactions.createRoute(
+                            categoryId = categoryId,
+                            categoryName = categoryName,
+                            year = month.year,
+                            month = month.monthValue,
+                        ),
+                    )
                 },
                 viewModel = searchViewModel,
             )
