@@ -188,6 +188,7 @@ Screen → ViewModel → Repository → Retrofit
 | User sessions / profile | `/v2/api/user-account/{user}/sessions`, `/v2/api/user-account/{user}`, `/v2/api/user-account/{user}/2-factor` |
 | Accounts | `/v2/api/accounts`, `/v2/api/accounts/{id}`, `/v2/api/account-types` |
 | Transactions | `/v2/api/transactions`, `/v2/api/transactions/{id}`, `/v2/api/ai/auto-complete` |
+| Schedules | `/v2/api/schedules`, `/v2/api/schedules/{id}` (list/create/delete; PATCH edit deferred) |
 | Categories | `/v2/api/categories` |
 | Budgets | `/v2/api/budgets` (GET/POST/PATCH), `/v2/api/budgets/expenses` (GET/PATCH), `/v2/api/budgets/expenses/balance` |
 | Contracts | `/v2/api/contracts` |
