@@ -1,6 +1,7 @@
 package com.pledgerio.app.ui.reports
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,23 +20,26 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.DatedAmount
 import com.pledgerio.app.domain.model.IncomeExpenseSummary
+import com.pledgerio.app.domain.model.MonthDelta
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.IncomeGreen
 import com.pledgerio.app.ui.theme.PledgerThemeExt
 import com.pledgerio.app.util.formatCurrency
 import kotlin.math.abs
-import kotlin.math.max
 
 @Composable
 fun IncomeExpenseCard(
     summary: IncomeExpenseSummary,
     modifier: Modifier = Modifier,
+    netDelta: MonthDelta? = null,
 ) {
     val income = summary.income
     val expense = summary.expense
@@ -65,6 +69,10 @@ fun IncomeExpenseCard(
             fontWeight = FontWeight.Bold,
             color = if (net >= 0) IncomeGreen else ExpenseRed,
         )
+        netDelta?.let { delta ->
+            Spacer(modifier = Modifier.height(4.dp))
+            MonthOverMonthLine(delta = delta)
+        }
         savingsRate?.let { rate ->
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -129,11 +137,44 @@ fun IncomeExpenseCard(
 }
 
 @Composable
+fun MonthOverMonthLine(
+    delta: MonthDelta,
+    modifier: Modifier = Modifier,
+) {
+    val absoluteText = if (delta.absolute >= 0) {
+        stringResource(R.string.reports_mom_delta_up, abs(delta.absolute).formatCurrency())
+    } else {
+        stringResource(R.string.reports_mom_delta_down, abs(delta.absolute).formatCurrency())
+    }
+    val percentText = delta.percent?.let { pct ->
+        val formatted = "${(abs(pct) * 100).toInt()}%"
+        if (pct >= 0) {
+            stringResource(R.string.reports_mom_percent_up, formatted)
+        } else {
+            stringResource(R.string.reports_mom_percent_down, formatted)
+        }
+    } ?: stringResource(R.string.reports_mom_percent_na)
+    val color = if (delta.absolute >= 0) IncomeGreen else ExpenseRed
+    Text(
+        text = stringResource(
+            R.string.reports_mom_vs_previous,
+            absoluteText,
+            percentText,
+        ),
+        style = MaterialTheme.typography.bodySmall,
+        color = color,
+        modifier = modifier,
+    )
+}
+
+@Composable
 fun PartitionList(
     partitions: List<PartitionAmountUi>,
     modifier: Modifier = Modifier,
     emptyMessage: String = stringResource(R.string.reports_no_data),
     maxItems: Int? = null,
+    onItemClick: ((PartitionAmountUi) -> Unit)? = null,
+    itemContentDescription: @Composable ((PartitionAmountUi) -> String)? = null,
 ) {
     if (partitions.isEmpty()) {
         Text(emptyMessage, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = modifier)
@@ -162,7 +203,27 @@ fun PartitionList(
             }
         }
         shown.forEach { item ->
-            PledgerCard {
+            val clickable = item.id != null && onItemClick != null
+            val description = if (clickable && itemContentDescription != null) {
+                itemContentDescription(item)
+            } else {
+                null
+            }
+            PledgerCard(
+                modifier = if (clickable) {
+                    Modifier
+                        .clickable { onItemClick!!(item) }
+                        .then(
+                            if (description != null) {
+                                Modifier.semantics { contentDescription = description }
+                            } else {
+                                Modifier
+                            },
+                        )
+                } else {
+                    Modifier
+                },
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -176,6 +237,28 @@ fun PartitionList(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        item.monthDelta?.let { delta ->
+                            val pct = delta.percent
+                            val momText = if (pct != null) {
+                                val formatted = "${(abs(pct) * 100).toInt()}%"
+                                if (pct >= 0) {
+                                    stringResource(R.string.reports_mom_percent_up, formatted)
+                                } else {
+                                    stringResource(R.string.reports_mom_percent_down, formatted)
+                                }
+                            } else {
+                                stringResource(R.string.reports_mom_percent_na)
+                            }
+                            Text(
+                                text = momText,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if ((delta.percent ?: delta.absolute) >= 0) {
+                                    IncomeGreen
+                                } else {
+                                    ExpenseRed
+                                },
+                            )
+                        }
                     }
                     Text(
                         item.amount.formatCurrency(),
@@ -203,10 +286,15 @@ fun PartitionList(
 }
 
 /** UI wrapper so partition list can stay in the reports package without exposing domain in previews. */
-data class PartitionAmountUi(val label: String, val amount: Double)
+data class PartitionAmountUi(
+    val label: String,
+    val amount: Double,
+    val id: Long? = null,
+    val monthDelta: MonthDelta? = null,
+)
 
-fun com.pledgerio.app.domain.model.PartitionAmount.toUi() =
-    PartitionAmountUi(label = label, amount = amount)
+fun com.pledgerio.app.domain.model.PartitionAmount.toUi(monthDelta: MonthDelta? = null) =
+    PartitionAmountUi(label = label, amount = amount, id = id, monthDelta = monthDelta)
 
 @Composable
 fun NetWorthSection(
@@ -222,7 +310,7 @@ fun NetWorthSection(
         return
     }
     val latest = points.last()
-  val first = points.first()
+    val first = points.first()
     val change = latest.amount - first.amount
 
     PledgerCard(modifier = modifier) {
@@ -296,6 +384,7 @@ fun BudgetPerformanceList(
     items: List<com.pledgerio.app.domain.model.BudgetPerformanceItem>,
     modifier: Modifier = Modifier,
     maxItems: Int? = null,
+    onItemClick: ((com.pledgerio.app.domain.model.BudgetPerformanceItem) -> Unit)? = null,
 ) {
     if (items.isEmpty()) {
         Text(
@@ -326,7 +415,27 @@ fun BudgetPerformanceList(
             }
         }
         shown.forEach { item ->
-            PledgerCard {
+            val clickable = item.expenseId != null && onItemClick != null
+            val description = if (clickable) {
+                stringResource(R.string.reports_open_budget, item.name)
+            } else {
+                null
+            }
+            PledgerCard(
+                modifier = if (clickable) {
+                    Modifier
+                        .clickable { onItemClick!!(item) }
+                        .then(
+                            if (description != null) {
+                                Modifier.semantics { contentDescription = description }
+                            } else {
+                                Modifier
+                            },
+                        )
+                } else {
+                    Modifier
+                },
+            ) {
                 Text(item.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(

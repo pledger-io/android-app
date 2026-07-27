@@ -139,18 +139,24 @@ class ReportsViewModel @Inject constructor(
     }
 
     private suspend fun fetchOverviewFromNetwork(month: YearMonth): OverviewFetchResult = coroutineScope {
+        val priorMonth = month.minusMonths(1)
         val incomeDeferred = async { reportRepository.getIncomeExpenseSummary(month) }
         val categoryDeferred = async { reportRepository.getCategoryBreakdown(month) }
         val balanceDeferred = async { reportRepository.getAccountBalances(month) }
         val budgetDeferred = async { reportRepository.getBudgetPerformance(month) }
         val netWorthDeferred = async { reportRepository.getNetWorthTrend(month) }
+        val priorIncomeDeferred = async { reportRepository.getIncomeExpenseSummary(priorMonth) }
+        val priorCategoryDeferred = async { reportRepository.getCategoryBreakdown(priorMonth) }
 
         val income = incomeDeferred.await()
         val categories = categoryDeferred.await()
         val balances = balanceDeferred.await()
         val budgets = budgetDeferred.await()
         val netWorth = netWorthDeferred.await()
+        val priorIncome = priorIncomeDeferred.await()
+        val priorCategories = priorCategoryDeferred.await()
 
+        // Prior-month failures are soft: omit MoM rather than failing the overview.
         val errors = listOf(income, categories, balances, budgets, netWorth)
             .filterIsInstance<Resource.Error>()
             .map { it.message }
@@ -161,6 +167,8 @@ class ReportsViewModel @Inject constructor(
             accountBalances = (balances as? Resource.Success)?.data.orEmpty(),
             budgetItems = (budgets as? Resource.Success)?.data.orEmpty(),
             netWorthInMonth = (netWorth as? Resource.Success)?.data.orEmpty().inMonth(month),
+            priorIncomeExpense = (priorIncome as? Resource.Success)?.data,
+            priorCategories = (priorCategories as? Resource.Success)?.data.orEmpty(),
         )
 
         val hasAnyData = overview.incomeExpense != null ||

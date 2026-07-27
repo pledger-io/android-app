@@ -1,17 +1,37 @@
 package com.pledgerio.app.ui.navigation
 
 import android.net.Uri
+import java.net.URLEncoder
 
 sealed class Screen(val route: String) {
     data object ServerSetup : Screen("server_setup?changeServer={changeServer}") {
         fun createRoute(changeServer: Boolean = false) =
             "server_setup?changeServer=$changeServer"
     }
-    data object Transactions : Screen("transactions?expenseId={expenseId}&expenseName={expenseName}") {
-        fun createRoute(expenseId: Long? = null, expenseName: String? = null): String {
-            if (expenseId == null) return "transactions?expenseId=-1&expenseName="
-            val name = expenseName.orEmpty()
-            return "transactions?expenseId=$expenseId&expenseName=${android.net.Uri.encode(name)}"
+    data object Transactions : Screen(
+        "transactions?" +
+            "expenseId={expenseId}&expenseName={expenseName}&" +
+            "categoryId={categoryId}&categoryName={categoryName}&" +
+            "year={year}&month={month}",
+    ) {
+        fun createRoute(
+            expenseId: Long? = null,
+            expenseName: String? = null,
+            categoryId: Long? = null,
+            categoryName: String? = null,
+            year: Int? = null,
+            month: Int? = null,
+        ): String {
+            val expId = expenseId ?: -1L
+            val expName = encodeQueryParam(expenseName.orEmpty())
+            val catId = categoryId ?: -1L
+            val catName = encodeQueryParam(categoryName.orEmpty())
+            val y = year ?: -1
+            val m = month ?: -1
+            return "transactions?" +
+                "expenseId=$expId&expenseName=$expName&" +
+                "categoryId=$catId&categoryName=$catName&" +
+                "year=$y&month=$m"
         }
     }
     data object Login : Screen("login")
@@ -83,3 +103,8 @@ sealed class Screen(val route: String) {
     data object Categories : Screen("categories")
     data object Tags : Screen("tags")
 }
+
+/** JVM-safe query encoding (avoids android.net.Uri in unit tests). */
+private fun encodeQueryParam(value: String): String =
+    URLEncoder.encode(value, "UTF-8").replace("+", "%20")
+

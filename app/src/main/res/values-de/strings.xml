@@ -168,6 +168,15 @@
     <string name="reports_budgets_on_track">%1$d / %2$d im Plan</string>
     <string name="reports_top_categories">Top-Kategorien</string>
     <string name="reports_drill_down_hint">Nutze die Chips oben für vollständige Kategorie-, Budget-, Saldo- und Vermögensberichte.</string>
+    <string name="reports_mom_vs_previous">%1$s (%2$s) ggü. Vormonat</string>
+    <string name="reports_mom_delta_up">+%1$s</string>
+    <string name="reports_mom_delta_down">-%1$s</string>
+    <string name="reports_mom_percent_up">+%1$s</string>
+    <string name="reports_mom_percent_down">-%1$s</string>
+    <string name="reports_mom_percent_na">k. A.</string>
+    <string name="reports_open_category">Transaktionen für Kategorie %1$s öffnen</string>
+    <string name="reports_open_account">Konto %1$s öffnen</string>
+    <string name="reports_open_budget">Transaktionen für Budget %1$s öffnen</string>
     <string name="settings_title">Einstellungen</string>
     <string name="settings_subtitle">Server, Sicherheit &amp; Einstellungen</string>
     <string name="categories_title">Kategorien verwalten</string>

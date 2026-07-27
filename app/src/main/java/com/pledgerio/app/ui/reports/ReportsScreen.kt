@@ -49,6 +49,9 @@ enum class ReportType {
 @Composable
 fun ReportsScreen(
     onNavigateToSettings: () -> Unit,
+    onCategoryClick: (categoryId: Long, categoryName: String, yearMonth: YearMonth) -> Unit = { _, _, _ -> },
+    onAccountClick: (accountId: Long) -> Unit = {},
+    onBudgetExpenseClick: (expenseId: Long, expenseName: String, yearMonth: YearMonth) -> Unit = { _, _, _ -> },
     viewModel: ReportsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -129,7 +132,11 @@ fun ReportsScreen(
                                 when (uiState.selectedType) {
                                     ReportType.OVERVIEW -> {
                                         uiState.overview?.let { overview ->
-                                            ReportsOverviewContent(overview = overview)
+                                            ReportsOverviewContent(
+                                                overview = overview,
+                                                yearMonth = uiState.currentMonth,
+                                                onCategoryClick = onCategoryClick,
+                                            )
                                         }
                                     }
                                     ReportType.INCOME_EXPENSE -> {
@@ -137,13 +144,43 @@ fun ReportsScreen(
                                             IncomeExpenseCard(summary = summary)
                                         }
                                     }
-                                    ReportType.CATEGORY, ReportType.BALANCE -> {
+                                    ReportType.CATEGORY -> {
                                         PartitionList(
                                             partitions = uiState.partitions.map { it.toUi() },
+                                            onItemClick = { item ->
+                                                val id = item.id ?: return@PartitionList
+                                                onCategoryClick(id, item.label, uiState.currentMonth)
+                                            },
+                                            itemContentDescription = { item ->
+                                                stringResource(R.string.reports_open_category, item.label)
+                                            },
+                                        )
+                                    }
+                                    ReportType.BALANCE -> {
+                                        PartitionList(
+                                            partitions = uiState.partitions.map { it.toUi() },
+                                            onItemClick = { item ->
+                                                val id = item.id ?: return@PartitionList
+                                                onAccountClick(id)
+                                            },
+                                            itemContentDescription = { item ->
+                                                stringResource(R.string.reports_open_account, item.label)
+                                            },
                                         )
                                     }
                                     ReportType.BUDGET -> {
-                                        BudgetPerformanceList(items = uiState.budgetItems)
+                                        BudgetPerformanceList(
+                                            items = uiState.budgetItems,
+                                            onItemClick = { item ->
+                                                val expenseId = item.expenseId
+                                                    ?: return@BudgetPerformanceList
+                                                onBudgetExpenseClick(
+                                                    expenseId,
+                                                    item.name,
+                                                    uiState.currentMonth,
+                                                )
+                                            },
+                                        )
                                     }
                                     ReportType.NET_WORTH -> {
                                         NetWorthSection(points = uiState.netWorthTrend)

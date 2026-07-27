@@ -26,18 +26,24 @@ import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.IncomeGreen
 import com.pledgerio.app.util.formatCurrency
+import java.time.YearMonth
 
 @Composable
 fun ReportsOverviewContent(
     overview: ReportsOverview,
     modifier: Modifier = Modifier,
+    yearMonth: YearMonth = YearMonth.now(),
+    onCategoryClick: (categoryId: Long, categoryName: String, yearMonth: YearMonth) -> Unit = { _, _, _ -> },
 ) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         overview.incomeExpense?.let { summary ->
-            IncomeExpenseCard(summary = summary)
+            IncomeExpenseCard(
+                summary = summary,
+                netDelta = overview.netCashFlowDelta,
+            )
         }
 
         Row(
@@ -74,8 +80,17 @@ fun ReportsOverviewContent(
                 modifier = Modifier.padding(top = 4.dp),
             )
             PartitionList(
-                partitions = overview.topCategories.map { it.toUi() },
+                partitions = overview.topCategories.map { partition ->
+                    partition.toUi(monthDelta = overview.categoryDelta(partition.label))
+                },
                 maxItems = 5,
+                onItemClick = { item ->
+                    val id = item.id ?: return@PartitionList
+                    onCategoryClick(id, item.label, yearMonth)
+                },
+                itemContentDescription = { item ->
+                    stringResource(R.string.reports_open_category, item.label)
+                },
             )
         }
 

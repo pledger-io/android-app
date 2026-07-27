@@ -19,11 +19,15 @@ class TransactionMutationInvalidator @Inject constructor(
     suspend fun invalidate(date: LocalDate?) {
         if (date == null) return
         val month = YearMonth.from(date)
+        // Next month's overview embeds prior-month MoM totals; clear both.
+        val reportMonths = listOf(month, month.plusMonths(1))
         var failure: Exception? = null
-        try {
-            reportsOverviewStore.invalidate(month)
-        } catch (error: Exception) {
-            failure = error
+        for (reportMonth in reportMonths) {
+            try {
+                reportsOverviewStore.invalidate(reportMonth)
+            } catch (error: Exception) {
+                failure?.addSuppressed(error) ?: run { failure = error }
+            }
         }
         try {
             cacheRefresher.invalidate(SyncKeys.budgetMonth(month))
