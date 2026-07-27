@@ -52,3 +52,23 @@ data class UserProfileResponse(
     @Json(name = "profilePicture") val profilePicture: String? = null,
     @Json(name = "mfa") val mfa: Boolean = false,
 )
+
+@JsonClass(generateAdapter = true)
+data class Verify2FactorRequest(
+    @Json(name = "verificationCode") val verificationCode: String,
+)
+
+@JsonClass(generateAdapter = true)
+data class Patch2FactorRequest(
+    @Json(name = "action") val action: String,
+    @Json(name = "verificationCode") val verificationCode: String? = null,
+) {
+    companion object {
+        fun enable(verificationCode: String) = Patch2FactorRequest(
+            action = "ENABLE",
+            verificationCode = verificationCode,
+        )
+
+        fun disable() = Patch2FactorRequest(action = "DISABLE")
+    }
+}

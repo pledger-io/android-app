@@ -85,6 +85,7 @@ fun SettingsScreen(
     onNavigateToCategories: () -> Unit,
     onNavigateToTags: () -> Unit,
     onNavigateToApiSessions: () -> Unit,
+    onNavigateToMfaSetup: () -> Unit,
     onNavigateToChangeServer: () -> Unit,
     onLogout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
@@ -307,8 +308,8 @@ fun SettingsScreen(
                         icon = Icons.Default.Security,
                         title = stringResource(R.string.settings_mfa),
                         subtitle = mfaSubtitle,
-                        onClick = { },
-                        enabled = false,
+                        onClick = onNavigateToMfaSetup,
+                        enabled = uiState.mfaEnabled != null,
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SettingsItem(

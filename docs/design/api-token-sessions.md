@@ -25,11 +25,10 @@ Android already has unused `listSessions` / `createSession` Retrofit stubs. Web 
 4. Show profile **MFA enabled/disabled** status on Settings security (read-only; no enroll yet).
 5. Typed DTOs + repository; unit tests; docs.
 
-## Non-goals (later PRs)
+## Non-goals (later / separate PRs)
 
 - OIDC AppAuth login / `.well-known` consumption in onboarding
-- Login-time `verify-2-factor` challenge after password
-- MFA QR enroll / enable / disable UI (`…/2-factor` GET+PATCH)
+- Login-time `verify-2-factor` and MFA QR enroll/disable — see [mfa-enroll-verify.md](mfa-enroll-verify.md)
 - Treating JWT “this device” as a revocable session row (these are durable API tokens, not interactive JWTs)
 
 ## Design

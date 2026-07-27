@@ -203,6 +203,7 @@
     <string name="settings_mfa_enabled">Enabled</string>
     <string name="settings_mfa_disabled">Disabled</string>
     <string name="settings_mfa_unknown">Status unavailable</string>
+    <string name="settings_mfa_manage">Manage authenticator</string>
     <string name="settings_api_tokens">API tokens</string>
     <string name="settings_api_tokens_subtitle">Manage durable access tokens</string>
     <string name="settings_categories">Categories</string>
@@ -382,6 +383,28 @@
     <string name="api_sessions_revoke">Revoke</string>
     <string name="api_sessions_revoke_title">Revoke token?</string>
     <string name="api_sessions_revoke_message">Revoke “%1$s”? Apps using this token will stop working.</string>
+
+    <string name="verify_2fa_title">Verify it’s you</string>
+    <string name="verify_2fa_message">Enter the 6-digit code from your authenticator app to finish signing in.</string>
+    <string name="verify_2fa_code_label">Authentication code</string>
+    <string name="verify_2fa_action">Verify</string>
+    <string name="verify_2fa_back">Back to sign in</string>
+
+    <string name="mfa_setup_title">Two-factor authentication</string>
+    <string name="mfa_setup_subtitle">Authenticator app</string>
+    <string name="mfa_setup_back">Back</string>
+    <string name="mfa_setup_enroll_explain">Scan this QR code with your authenticator app, then enter the code it shows to enable two-factor authentication.</string>
+    <string name="mfa_setup_qr_content_description">Two-factor QR code</string>
+    <string name="mfa_setup_code_label">Authentication code</string>
+    <string name="mfa_setup_enable">Enable</string>
+    <string name="mfa_setup_disable">Disable</string>
+    <string name="mfa_setup_disable_explain">Two-factor authentication is enabled. Disabling it does not sign out other devices or revoke API tokens.</string>
+    <string name="mfa_setup_disable_title">Disable two-factor?</string>
+    <string name="mfa_setup_disable_confirm">Anyone with your password will be able to sign in without an authenticator code.</string>
+    <string name="mfa_setup_cancel">Cancel</string>
+    <string name="mfa_setup_retry">Try again</string>
+    <string name="mfa_setup_enabled_success">Two-factor authentication enabled</string>
+    <string name="mfa_setup_disabled_success">Two-factor authentication disabled</string>
 
     <!-- Transaction form -->
     <string name="transaction_description_label">What was this for?</string>

@@ -198,6 +198,7 @@
     <string name="settings_mfa_enabled">Ingeschakeld</string>
     <string name="settings_mfa_disabled">Uitgeschakeld</string>
     <string name="settings_mfa_unknown">Status niet beschikbaar</string>
+    <string name="settings_mfa_manage">Authenticator beheren</string>
     <string name="settings_api_tokens">API-tokens</string>
     <string name="settings_api_tokens_subtitle">Beheer duurzame toegangstokens</string>
     <string name="settings_categories">Categorieën</string>
@@ -377,6 +378,28 @@
     <string name="api_sessions_revoke">Intrekken</string>
     <string name="api_sessions_revoke_title">Token intrekken?</string>
     <string name="api_sessions_revoke_message">“%1$s” intrekken? Apps die dit token gebruiken stoppen met werken.</string>
+
+    <string name="verify_2fa_title">Bevestig dat jij het bent</string>
+    <string name="verify_2fa_message">Voer de 6-cijferige code uit je authenticator-app in om inloggen te voltooien.</string>
+    <string name="verify_2fa_code_label">Authenticatiecode</string>
+    <string name="verify_2fa_action">Verifiëren</string>
+    <string name="verify_2fa_back">Terug naar inloggen</string>
+
+    <string name="mfa_setup_title">Tweefactorauthenticatie</string>
+    <string name="mfa_setup_subtitle">Authenticator-app</string>
+    <string name="mfa_setup_back">Terug</string>
+    <string name="mfa_setup_enroll_explain">Scan deze QR-code met je authenticator-app en voer daarna de getoonde code in om tweefactorauthenticatie in te schakelen.</string>
+    <string name="mfa_setup_qr_content_description">Tweefactor QR-code</string>
+    <string name="mfa_setup_code_label">Authenticatiecode</string>
+    <string name="mfa_setup_enable">Inschakelen</string>
+    <string name="mfa_setup_disable">Uitschakelen</string>
+    <string name="mfa_setup_disable_explain">Tweefactorauthenticatie is ingeschakeld. Uitschakelen meldt andere apparaten niet af en trekt API-tokens niet in.</string>
+    <string name="mfa_setup_disable_title">Tweefactor uitschakelen?</string>
+    <string name="mfa_setup_disable_confirm">Iedereen met je wachtwoord kan dan inloggen zonder authenticatorcode.</string>
+    <string name="mfa_setup_cancel">Annuleren</string>
+    <string name="mfa_setup_retry">Opnieuw proberen</string>
+    <string name="mfa_setup_enabled_success">Tweefactorauthenticatie ingeschakeld</string>
+    <string name="mfa_setup_disabled_success">Tweefactorauthenticatie uitgeschakeld</string>
 
     <!-- Transaction form -->
     <string name="transaction_description_label">Waar was dit voor?</string>

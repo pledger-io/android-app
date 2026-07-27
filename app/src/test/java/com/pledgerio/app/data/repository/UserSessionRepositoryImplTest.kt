@@ -165,6 +165,43 @@ class UserSessionRepositoryImplTest {
     }
 
     @Test
+    fun `get2FactorQr returns bytes`() = runTest {
+        val png = byteArrayOf(1, 2, 3, 4)
+        coEvery { apiService.get2FactorQr("alice@example.com") } returns Response.success(
+            png.toResponseBody(null),
+        )
+
+        val result = repository.get2FactorQr()
+
+        assertTrue(result is Resource.Success)
+        assertTrue((result as Resource.Success).data.contentEquals(png))
+    }
+
+    @Test
+    fun `enableMfa maps invalid code`() = runTest {
+        coEvery {
+            apiService.patch2Factor("alice@example.com", any())
+        } returns Response.error(400, "".toResponseBody(null))
+
+        val result = repository.enableMfa("000000")
+
+        assertTrue(result is Resource.Error)
+        assertEquals("Invalid verification code", (result as Resource.Error).message)
+    }
+
+    @Test
+    fun `disableMfa succeeds`() = runTest {
+        coEvery {
+            apiService.patch2Factor("alice@example.com", any())
+        } returns Response.success(Unit)
+
+        val result = repository.disableMfa()
+
+        assertTrue(result is Resource.Success)
+        coVerify(exactly = 1) { apiService.patch2Factor("alice@example.com", any()) }
+    }
+
+    @Test
     fun `listSessions drops responses without id`() = runTest {
         coEvery { apiService.listSessions(any()) } returns Response.success(
             listOf(SessionResponse(id = null, description = "broken")),

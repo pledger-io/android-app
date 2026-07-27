@@ -22,10 +22,12 @@ import com.pledgerio.app.ui.dashboard.DashboardScreen
 import com.pledgerio.app.ui.dashboard.DashboardViewModel
 import com.pledgerio.app.ui.onboarding.LoginScreen
 import com.pledgerio.app.ui.onboarding.ServerSetupScreen
+import com.pledgerio.app.ui.onboarding.Verify2FactorScreen
 import com.pledgerio.app.ui.reports.ReportsScreen
 import com.pledgerio.app.ui.search.SearchScreen
 import com.pledgerio.app.ui.search.SearchViewModel
 import com.pledgerio.app.ui.settings.ApiSessionsScreen
+import com.pledgerio.app.ui.settings.MfaSetupScreen
 import com.pledgerio.app.ui.settings.SettingsScreen
 import com.pledgerio.app.ui.transactions.TransactionDetailScreen
 import com.pledgerio.app.ui.transactions.TransactionFormScreen
@@ -78,11 +80,27 @@ fun NavGraph(
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
+                onMfaRequired = {
+                    navController.navigate(Screen.Verify2Factor.route)
+                },
                 onBackToServer = {
                     navController.navigate(Screen.ServerSetup.createRoute(changeServer = false)) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        composable(Screen.Verify2Factor.route) {
+            Verify2FactorScreen(
+                onVerified = {
+                    navController.navigate(Screen.Dashboard.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
+                onCancel = {
+                    navController.popBackStack()
+                },
             )
         }
 
@@ -461,6 +479,9 @@ fun NavGraph(
                 onNavigateToApiSessions = {
                     navController.navigate(Screen.ApiSessions.route)
                 },
+                onNavigateToMfaSetup = {
+                    navController.navigate(Screen.MfaSetup.route)
+                },
                 onNavigateToChangeServer = {
                     navController.navigate(Screen.ServerSetup.createRoute(changeServer = true))
                 },
@@ -474,6 +495,10 @@ fun NavGraph(
 
         composable(Screen.ApiSessions.route) {
             ApiSessionsScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.MfaSetup.route) {
+            MfaSetupScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.Categories.route) {
