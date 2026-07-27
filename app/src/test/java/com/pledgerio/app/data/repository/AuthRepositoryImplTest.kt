@@ -175,5 +175,6 @@ class AuthRepositoryImplTest {
         assertTrue(result is Resource.Error)
         assertEquals("Invalid verification code", (result as Resource.Error).message)
         coVerify(exactly = 0) { authenticatedSessionCoordinator.activateSession(any(), any(), any(), any()) }
+        verify(exactly = 0) { pendingMfaSession.clear() }
     }
 }

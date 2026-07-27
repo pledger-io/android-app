@@ -110,10 +110,10 @@ class SettingsViewModel @Inject constructor(
             }
         }
         loadCurrencies()
-        loadMfaStatus()
+        refreshMfaStatus()
     }
 
-    private fun loadMfaStatus() {
+    fun refreshMfaStatus() {
         viewModelScope.launch {
             when (val result = userSessionRepository.getProfile()) {
                 is Resource.Success -> _uiState.update {

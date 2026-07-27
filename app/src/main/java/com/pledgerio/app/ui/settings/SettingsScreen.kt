@@ -109,6 +109,7 @@ fun SettingsScreen(
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             osNotificationsEnabled =
                 NotificationManagerCompat.from(context).areNotificationsEnabled()
+            viewModel.refreshMfaStatus()
         }
     }
 

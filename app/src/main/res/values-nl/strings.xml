@@ -198,7 +198,6 @@
     <string name="settings_mfa_enabled">Ingeschakeld</string>
     <string name="settings_mfa_disabled">Uitgeschakeld</string>
     <string name="settings_mfa_unknown">Status niet beschikbaar</string>
-    <string name="settings_mfa_manage">Authenticator beheren</string>
     <string name="settings_api_tokens">API-tokens</string>
     <string name="settings_api_tokens_subtitle">Beheer duurzame toegangstokens</string>
     <string name="settings_categories">Categorieën</string>

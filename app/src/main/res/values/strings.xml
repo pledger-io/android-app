@@ -203,7 +203,6 @@
     <string name="settings_mfa_enabled">Enabled</string>
     <string name="settings_mfa_disabled">Disabled</string>
     <string name="settings_mfa_unknown">Status unavailable</string>
-    <string name="settings_mfa_manage">Manage authenticator</string>
     <string name="settings_api_tokens">API tokens</string>
     <string name="settings_api_tokens_subtitle">Manage durable access tokens</string>
     <string name="settings_categories">Categories</string>

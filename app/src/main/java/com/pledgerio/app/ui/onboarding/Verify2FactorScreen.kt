@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.onboarding
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -38,6 +39,13 @@ fun Verify2FactorScreen(
     viewModel: Verify2FactorViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    fun leaveWithoutVerifying() {
+        viewModel.cancel()
+        onCancel()
+    }
+
+    BackHandler(onBack = ::leaveWithoutVerifying)
 
     Column(
         modifier = Modifier
@@ -109,12 +117,7 @@ fun Verify2FactorScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        TextButton(
-            onClick = {
-                viewModel.cancel()
-                onCancel()
-            },
-        ) {
+        TextButton(onClick = ::leaveWithoutVerifying) {
             Text(stringResource(R.string.verify_2fa_back))
         }
     }

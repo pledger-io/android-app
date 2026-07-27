@@ -1,7 +1,8 @@
 package com.pledgerio.app.util
 
-import org.json.JSONArray
-import org.json.JSONObject
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
+import com.squareup.moshi.Moshi
 import java.util.Base64
 
 /**
@@ -10,6 +11,10 @@ import java.util.Base64
  */
 object JwtPayload {
     const val PRE_VERIFICATION_ROLE = "PRE_VERIFICATION_USER"
+
+    private val claimsAdapter = Moshi.Builder()
+        .build()
+        .adapter(JwtClaims::class.java)
 
     fun requiresMfaVerification(accessToken: String): Boolean =
         roles(accessToken).any { role ->
@@ -20,14 +25,11 @@ object JwtPayload {
     fun roles(accessToken: String): List<String> {
         val payloadJson = decodePayloadJson(accessToken) ?: return emptyList()
         return try {
-            val payload = JSONObject(payloadJson)
-            when {
-                payload.has("roles") -> readRoles(payload.get("roles"))
-                payload.has("authorities") -> readRoles(payload.get("authorities"))
-                else -> emptyList()
-            }
+            val claims = claimsAdapter.fromJson(payloadJson) ?: return emptyList()
+            claims.roles.orEmpty().ifEmpty { claims.authorities.orEmpty() }
         } catch (_: Exception) {
-            emptyList()
+            // Fallback when roles is a single string rather than an array.
+            extractQuotedRoles(payloadJson)
         }
     }
 
@@ -42,20 +44,16 @@ object JwtPayload {
         }
     }
 
-    private fun readRoles(value: Any): List<String> = when (value) {
-        is JSONArray -> buildList {
-            for (i in 0 until value.length()) {
-                when (val item = value.get(i)) {
-                    is String -> add(item)
-                    is JSONObject -> {
-                        val name = item.optString("authority")
-                            .ifBlank { item.optString("role") }
-                        if (name.isNotBlank()) add(name)
-                    }
-                }
-            }
-        }
-        is String -> listOf(value)
-        else -> emptyList()
+    private fun extractQuotedRoles(payloadJson: String): List<String> {
+        val match = Regex(
+            """"(?:roles|authorities)"\s*:\s*"([^"]+)"""",
+        ).find(payloadJson)
+        return match?.groupValues?.getOrNull(1)?.let { listOf(it) }.orEmpty()
     }
+
+    @JsonClass(generateAdapter = true)
+    internal data class JwtClaims(
+        @Json(name = "roles") val roles: List<String>? = null,
+        @Json(name = "authorities") val authorities: List<String>? = null,
+    )
 }

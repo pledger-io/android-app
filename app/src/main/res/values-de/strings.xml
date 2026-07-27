@@ -198,7 +198,6 @@
     <string name="settings_mfa_enabled">Aktiviert</string>
     <string name="settings_mfa_disabled">Deaktiviert</string>
     <string name="settings_mfa_unknown">Status nicht verfügbar</string>
-    <string name="settings_mfa_manage">Authenticator verwalten</string>
     <string name="settings_api_tokens">API-Tokens</string>
     <string name="settings_api_tokens_subtitle">Dauerhafte Zugriffstoken verwalten</string>
     <string name="settings_categories">Kategorien</string>

@@ -118,6 +118,27 @@ fun MfaSetupScreen(
                     CircularProgressIndicator()
                 }
             }
+            uiState.mfaEnabled == null -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = uiState.error
+                            ?: stringResource(R.string.settings_mfa_unknown),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    TextButton(onClick = viewModel::refresh) {
+                        Text(stringResource(R.string.mfa_setup_retry))
+                    }
+                }
+            }
             uiState.mfaEnabled == true -> {
                 Column(
                     modifier = Modifier
@@ -153,6 +174,7 @@ fun MfaSetupScreen(
                 }
             }
             else -> {
+                // MFA disabled — enroll with QR + OTP
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
