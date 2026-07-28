@@ -285,6 +285,19 @@ For each tasked item:
 
 QA review records for this cycle live in `docs/audit/qa/`.
 
+### Phase 0 QA results (2026-07-28)
+
+| Task | Verdict | Review |
+|------|---------|--------|
+| C1 CacheRefresher | PASS WITH NOTES | [TASK-C1-QA-REVIEW.md](qa/TASK-C1-QA-REVIEW.md) |
+| C2 Room migration | PASS WITH NOTES | [TASK-C2-QA-REVIEW.md](qa/TASK-C2-QA-REVIEW.md) |
+| H1 SyncWorker | PASS WITH NOTES | [TASK-H1-QA-REVIEW.md](qa/TASK-H1-QA-REVIEW.md) |
+| H2 Transaction cache/dates | PASS WITH NOTES | [TASK-H2-QA-REVIEW.md](qa/TASK-H2-QA-REVIEW.md) |
+| U1 Money/date forms | PASS WITH NOTES | [TASK-U1-QA-REVIEW.md](qa/TASK-U1-QA-REVIEW.md) |
+| S1 Issue-report sanitization | PASS WITH NOTES | [TASK-S1-QA-REVIEW.md](qa/TASK-S1-QA-REVIEW.md) |
+
+No FAIL verdicts. Notes are residual risks / follow-ups (e.g. real `MigrationTestHelper`, upsert retained deletions, sanitized preview UX) — tracked in Phase 1–3 backlog.
+
 ---
 
 ## Out of scope / environment limits
