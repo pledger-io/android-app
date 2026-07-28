@@ -94,7 +94,9 @@ class CategoryRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 val created = response.body()?.toEntity() ?: return Resource.Error("Invalid category response")
                 categoryDao.insert(created)
-                cacheRefresher.refreshInBackground(SyncKeys.CATEGORIES) { refreshCategories() }
+                cacheRefresher.refreshInBackground(SyncKeys.CATEGORIES) {
+                    refreshCategoriesUnlocked()
+                }
                 Resource.Success(created.toDomain())
             } else {
                 Resource.Error("Failed to create category: HTTP ${response.code()}")
@@ -118,7 +120,9 @@ class CategoryRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 val updated = (response.body()?.toEntity() ?: CategoryEntity.fromDomain(category))
                 categoryDao.insert(updated)
-                cacheRefresher.refreshInBackground(SyncKeys.CATEGORIES) { refreshCategories() }
+                cacheRefresher.refreshInBackground(SyncKeys.CATEGORIES) {
+                    refreshCategoriesUnlocked()
+                }
                 Resource.Success(updated.toDomain())
             } else {
                 Resource.Error("Failed to update category: HTTP ${response.code()}")
@@ -135,7 +139,9 @@ class CategoryRepositoryImpl @Inject constructor(
             val response = apiService.deleteCategory(id)
             if (response.isSuccessful) {
                 categoryDao.deleteById(id)
-                cacheRefresher.refreshInBackground(SyncKeys.CATEGORIES) { refreshCategories() }
+                cacheRefresher.refreshInBackground(SyncKeys.CATEGORIES) {
+                    refreshCategoriesUnlocked()
+                }
                 Resource.Success(Unit)
             } else {
                 Resource.Error("Failed to delete category: HTTP ${response.code()}")
@@ -149,19 +155,23 @@ class CategoryRepositoryImpl @Inject constructor(
 
     override suspend fun refreshCategories(): Resource<List<Category>> {
         return cacheRefresher.refreshNow(SyncKeys.CATEGORIES) {
-            try {
-                val categories = fetchAllCategoriesFromApi()
-                if (categories != null) {
-                    categoryDao.replaceAll(categories.map { CategoryEntity.fromDomain(it) })
-                    Resource.Success(categories)
-                } else {
-                    Resource.Error("Failed to fetch categories")
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Resource.Error(e.message ?: "Network error")
+            refreshCategoriesUnlocked()
+        }
+    }
+
+    private suspend fun refreshCategoriesUnlocked(): Resource<List<Category>> {
+        return try {
+            val categories = fetchAllCategoriesFromApi()
+            if (categories != null) {
+                categoryDao.replaceAll(categories.map { CategoryEntity.fromDomain(it) })
+                Resource.Success(categories)
+            } else {
+                Resource.Error("Failed to fetch categories")
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
         }
     }
 
@@ -211,7 +221,7 @@ class CategoryRepositoryImpl @Inject constructor(
         cacheRefresher.launchIfStale(
             key = SyncKeys.CATEGORIES,
             ttlMs = CachePolicy.CATEGORIES_TTL_MS,
-        ) { refreshCategories() }
+        ) { refreshCategoriesUnlocked() }
     }
 
     private fun com.pledgerio.app.data.remote.dto.CategoryDto.toEntity(): CategoryEntity = CategoryEntity(

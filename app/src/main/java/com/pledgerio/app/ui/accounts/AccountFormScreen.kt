@@ -195,6 +195,10 @@ fun AccountFormScreen(
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            isError = uiState.openingBalanceError != null,
+                            supportingText = uiState.openingBalanceError?.let { message ->
+                                { Text(message) }
+                            },
                         )
                     }
 

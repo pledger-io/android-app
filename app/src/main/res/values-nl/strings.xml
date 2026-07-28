@@ -107,16 +107,15 @@
     <string name="reports_no_data">Geen gegevens voor deze periode.</string>
 
     <string name="report_issue_title">Probleem melden</string>
-    <string name="report_issue_hint">Recente app-logboeken worden meegestuurd bij verzenden. Voeg geen wachtwoorden of persoonlijke gegevens toe in de beschrijving.</string>
+    <string name="report_issue_hint">Een kort, geredigeerd fragment van recente app-logboeken wordt meegestuurd. Voeg geen wachtwoorden of persoonlijke gegevens toe in de beschrijving.</string>
     <string name="report_issue_summary_label">Samenvatting</string>
     <string name="report_issue_description_label">Wat is er gebeurd?</string>
     <string name="report_issue_submit">Verzenden</string>
     <string name="report_issue_submitting">Verzenden…</string>
     <string name="report_issue_cancel">Annuleren</string>
     <string name="report_issue_settings_title">Probleem melden</string>
-    <string name="report_issue_settings_subtitle">Logboeken bijvoegen en een GitHub-bugrapport openen</string>
+    <string name="report_issue_settings_subtitle">Geredigeerde logboeken bijvoegen en een GitHub-bugrapport openen</string>
     <string name="report_issue_open_github">GitHub wordt geopend — controleer het formulier en tik op Verzenden.</string>
-    <string name="report_issue_open_github_with_clipboard">GitHub wordt geopend — volledige logboeken staan op je klembord indien nodig.</string>
 
     <!-- Language -->
     <string name="language_system">Systeemstandaard</string>
@@ -264,6 +263,7 @@
     <string name="account_form_create">Rekening aanmaken</string>
     <string name="account_form_save_changes">Wijzigingen opslaan</string>
     <string name="account_error_name_required">Voer een naam in</string>
+    <string name="account_error_opening_balance">Voer een geldig beginsaldo in</string>
     <string name="account_ownership_personal">Persoonlijk</string>
     <string name="account_ownership_joint">Gezamenlijk</string>
     <string name="account_ownership_checking">Betaalrekening</string>
@@ -497,6 +497,7 @@
     <string name="transaction_split_error_total_mismatch">Splitsingsbedragen moeten optellen tot het transactietotaal</string>
     <string name="transaction_error_amount">Voer een bedrag groter dan nul in</string>
     <string name="transaction_error_choose_field">Kies %1$s</string>
+    <string name="transaction_error_same_account">Kies een andere doelrekening</string>
     <string name="transaction_error_description">Voeg een korte omschrijving toe</string>
     <string name="transaction_auto_classify_need_input">Voeg een omschrijving of bedrag toe zodat automatische classificatie kan draaien.</string>
     <string name="transaction_auto_classify_none">Er zijn geen classificatiesuggesties teruggekomen.</string>

@@ -26,7 +26,6 @@ object IssueReportFormatter {
         androidRelease: String,
         androidSdk: Int,
         serverUrl: String?,
-        username: String?,
     ): String = buildString {
         appendLine(description.trim().ifBlank { "_No description provided._" })
         appendLine()
@@ -35,10 +34,7 @@ object IssueReportFormatter {
         appendLine("- App: Pledger Android $appVersionName ($appVersionCode)")
         appendLine("- Device: $deviceManufacturer $deviceModel")
         appendLine("- Android: $androidRelease (API $androidSdk)")
-        appendLine("- Server: ${serverUrl?.let(LogSanitizer::sanitizeUrl) ?: "not configured"}")
-        if (!username.isNullOrBlank()) {
-            appendLine("- Username: ${username.trim()}")
-        }
+        appendLine("- Server: ${serverUrl?.let(LogSanitizer::sanitizeServerUrl) ?: "not configured"}")
     }
 
     fun buildBody(
@@ -50,7 +46,6 @@ object IssueReportFormatter {
         androidRelease: String,
         androidSdk: Int,
         serverUrl: String?,
-        username: String?,
         logs: String,
     ): String = buildString {
         appendLine(buildWhatHappened(
@@ -62,14 +57,24 @@ object IssueReportFormatter {
             androidRelease = androidRelease,
             androidSdk = androidSdk,
             serverUrl = serverUrl,
-            username = username,
         ))
         appendLine()
         appendLine("### Relevant log output")
         appendLine()
         appendLine("```shell")
-        appendLine(if (logs.isBlank()) "_No logs captured._" else logs)
+        appendLine(buildLogExcerpt(logs))
         append("```")
+    }
+
+    fun buildLogExcerpt(logs: String, maxChars: Int = MAX_BODY_LOG_CHARS): String {
+        require(maxChars > 0)
+        val sanitized = LogSanitizer.sanitize(logs.trim())
+        if (sanitized.isBlank()) return "_No logs captured._"
+        if (sanitized.length <= maxChars) return sanitized
+
+        val omitted = sanitized.length - maxChars
+        return "… ($omitted characters omitted; showing recent redacted logs)\n" +
+            sanitized.takeLast(maxChars)
     }
 
     fun deviceManufacturer(): String = Build.MANUFACTURER.orEmpty()
@@ -77,4 +82,6 @@ object IssueReportFormatter {
     fun deviceModel(): String = Build.MODEL.orEmpty()
 
     fun androidRelease(): String = Build.VERSION.RELEASE.orEmpty()
+
+    private const val MAX_BODY_LOG_CHARS = 4_000
 }

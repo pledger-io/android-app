@@ -63,9 +63,9 @@ import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.PledgerThemeExt
+import com.pledgerio.app.ui.util.datePickerMillisToLocalDate
+import com.pledgerio.app.ui.util.toDatePickerMillis
 import com.pledgerio.app.util.formatDisplay
-import java.time.Instant
-import java.time.ZoneId
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,7 +79,6 @@ fun ApiSessionsScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val tokenCopiedMessage = stringResource(R.string.api_sessions_token_copied)
-    val zone = remember { ZoneId.systemDefault() }
 
     LaunchedEffect(uiState.snackbarMessage) {
         val message = uiState.snackbarMessage ?: return@LaunchedEffect
@@ -97,12 +96,8 @@ fun ApiSessionsScreen(
             onCreate = viewModel::createSession,
         )
         if (form.showDatePicker) {
-            val initialMillis = form.expires
-                .atStartOfDay(zone)
-                .toInstant()
-                .toEpochMilli()
             val datePickerState = rememberDatePickerState(
-                initialSelectedDateMillis = initialMillis,
+                initialSelectedDateMillis = form.expires.toDatePickerMillis(),
             )
             DatePickerDialog(
                 onDismissRequest = viewModel::dismissDatePicker,
@@ -110,10 +105,7 @@ fun ApiSessionsScreen(
                     TextButton(
                         onClick = {
                             datePickerState.selectedDateMillis?.let { millis ->
-                                val selected = Instant.ofEpochMilli(millis)
-                                    .atZone(zone)
-                                    .toLocalDate()
-                                viewModel.onExpiresSelected(selected)
+                                viewModel.onExpiresSelected(datePickerMillisToLocalDate(millis))
                             } ?: viewModel.dismissDatePicker()
                         },
                     ) {

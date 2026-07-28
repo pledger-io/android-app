@@ -35,6 +35,7 @@ data class AccountFormUiState(
     val iban: String = "",
     val bic: String = "",
     val openingBalance: String = "0.00",
+    val openingBalanceError: String? = null,
     val availableCurrencies: List<Currency> = emptyList(),
     val ownedAccountTypes: List<AccountTypeOption> = emptyList(),
     val counterpartyAccountTypes: List<AccountTypeOption> = emptyList(),
@@ -117,7 +118,7 @@ class AccountFormViewModel @Inject constructor(
     }
 
     fun onOpeningBalanceChanged(balance: String) {
-        _uiState.update { it.copy(openingBalance = balance) }
+        _uiState.update { it.copy(openingBalance = balance, openingBalanceError = null) }
     }
 
     fun save() {
@@ -128,9 +129,17 @@ class AccountFormViewModel @Inject constructor(
             }
             return
         }
+        val openingBalance = state.openingBalance.toDoubleOrNull()
+            ?.takeIf { it.isFinite() }
+        if (openingBalance == null) {
+            _uiState.update {
+                it.copy(openingBalanceError = context.getString(R.string.account_error_opening_balance))
+            }
+            return
+        }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isSaving = true, error = null) }
+            _uiState.update { it.copy(isSaving = true, error = null, openingBalanceError = null) }
 
             val account = Account(
                 id = accountId ?: 0L,
@@ -140,7 +149,7 @@ class AccountFormViewModel @Inject constructor(
                 typeCode = state.typeCode,
                 iban = state.iban.trim().ifBlank { null },
                 bic = state.bic.trim().ifBlank { null },
-                openingBalance = state.openingBalance.toDoubleOrNull() ?: 0.0,
+                openingBalance = openingBalance,
             )
 
             val result = if (state.isEditing) {

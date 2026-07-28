@@ -1,8 +1,6 @@
 package com.pledgerio.app.ui.settings
 
 import android.Manifest
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -137,17 +135,9 @@ fun SettingsScreen(
 
     LaunchedEffect(issueReportState.readyToOpen) {
         val report = issueReportState.readyToOpen ?: return@LaunchedEffect
-        report.clipboardText?.let { text ->
-            val clipboard = ContextCompat.getSystemService(context, ClipboardManager::class.java)
-            clipboard?.setPrimaryClip(ClipData.newPlainText("Pledger bug report", text))
-        }
         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(report.issueUrl)))
         snackbarHostState.showSnackbar(
-            if (report.clipboardText != null) {
-                context.getString(R.string.report_issue_open_github_with_clipboard)
-            } else {
-                context.getString(R.string.report_issue_open_github)
-            },
+            context.getString(R.string.report_issue_open_github),
         )
         issueReportViewModel.clearReadyToOpen()
     }

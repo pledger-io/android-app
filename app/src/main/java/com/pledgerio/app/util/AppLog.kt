@@ -28,4 +28,6 @@ class AppLog @Inject constructor(
         collector.log(Log.ERROR, tag, message, throwable)
 
     fun export(): String = collector.export()
+
+    fun clear() = collector.clear()
 }

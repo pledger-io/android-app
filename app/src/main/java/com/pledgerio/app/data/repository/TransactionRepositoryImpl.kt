@@ -59,7 +59,8 @@ class TransactionRepositoryImpl @Inject constructor(
             }
             val response = apiService.getTransactions(
                 startDate = startDate.formatApi(),
-                endDate = endDate.formatApi(),
+                // Repository callers pass an inclusive end date; the API upper bound is exclusive.
+                endDate = endDate.plusDays(1).formatApi(),
                 accounts = accountId?.let { listOf(it) },
                 type = apiType,
                 expenses = filters.expenseId?.let { listOf(it) },
@@ -70,17 +71,12 @@ class TransactionRepositoryImpl @Inject constructor(
                 numberOfResults = pageSize,
             )
             if (response.isSuccessful) {
-                val body = response.body()
-                val transactions = body?.content?.map { it.toDomain() } ?: emptyList()
-                val info = body?.info
+                val body = response.body() ?: return Resource.Error("Invalid response")
+                val transactions = body.content.map { it.toDomain() }
+                val info = body.info
 
-                val isUnfilteredGlobalFetch = page == 0 &&
-                    accountId == null &&
-                    type == null &&
-                    filters == TransactionFilters()
-                if (isUnfilteredGlobalFetch) {
-                    transactionDao.deleteAll()
-                }
+                // Each response is only one date range/page, so replacing the global cache here
+                // would discard transactions fetched for other months. Room upserts this page.
                 if (transactions.isNotEmpty()) {
                     transactionDao.insertAll(transactions.map { TransactionEntity.fromDomain(it) })
                 }
@@ -88,9 +84,9 @@ class TransactionRepositoryImpl @Inject constructor(
                 Resource.Success(
                     PagedResult(
                         items = transactions,
-                        totalRecords = info?.records ?: transactions.size.toLong(),
-                        totalPages = info?.pages ?: 1,
-                        pageSize = info?.pageSize ?: pageSize,
+                        totalRecords = info.records,
+                        totalPages = info.pages,
+                        pageSize = info.pageSize,
                     )
                 )
             } else {
@@ -110,6 +106,11 @@ class TransactionRepositoryImpl @Inject constructor(
                     .map { it.toDomain() }
                     .filter { tx ->
                         !tx.date.isBefore(startDate) && !tx.date.isAfter(endDate) &&
+                            (
+                                accountId == null ||
+                                    tx.sourceAccountId == accountId ||
+                                    tx.destinationAccountId == accountId
+                                ) &&
                             (type == null || tx.type == type) &&
                             (
                                 filters.description.isNullOrBlank() ||

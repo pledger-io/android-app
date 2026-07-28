@@ -52,6 +52,7 @@ class AuthenticatedSessionCoordinator @Inject constructor(
                     synchronized(credentialLock) {
                         sessionManager.clearAuthTokens()
                     }
+                    appLog.clear()
                     val preparationFailure = collectFailure(
                         first = attempt("Could not cancel prior background work") {
                             syncWorkScheduler.cancelAndAwait()
@@ -117,6 +118,7 @@ class AuthenticatedSessionCoordinator @Inject constructor(
                     attempt("Could not clear cached data during logout") {
                         localDataCleaner.clearAllUserData()
                     }
+                    appLog.clear()
                     val durableFailure = collectFailure(
                         tombstoneFailure,
                         credentialClearFailure,
@@ -136,6 +138,7 @@ class AuthenticatedSessionCoordinator @Inject constructor(
                     synchronized(credentialLock) {
                         sessionManager.clearAuthTokens()
                     }
+                    appLog.clear()
                     val preparationFailure = collectFailure(
                         first = attempt("Could not cancel work while switching server") {
                             syncWorkScheduler.cancelAndAwait()
@@ -170,6 +173,7 @@ class AuthenticatedSessionCoordinator @Inject constructor(
                         attempt("Could not clear tombstoned cache at startup") {
                             localDataCleaner.clearAllUserData()
                         }
+                        appLog.clear()
                         return@withSessionTransition
                     }
                     val generation = synchronized(credentialLock) {
@@ -216,6 +220,7 @@ class AuthenticatedSessionCoordinator @Inject constructor(
             sessionManager.isLogoutTombstoned()
         }
         if (!invalidated) return
+        appLog.clear()
 
         applicationScope.launch {
             transitionMutex.withLock {

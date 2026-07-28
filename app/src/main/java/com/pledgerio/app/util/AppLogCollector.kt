@@ -13,7 +13,13 @@ import kotlin.concurrent.withLock
 /**
  * In-memory ring buffer plus optional on-disk log for issue reports.
  */
-class AppLogCollector(context: Context) {
+class AppLogCollector(
+    context: Context,
+    private val logcatWriter: (priority: Int, tag: String, message: String) -> Unit = { priority, tag, message ->
+        Log.println(priority, tag, message)
+        Unit
+    },
+) {
 
     private val lock = ReentrantLock()
     private val buffer = ArrayDeque<String>(MAX_LINES)
@@ -30,6 +36,10 @@ class AppLogCollector(context: Context) {
     }
 
     fun log(priority: Int, tag: String, message: String, throwable: Throwable? = null) {
+        val sanitizedMessage = LogSanitizer.sanitize(message)
+        val sanitizedStackTrace = throwable
+            ?.let(Log::getStackTraceString)
+            ?.let(LogSanitizer::sanitize)
         val line = buildString {
             append(timestampFormat.format(Date()))
             append(' ')
@@ -37,10 +47,10 @@ class AppLogCollector(context: Context) {
             append('/')
             append(tag)
             append(": ")
-            append(LogSanitizer.sanitize(message))
-            if (throwable != null) {
+            append(sanitizedMessage)
+            if (sanitizedStackTrace != null) {
                 append('\n')
-                append(LogSanitizer.sanitize(Log.getStackTraceString(throwable)))
+                append(sanitizedStackTrace)
             }
         }
         lock.withLock {
@@ -50,11 +60,9 @@ class AppLogCollector(context: Context) {
             buffer.addLast(line)
             appendToFile(line)
         }
-        if (throwable != null) {
-            Log.println(priority, tag, message)
-            Log.println(priority, tag, Log.getStackTraceString(throwable))
-        } else {
-            Log.println(priority, tag, message)
+        logcatWriter(priority, tag, sanitizedMessage)
+        if (sanitizedStackTrace != null) {
+            logcatWriter(priority, tag, sanitizedStackTrace)
         }
     }
 
@@ -74,6 +82,17 @@ class AppLogCollector(context: Context) {
             } else {
                 val omitted = sanitized.length - maxChars
                 "… (${omitted} characters omitted)\n" + sanitized.takeLast(maxChars)
+            }
+        }
+    }
+
+    fun clear() {
+        lock.withLock {
+            buffer.clear()
+            runCatching {
+                if (logFile.exists() && !logFile.delete()) {
+                    logFile.writeText("")
+                }
             }
         }
     }

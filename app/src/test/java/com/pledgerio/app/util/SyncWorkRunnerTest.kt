@@ -2,6 +2,7 @@ package com.pledgerio.app.util
 
 import com.pledgerio.app.domain.model.Budget
 import com.pledgerio.app.domain.model.BudgetListState
+import com.pledgerio.app.domain.model.FlushResult
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.domain.repository.CategoryRepository
@@ -87,8 +88,48 @@ class SyncWorkRunnerTest {
                 SyncRunOutcome.Completed(listOf(budget), YearMonth.now()),
                 outcome,
             )
+            assertEquals("Success", SyncWorker.resultFor(outcome).javaClass.simpleName)
             coVerify { outboxRepository.flushPending("active") }
         }
+
+    @Test
+    fun `network resource error is retryable and aggregates permanent failures`() = runTest {
+        stubSuccessfulSync()
+        coEvery { currencyRepository.sync() } returns false
+        coEvery { categoryRepository.refreshCategories() } returns Resource.Error(
+            message = "Network error",
+        )
+
+        val outcome = runner().run("active")
+
+        assertEquals(
+            SyncRunOutcome.RetryableFailure(
+                retryableFailureCount = 1,
+                permanentFailureCount = 1,
+            ),
+            outcome,
+        )
+        assertEquals("Retry", SyncWorker.resultFor(outcome).javaClass.simpleName)
+        coVerify(exactly = 1) { outboxRepository.flushPending("active") }
+    }
+
+    @Test
+    fun `outbox network stop is retryable`() = runTest {
+        stubSuccessfulSync()
+        coEvery { outboxRepository.flushPending("active") } returns
+            FlushResult.StoppedOnNetworkError
+
+        val outcome = runner().run("active")
+
+        assertEquals(
+            SyncRunOutcome.RetryableFailure(
+                retryableFailureCount = 1,
+                permanentFailureCount = 0,
+            ),
+            outcome,
+        )
+        assertEquals("Retry", SyncWorker.resultFor(outcome).javaClass.simpleName)
+    }
 
     @Test
     fun `budget fetch skips Loading emission before collecting Success`() = runTest {
@@ -138,6 +179,24 @@ class SyncWorkRunnerTest {
 
         assertFalse(result)
         assertFalse(published)
+    }
+
+    private fun stubSuccessfulSync() {
+        every { sessionGuard.isCurrent("active") } returns true
+        coEvery { currencyRepository.sync() } returns true
+        coEvery { accountRepository.refreshAccountTypes() } returns Resource.Success(emptyList())
+        coEvery { categoryRepository.refreshCategories() } returns Resource.Success(emptyList())
+        coEvery { tagRepository.refreshTags() } returns Resource.Success(emptyList())
+        coEvery { contractRepository.refreshContracts() } returns Resource.Success(emptyList())
+        coEvery { budgetRepository.refreshExpenseGroups() } returns Resource.Success(emptyList())
+        coEvery { accountRepository.refreshOwnedAccounts() } returns Resource.Success(emptyList())
+        coEvery {
+            accountRepository.refreshCounterpartyAccounts()
+        } returns Resource.Success(emptyList())
+        coEvery { outboxRepository.flushPending("active") } returns FlushResult.Completed
+        every {
+            budgetRepository.getBudgets(any(), any())
+        } returns flowOf(Resource.Success(BudgetListState()))
     }
 
     private fun runner() = SyncWorkRunner(

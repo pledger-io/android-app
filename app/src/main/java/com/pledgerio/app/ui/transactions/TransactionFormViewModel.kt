@@ -130,10 +130,10 @@ data class TransactionFormUiState(
     val autoClassifyStatus: com.pledgerio.app.ui.transactions.form.AutoClassifyStatus? = null,
 ) {
     val splitTotal: Double
-        get() = splitLines.sumOf { it.amount.toDoubleOrNull() ?: 0.0 }
+        get() = splitLines.sumOf { it.amount.finiteDoubleOrNull() ?: 0.0 }
 
     val splitRemaining: Double
-        get() = (amount.toDoubleOrNull() ?: 0.0) - splitTotal
+        get() = (amount.finiteDoubleOrNull() ?: 0.0) - splitTotal
 
     val hasSplitChanges: Boolean
         get() = splitLines.toDomainSplits() != originalSplitSnapshot
@@ -146,13 +146,14 @@ data class TransactionFormUiState(
     val showTemplatesSection: Boolean
         get() = !isEditing && financeExperienceMode == FinanceExperienceMode.POWER
     val canAutoClassify: Boolean
-        get() = !isEditing && (description.isNotBlank() || amount.toDoubleOrNull() != null)
+        get() = !isEditing && (description.isNotBlank() || amount.positiveMoneyOrNull() != null)
 
     val isValid: Boolean
         get() = description.isNotBlank()
-            && amount.toDoubleOrNull()?.let { it > 0 } == true
+            && amount.positiveMoneyOrNull() != null
             && sourceAccountId != null
             && targetAccountId != null
+            && (type != TransactionType.TRANSFER || sourceAccountId != targetAccountId)
 
     val canSubmit: Boolean
         get() = isValid &&
@@ -776,7 +777,7 @@ class TransactionFormViewModel @Inject constructor(
         val state = _uiState.value
         if (state.isEditing || state.isAutoClassifying) return
 
-        val amount = state.amount.toDoubleOrNull()
+        val amount = state.amount.positiveMoneyOrNull()
         val description = state.description.trim().ifBlank { null }
         if (description == null && amount == null) {
             _uiState.update {
@@ -1277,12 +1278,18 @@ class TransactionFormViewModel @Inject constructor(
 
 internal fun List<TransactionSplitLineUi>.toDomainSplits(): List<TransactionSplit> {
     return mapNotNull { line ->
-        val amountValue = line.amount.toDoubleOrNull() ?: return@mapNotNull null
+        val amountValue = line.amount.positiveMoneyOrNull() ?: return@mapNotNull null
         val description = line.description.trim()
         if (description.isBlank()) return@mapNotNull null
         TransactionSplit(description = description, amount = amountValue)
     }
 }
+
+internal fun String.finiteDoubleOrNull(): Double? =
+    toDoubleOrNull()?.takeIf { it.isFinite() }
+
+internal fun String.positiveMoneyOrNull(): Double? =
+    finiteDoubleOrNull()?.takeIf { it > 0.0 }
 
 private fun SavedStateHandle.toPrefillDraft(): PrefillDraft? {
     val description = get<String>("prefillDescription")?.trim().orEmpty().ifBlank { null }

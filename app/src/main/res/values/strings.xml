@@ -107,16 +107,15 @@
     <string name="reports_no_data">No data for this period.</string>
 
     <string name="report_issue_title">Report a problem</string>
-    <string name="report_issue_hint">Recent app logs are attached when you submit. Do not include passwords or personal data in the description.</string>
+    <string name="report_issue_hint">A short, redacted excerpt of recent app logs is attached. Do not include passwords or personal data in the description.</string>
     <string name="report_issue_summary_label">Summary</string>
     <string name="report_issue_description_label">What happened?</string>
     <string name="report_issue_submit">Submit</string>
     <string name="report_issue_submitting">Submitting…</string>
     <string name="report_issue_cancel">Cancel</string>
     <string name="report_issue_settings_title">Report a problem</string>
-    <string name="report_issue_settings_subtitle">Attach logs and open a GitHub bug report</string>
+    <string name="report_issue_settings_subtitle">Attach redacted logs and open a GitHub bug report</string>
     <string name="report_issue_open_github">Opening GitHub — review the form and tap Submit.</string>
-    <string name="report_issue_open_github_with_clipboard">Opening GitHub — full logs are on your clipboard if needed.</string>
 
     <!-- Language -->
     <string name="language_system">System default</string>
@@ -269,6 +268,7 @@
     <string name="account_form_create">Create account</string>
     <string name="account_form_save_changes">Save changes</string>
     <string name="account_error_name_required">Please provide a name</string>
+    <string name="account_error_opening_balance">Enter a valid opening balance</string>
     <string name="account_ownership_personal">Personal</string>
     <string name="account_ownership_joint">Joint</string>
     <string name="account_ownership_checking">Checking account</string>
@@ -512,6 +512,7 @@
     <string name="transaction_split_error_total_mismatch">Split amounts must add up to the transaction total</string>
     <string name="transaction_error_amount">Enter an amount greater than zero</string>
     <string name="transaction_error_choose_field">Choose %1$s</string>
+    <string name="transaction_error_same_account">Choose a different destination account</string>
     <string name="transaction_error_description">Add a short description</string>
     <string name="transaction_auto_classify_need_input">Add a description or amount so auto classification can run.</string>
     <string name="transaction_auto_classify_none">No classification suggestions were returned.</string>

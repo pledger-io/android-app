@@ -9,6 +9,7 @@ import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.util.MainDispatcherRule
 import com.pledgerio.app.util.Resource
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
@@ -33,6 +34,8 @@ class AccountFormViewModelTest {
 
   init {
     every { context.getString(R.string.account_error_name_required) } returns "Please provide a name"
+    every { context.getString(R.string.account_error_opening_balance) } returns
+      "Enter a valid opening balance"
   }
 
   private val ownedTypes = listOf(
@@ -97,5 +100,20 @@ class AccountFormViewModelTest {
 
     viewModel.onNameChanged("My account")
     assertTrue(viewModel.uiState.value.isValid)
+  }
+
+  @Test
+  fun `save surfaces non-finite opening balance error`() = runTest {
+    val viewModel = createViewModel()
+    advanceUntilIdle()
+    viewModel.onNameChanged("My account")
+    viewModel.onOpeningBalanceChanged("Infinity")
+
+    viewModel.save()
+    advanceUntilIdle()
+
+    assertEquals("Enter a valid opening balance", viewModel.uiState.value.openingBalanceError)
+    assertFalse(viewModel.uiState.value.saveSuccess)
+    coVerify(exactly = 0) { accountRepository.createAccount(any()) }
   }
 }

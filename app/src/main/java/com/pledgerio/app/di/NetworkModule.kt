@@ -2,7 +2,6 @@ package com.pledgerio.app.di
 
 import android.content.Context
 import coil.ImageLoader
-import com.pledgerio.app.BuildConfig
 import com.pledgerio.app.data.remote.api.AuthInterceptor
 import com.pledgerio.app.data.remote.api.DynamicBaseUrlInterceptor
 import com.pledgerio.app.data.remote.api.IssueLogInterceptor
@@ -17,7 +16,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
@@ -59,9 +57,6 @@ object NetworkModule {
             .addInterceptor(dynamicBaseUrlInterceptor)
             .addInterceptor(authInterceptor)
             .addInterceptor(issueLogInterceptor)
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = secretSafeHttpLoggingLevel(BuildConfig.DEBUG)
-            })
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
@@ -92,13 +87,4 @@ object NetworkModule {
         .okHttpClient(okHttpClient)
         .crossfade(true)
         .build()
-
-    internal fun secretSafeHttpLoggingLevel(
-        isDebug: Boolean,
-    ): HttpLoggingInterceptor.Level = if (isDebug) {
-        // BASIC excludes Authorization headers, login bodies, and token response bodies.
-        HttpLoggingInterceptor.Level.BASIC
-    } else {
-        HttpLoggingInterceptor.Level.NONE
-    }
 }

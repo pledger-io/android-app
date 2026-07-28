@@ -8,7 +8,7 @@ import org.junit.Test
 class PledgerDatabaseMigrationsTest {
 
     @Test
-    fun `migration 5 to 6 creates account_types and sync_metadata tables`() {
+    fun `migration 5 to 6 creates account_types sync_metadata and tags tables`() {
         val db = mockk<SupportSQLiteDatabase>(relaxed = true)
 
         PledgerDatabaseMigrations.MIGRATION_5_6.migrate(db)
@@ -30,6 +30,16 @@ class PledgerDatabaseMigrationsTest {
                     `key` TEXT NOT NULL,
                     `lastSyncedAt` INTEGER NOT NULL,
                     PRIMARY KEY(`key`)
+                )
+                """.trimIndent(),
+            )
+        }
+        verify {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `tags` (
+                    `name` TEXT NOT NULL,
+                    PRIMARY KEY(`name`)
                 )
                 """.trimIndent(),
             )

@@ -107,16 +107,15 @@
     <string name="reports_no_data">Keine Daten für diesen Zeitraum.</string>
 
     <string name="report_issue_title">Problem melden</string>
-    <string name="report_issue_hint">Aktuelle App-Protokolle werden beim Absenden angehängt. Füge keine Passwörter oder persönlichen Daten in die Beschreibung ein.</string>
+    <string name="report_issue_hint">Ein kurzer, redigierter Auszug der aktuellen App-Protokolle wird angehängt. Füge keine Passwörter oder persönlichen Daten in die Beschreibung ein.</string>
     <string name="report_issue_summary_label">Zusammenfassung</string>
     <string name="report_issue_description_label">Was ist passiert?</string>
     <string name="report_issue_submit">Absenden</string>
     <string name="report_issue_submitting">Wird gesendet…</string>
     <string name="report_issue_cancel">Abbrechen</string>
     <string name="report_issue_settings_title">Problem melden</string>
-    <string name="report_issue_settings_subtitle">Protokolle anhängen und einen GitHub-Fehlerbericht öffnen</string>
+    <string name="report_issue_settings_subtitle">Redigierte Protokolle anhängen und einen GitHub-Fehlerbericht öffnen</string>
     <string name="report_issue_open_github">GitHub wird geöffnet — prüfe das Formular und tippe auf Absenden.</string>
-    <string name="report_issue_open_github_with_clipboard">GitHub wird geöffnet — vollständige Protokolle sind bei Bedarf in deiner Zwischenablage.</string>
 
     <!-- Language -->
     <string name="language_system">Systemstandard</string>
@@ -264,6 +263,7 @@
     <string name="account_form_create">Konto erstellen</string>
     <string name="account_form_save_changes">Änderungen speichern</string>
     <string name="account_error_name_required">Bitte einen Namen angeben</string>
+    <string name="account_error_opening_balance">Gültigen Anfangssaldo eingeben</string>
     <string name="account_ownership_personal">Persönlich</string>
     <string name="account_ownership_joint">Gemeinsam</string>
     <string name="account_ownership_checking">Girokonto</string>
@@ -497,6 +497,7 @@
     <string name="transaction_split_error_total_mismatch">Aufteilungsbeträge müssen dem Transaktionsgesamtbetrag entsprechen</string>
     <string name="transaction_error_amount">Betrag größer als null eingeben</string>
     <string name="transaction_error_choose_field">%1$s wählen</string>
+    <string name="transaction_error_same_account">Anderes Zielkonto wählen</string>
     <string name="transaction_error_description">Kurze Beschreibung hinzufügen</string>
     <string name="transaction_auto_classify_need_input">Beschreibung oder Betrag hinzufügen, damit die automatische Klassifizierung laufen kann.</string>
     <string name="transaction_auto_classify_none">Es wurden keine Klassifizierungsvorschläge zurückgegeben.</string>
