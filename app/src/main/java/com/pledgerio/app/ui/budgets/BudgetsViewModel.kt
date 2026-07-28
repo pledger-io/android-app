@@ -290,11 +290,12 @@ class BudgetsViewModel @Inject constructor(
 
     fun createInitialBudget() {
         val state = _uiState.value
-        val income = state.setupIncome.replace(',', '.').toDoubleOrNull()
-        if (income == null || income < 0) {
-            _uiState.update { it.copy(setupError = "Enter a valid monthly net income") }
+        val validationError = validateIncomeForm(state.setupIncome)
+        if (validationError != null) {
+            _uiState.update { it.copy(setupError = validationError) }
             return
         }
+        val income = state.setupIncome.replace(',', '.').toDouble()
 
         mutationJob?.cancel()
         mutationJob = viewModelScope.launch {

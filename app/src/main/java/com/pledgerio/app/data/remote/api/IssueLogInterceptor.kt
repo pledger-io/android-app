@@ -19,21 +19,21 @@ class IssueLogInterceptor @Inject constructor(
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val started = System.nanoTime()
+        val route = LogSanitizer.routeTemplate(request.url.encodedPath)
         val response = try {
             chain.proceed(request)
-        } catch (e: Exception) {
+        } catch (error: Exception) {
+            val elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started)
             appLog.e(
                 TAG,
-                "${request.method} ${LogSanitizer.sanitizeUrl(request.url.toString())} failed: ${e.message}",
-                e,
+                "${request.method} $route → failed (${elapsedMs}ms)",
             )
-            throw e
+            throw error
         }
         val elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started)
         appLog.i(
             TAG,
-            "${request.method} ${LogSanitizer.sanitizeUrl(request.url.toString())} " +
-                "→ ${response.code} (${elapsedMs}ms)",
+            "${request.method} $route → ${response.code} (${elapsedMs}ms)",
         )
         return response
     }

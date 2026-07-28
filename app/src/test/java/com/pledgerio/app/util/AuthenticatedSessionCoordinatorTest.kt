@@ -91,6 +91,7 @@ class AuthenticatedSessionCoordinatorTest {
                 listOf("tombstone", "cancel", "remote", "clear-auth", "clean"),
                 events,
             )
+            verify(exactly = 1) { appLog.clear() }
         }
 
     @Test

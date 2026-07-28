@@ -65,28 +65,32 @@ class AccountRepositoryImpl @Inject constructor(
                 cacheRefresher.launchIfStale(
                     key = SyncKeys.OWNED_ACCOUNTS,
                     ttlMs = CachePolicy.OWNED_ACCOUNTS_TTL_MS,
-                ) { refreshOwnedAccounts() }
+                ) { refreshOwnedAccountsUnlocked() }
             }
 
     override suspend fun refreshOwnedAccounts(): Resource<List<Account>> {
         return cacheRefresher.refreshNow(SyncKeys.OWNED_ACCOUNTS) {
-            try {
-                val accounts = fetchOwnedAccountsFromApi()
-                if (accounts != null) {
-                    val enriched = enrichWithBalances(accounts)
-                    accountDao.replaceByTypes(
-                        types = ownedTypesForCacheReplace(enriched),
-                        items = enriched.map { AccountEntity.fromDomain(it) },
-                    )
-                    Resource.Success(enriched)
-                } else {
-                    cachedOwnedOrError("Failed to fetch accounts")
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                cachedOwnedOrError(e.message ?: "Network error")
+            refreshOwnedAccountsUnlocked()
+        }
+    }
+
+    private suspend fun refreshOwnedAccountsUnlocked(): Resource<List<Account>> {
+        return try {
+            val accounts = fetchOwnedAccountsFromApi()
+            if (accounts != null) {
+                val enriched = enrichWithBalances(accounts)
+                accountDao.replaceByTypes(
+                    types = ownedTypesForCacheReplace(enriched),
+                    items = enriched.map { AccountEntity.fromDomain(it) },
+                )
+                Resource.Success(enriched)
+            } else {
+                cachedOwnedOrError("Failed to fetch accounts")
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            cachedOwnedOrError(e.message ?: "Network error")
         }
     }
 
@@ -109,7 +113,7 @@ class AccountRepositoryImpl @Inject constructor(
         cacheRefresher.launchIfStale(
             key = SyncKeys.COUNTERPARTY_ACCOUNTS,
             ttlMs = CachePolicy.COUNTERPARTY_ACCOUNTS_TTL_MS,
-        ) { refreshCounterpartyAccounts() }
+        ) { refreshCounterpartyAccountsUnlocked() }
 
         if (cachedPage.isNotEmpty() && cacheCoversPage(cachedPage.size, cachedTotal, offset, pageSize)) {
             val enrichedPage = enrichWithBalances(cachedPage)
@@ -129,39 +133,43 @@ class AccountRepositoryImpl @Inject constructor(
 
     override suspend fun refreshCounterpartyAccounts(): Resource<List<Account>> {
         return cacheRefresher.refreshNow(SyncKeys.COUNTERPARTY_ACCOUNTS) {
-            try {
-                val collected = mutableListOf<Account>()
-                var offset = 0
-                val pageSize = 200
-                while (true) {
-                    val response = apiService.getAccounts(
-                        type = counterpartyTypes,
-                        offset = offset,
-                        numberOfResults = pageSize,
-                    )
-                    if (!response.isSuccessful) {
-                        return@refreshNow Resource.Error("Failed to fetch counterparties: ${response.code()}")
-                    }
-                    val body = response.body()
-                    val items = body?.content?.map { it.toDomain() }?.distinctBy { it.id } ?: emptyList()
-                    collected.addAll(items)
-                    val totalRecords = body?.info?.records ?: 0L
-                    if (items.isEmpty()) break
-                    if (totalRecords > 0 && collected.size.toLong() >= totalRecords) break
-                    if (totalRecords == 0L && items.size < pageSize) break
-                    offset = collected.size
-                }
-                val enriched = enrichWithBalances(collected)
-                accountDao.replaceByTypes(
-                    types = counterpartyTypes,
-                    items = enriched.map { AccountEntity.fromDomain(it) },
+            refreshCounterpartyAccountsUnlocked()
+        }
+    }
+
+    private suspend fun refreshCounterpartyAccountsUnlocked(): Resource<List<Account>> {
+        return try {
+            val collected = mutableListOf<Account>()
+            var offset = 0
+            val pageSize = 200
+            while (true) {
+                val response = apiService.getAccounts(
+                    type = counterpartyTypes,
+                    offset = offset,
+                    numberOfResults = pageSize,
                 )
-                Resource.Success(enriched)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Resource.Error(e.message ?: "Network error")
+                if (!response.isSuccessful) {
+                    return Resource.Error("Failed to fetch counterparties: ${response.code()}")
+                }
+                val body = response.body()
+                val items = body?.content?.map { it.toDomain() }?.distinctBy { it.id } ?: emptyList()
+                collected.addAll(items)
+                val totalRecords = body?.info?.records ?: 0L
+                if (items.isEmpty()) break
+                if (totalRecords > 0 && collected.size.toLong() >= totalRecords) break
+                if (totalRecords == 0L && items.size < pageSize) break
+                offset = collected.size
             }
+            val enriched = enrichWithBalances(collected)
+            accountDao.replaceByTypes(
+                types = counterpartyTypes,
+                items = enriched.map { AccountEntity.fromDomain(it) },
+            )
+            Resource.Success(enriched)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
         }
     }
 
@@ -188,7 +196,7 @@ class AccountRepositoryImpl @Inject constructor(
         cacheRefresher.launchIfStale(
             key = SyncKeys.ACCOUNT_TYPES,
             ttlMs = CachePolicy.ACCOUNT_TYPES_TTL_MS,
-        ) { refreshAccountTypes() }
+        ) { refreshAccountTypesUnlocked() }
         val fromApi = if (cached.isNotEmpty()) {
             cached
         } else {
@@ -347,7 +355,7 @@ class AccountRepositoryImpl @Inject constructor(
             cacheRefresher.launchIfStale(
                 key = SyncKeys.COUNTERPARTY_ACCOUNTS,
                 ttlMs = CachePolicy.COUNTERPARTY_ACCOUNTS_TTL_MS,
-            ) { refreshCounterpartyAccounts() }
+            ) { refreshCounterpartyAccountsUnlocked() }
             val cached = accountDao.searchByTypes(
                 types = listOf(typeCode.lowercase()),
                 query = nameQuery.trim(),
@@ -443,7 +451,7 @@ class AccountRepositoryImpl @Inject constructor(
         cacheRefresher.launchIfStale(
             key = SyncKeys.ACCOUNT_TYPES,
             ttlMs = CachePolicy.ACCOUNT_TYPES_TTL_MS,
-        ) { refreshAccountTypes() }
+        ) { refreshAccountTypesUnlocked() }
         if (cached.isNotEmpty()) {
             val ownedCodes = cached.filter { it !in AccountTypeCodes.counterpartyTypeCodes }
             return Resource.Success(AccountTypeCatalog.toOptions(ownedCodes))
@@ -462,20 +470,24 @@ class AccountRepositoryImpl @Inject constructor(
 
     override suspend fun refreshAccountTypes(): Resource<List<String>> {
         return cacheRefresher.refreshNow(SyncKeys.ACCOUNT_TYPES) {
-            try {
-                val response = apiService.getAccountTypes()
-                if (response.isSuccessful) {
-                    val codes = response.body().orEmpty().map { it.lowercase() }
-                    accountTypeDao.replaceAll(codes)
-                    Resource.Success(codes)
-                } else {
-                    Resource.Error("Failed to fetch account types: HTTP ${response.code()}")
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Resource.Error(e.message ?: "Network error")
+            refreshAccountTypesUnlocked()
+        }
+    }
+
+    private suspend fun refreshAccountTypesUnlocked(): Resource<List<String>> {
+        return try {
+            val response = apiService.getAccountTypes()
+            if (response.isSuccessful) {
+                val codes = response.body().orEmpty().map { it.lowercase() }
+                accountTypeDao.replaceAll(codes)
+                Resource.Success(codes)
+            } else {
+                Resource.Error("Failed to fetch account types: HTTP ${response.code()}")
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
         }
     }
 
@@ -544,9 +556,13 @@ class AccountRepositoryImpl @Inject constructor(
 
     private fun invalidateOnMutation(typeCode: String) {
         if (AccountTypeCatalog.isCounterparty(typeCode)) {
-            cacheRefresher.refreshInBackground(SyncKeys.COUNTERPARTY_ACCOUNTS) { refreshCounterpartyAccounts() }
+            cacheRefresher.refreshInBackground(SyncKeys.COUNTERPARTY_ACCOUNTS) {
+                refreshCounterpartyAccountsUnlocked()
+            }
         } else {
-            cacheRefresher.refreshInBackground(SyncKeys.OWNED_ACCOUNTS) { refreshOwnedAccounts() }
+            cacheRefresher.refreshInBackground(SyncKeys.OWNED_ACCOUNTS) {
+                refreshOwnedAccountsUnlocked()
+            }
         }
     }
 

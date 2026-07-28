@@ -24,6 +24,14 @@ object PledgerDatabaseMigrations {
                 )
                 """.trimIndent(),
             )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `tags` (
+                    `name` TEXT NOT NULL,
+                    PRIMARY KEY(`name`)
+                )
+                """.trimIndent(),
+            )
         }
     }
 

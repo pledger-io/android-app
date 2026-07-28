@@ -4,17 +4,20 @@ import com.pledgerio.app.data.local.dao.SyncMetadataDao
 import com.pledgerio.app.data.local.entity.SyncMetadataEntity
 import com.pledgerio.app.di.ApplicationScope
 import com.pledgerio.app.util.Resource
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.AbstractCoroutineContextElement
+import kotlin.coroutines.CoroutineContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Coordinates stale-while-revalidate refreshes across repositories. Holds a per-key
- * coalescing mutex so that simultaneous callers (e.g. multiple ViewModels collecting the
+ * Coordinates stale-while-revalidate refreshes across repositories. Shares each per-key
+ * in-flight result so that simultaneous callers (e.g. multiple ViewModels collecting the
  * same Flow) trigger at most one network round-trip.
  */
 @Singleton
@@ -23,8 +26,9 @@ class CacheRefresher @Inject constructor(
     @ApplicationScope private val applicationScope: CoroutineScope,
 ) {
 
-    private val mutexes = mutableMapOf<String, Mutex>()
-    private val inFlight = mutableMapOf<String, Job>()
+    private val inFlightRefreshes = mutableMapOf<String, CompletableDeferred<Resource<*>>>()
+    private val staleRefreshJobs = mutableMapOf<String, Job>()
+    private val backgroundJobs = mutableMapOf<String, Job>()
 
     suspend fun lastSyncedAt(key: String): Long? = syncMetadataDao.getLastSyncedAt(key)
 
@@ -49,9 +53,13 @@ class CacheRefresher @Inject constructor(
         ttlMs: Long,
         block: suspend () -> Resource<*>,
     ) {
-        applicationScope.launch {
-            if (!isStale(key, ttlMs)) return@launch
-            refreshNow(key, block)
+        launchCoalesced(staleRefreshJobs, key) {
+            if (!isStale(key, ttlMs)) return@launchCoalesced
+            refreshNow(key) {
+                // Another caller may have refreshed after the first stale check but before
+                // this refresh became the per-key leader.
+                if (isStale(key, ttlMs)) block() else Resource.Success(Unit)
+            }
         }
     }
 
@@ -63,29 +71,81 @@ class CacheRefresher @Inject constructor(
         key: String,
         block: suspend () -> Resource<T>,
     ): Resource<T> {
-        val mutex = synchronized(mutexes) { mutexes.getOrPut(key) { Mutex() } }
-        return mutex.withLock {
-            val result = block()
+        val refreshContext = currentCoroutineContext()[RefreshContext]
+        if (key in refreshContext?.keys.orEmpty()) {
+            // Defensive support for legacy callers that accidentally wrap refreshNow with
+            // refreshNow for the same key. The outer refresh remains responsible for marking.
+            return block()
+        }
+
+        val candidate = CompletableDeferred<Resource<*>>()
+        val shared = synchronized(inFlightRefreshes) {
+            inFlightRefreshes[key]
+                ?.takeUnless { it.isCompleted }
+                ?: candidate.also { inFlightRefreshes[key] = it }
+        }
+        if (shared !== candidate) {
+            @Suppress("UNCHECKED_CAST")
+            return shared.await() as Resource<T>
+        }
+
+        try {
+            val result = withContext(
+                RefreshContext(refreshContext?.keys.orEmpty() + key),
+            ) {
+                block()
+            }
             if (result is Resource.Success) markFresh(key)
-            result
+            candidate.complete(result)
+            return result
+        } catch (throwable: Throwable) {
+            candidate.completeExceptionally(throwable)
+            throw throwable
+        } finally {
+            synchronized(inFlightRefreshes) {
+                if (inFlightRefreshes[key] === candidate) {
+                    inFlightRefreshes.remove(key)
+                }
+            }
         }
     }
 
     /**
-     * Fire-and-forget refresh that is coalesced via [inFlight]. Used by mutations that
+     * Fire-and-forget refresh that is coalesced with other background jobs for [key].
+     * Used by mutations that
      * want a background refetch without blocking the UI.
      */
     fun refreshInBackground(key: String, block: suspend () -> Resource<*>) {
-        synchronized(inFlight) {
-            inFlight[key]?.let { if (it.isActive) return }
+        launchCoalesced(backgroundJobs, key) {
+            refreshNow(key, block)
+        }
+    }
+
+    private fun launchCoalesced(
+        jobs: MutableMap<String, Job>,
+        key: String,
+        block: suspend () -> Unit,
+    ) {
+        synchronized(jobs) {
+            jobs[key]?.let { if (it.isActive) return }
             val job = applicationScope.launch {
                 try {
-                    refreshNow(key, block)
+                    block()
                 } finally {
-                    synchronized(inFlight) { inFlight.remove(key) }
+                    synchronized(jobs) {
+                        if (jobs[key] === coroutineContext[Job]) {
+                            jobs.remove(key)
+                        }
+                    }
                 }
             }
-            inFlight[key] = job
+            jobs[key] = job
         }
+    }
+
+    private class RefreshContext(
+        val keys: Set<String>,
+    ) : AbstractCoroutineContextElement(RefreshContext) {
+        companion object Key : CoroutineContext.Key<RefreshContext>
     }
 }

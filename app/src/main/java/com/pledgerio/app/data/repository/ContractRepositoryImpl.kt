@@ -47,24 +47,28 @@ class ContractRepositoryImpl @Inject constructor(
 
     override suspend fun refreshContracts(): Resource<List<Contract>> {
         return cacheRefresher.refreshNow(SyncKeys.CONTRACTS) {
-            try {
-                val response = apiService.getContracts()
-                if (response.isSuccessful) {
-                    val contracts = response.body()?.map { dto ->
-                        Contract(
-                            id = dto.id,
-                            name = dto.name,
-                            description = dto.description ?: "",
-                        )
-                    } ?: emptyList()
-                    contractDao.replaceAll(contracts.map { ContractEntity.fromDomain(it) })
-                    Resource.Success(contracts)
-                } else {
-                    Resource.Error("Failed to fetch contracts: HTTP ${response.code()}")
-                }
-            } catch (e: Exception) {
-                Resource.Error(e.message ?: "Network error")
+            refreshContractsUnlocked()
+        }
+    }
+
+    private suspend fun refreshContractsUnlocked(): Resource<List<Contract>> {
+        return try {
+            val response = apiService.getContracts()
+            if (response.isSuccessful) {
+                val contracts = response.body()?.map { dto ->
+                    Contract(
+                        id = dto.id,
+                        name = dto.name,
+                        description = dto.description ?: "",
+                    )
+                } ?: emptyList()
+                contractDao.replaceAll(contracts.map { ContractEntity.fromDomain(it) })
+                Resource.Success(contracts)
+            } else {
+                Resource.Error("Failed to fetch contracts: HTTP ${response.code()}")
             }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
         }
     }
 
@@ -72,6 +76,6 @@ class ContractRepositoryImpl @Inject constructor(
         cacheRefresher.launchIfStale(
             key = SyncKeys.CONTRACTS,
             ttlMs = CachePolicy.CONTRACTS_TTL_MS,
-        ) { refreshContracts() }
+        ) { refreshContractsUnlocked() }
     }
 }

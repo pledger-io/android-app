@@ -172,6 +172,35 @@ class TransactionFormViewModelTest {
     }
 
     @Test
+    fun `non-finite and non-positive transaction amounts are invalid`() {
+        listOf("Infinity", "NaN", "0", "-1").forEach { amount ->
+            val state = TransactionFormUiState(
+                description = "Transfer",
+                amount = amount,
+                type = TransactionType.TRANSFER,
+                sourceAccountId = checking.id,
+                targetAccountId = savings.id,
+            )
+
+            assertFalse("$amount must be rejected", state.isValid)
+        }
+    }
+
+    @Test
+    fun `transfer between the same account is invalid`() {
+        val state = TransactionFormUiState(
+            description = "Transfer",
+            amount = "25",
+            type = TransactionType.TRANSFER,
+            sourceAccountId = checking.id,
+            targetAccountId = checking.id,
+        )
+
+        assertFalse(state.isValid)
+        assertFalse(state.canSubmit)
+    }
+
+    @Test
     fun `setDateYesterday updates date`() = runTest {
         val viewModel = createViewModel()
         advanceUntilIdle()

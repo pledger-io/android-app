@@ -28,14 +28,17 @@ class SyncWorker @AssistedInject constructor(
             ?: return Result.success()
         return try {
             when (val outcome = syncWorkRunner.run(generation)) {
-                SyncRunOutcome.StaleSession -> Result.success()
+                SyncRunOutcome.StaleSession,
+                is SyncRunOutcome.RetryableFailure,
+                is SyncRunOutcome.PermanentFailure,
+                -> resultFor(outcome)
                 is SyncRunOutcome.Completed -> {
                     checkBudgetAlerts(
                         generation = generation,
                         budgets = outcome.budgetsForAlerts,
                         yearMonth = outcome.yearMonth,
                     )
-                    Result.success()
+                    resultFor(outcome)
                 }
             }
         } catch (e: CancellationException) {
@@ -81,12 +84,24 @@ class SyncWorker @AssistedInject constructor(
     companion object {
         internal const val INPUT_GENERATION = "sync_generation"
 
+        internal fun resultFor(outcome: SyncRunOutcome): Result = when (outcome) {
+            SyncRunOutcome.StaleSession,
+            is SyncRunOutcome.Completed,
+            -> Result.success()
+            is SyncRunOutcome.RetryableFailure -> Result.retry()
+            is SyncRunOutcome.PermanentFailure -> Result.failure()
+        }
+
         internal fun classifyFailure(error: Throwable): Result = when (error) {
             is IOException -> Result.retry()
-            is HttpException -> if (error.code() == 401 || error.code() == 403) {
-                Result.failure()
-            } else {
+            is HttpException -> if (
+                error.code() == 408 ||
+                error.code() == 429 ||
+                error.code() >= 500
+            ) {
                 Result.retry()
+            } else {
+                Result.failure()
             }
             else -> Result.failure()
         }

@@ -123,7 +123,9 @@ class BudgetRepositoryImpl @Inject constructor(
                 }
                 else -> {
                     cacheRefresher.invalidate(SyncKeys.EXPENSE_GROUPS)
-                    cacheRefresher.refreshInBackground(SyncKeys.EXPENSE_GROUPS) { refreshExpenseGroups() }
+                    cacheRefresher.refreshInBackground(SyncKeys.EXPENSE_GROUPS) {
+                        refreshExpenseGroupsUnlocked()
+                    }
                     fetchAndCacheBudgets(year, month)
                 }
             }
@@ -147,25 +149,29 @@ class BudgetRepositoryImpl @Inject constructor(
 
     override suspend fun refreshExpenseGroups(): Resource<List<BudgetExpense>> {
         return cacheRefresher.refreshNow(SyncKeys.EXPENSE_GROUPS) {
-            try {
-                val response = apiService.getExpenses()
-                if (response.isSuccessful) {
-                    val expenses = response.body()?.map { dto ->
-                        BudgetExpense(
-                            id = dto.id,
-                            name = dto.name,
-                            amount = 0.0,
-                            expected = dto.expected,
-                        )
-                    } ?: emptyList()
-                    expenseGroupDao.replaceAll(expenses.map { ExpenseGroupEntity.fromExpense(it) })
-                    Resource.Success(expenses)
-                } else {
-                    Resource.Error("Failed to fetch expense groups: HTTP ${response.code()}")
-                }
-            } catch (e: Exception) {
-                Resource.Error(e.message ?: "Network error")
+            refreshExpenseGroupsUnlocked()
+        }
+    }
+
+    private suspend fun refreshExpenseGroupsUnlocked(): Resource<List<BudgetExpense>> {
+        return try {
+            val response = apiService.getExpenses()
+            if (response.isSuccessful) {
+                val expenses = response.body()?.map { dto ->
+                    BudgetExpense(
+                        id = dto.id,
+                        name = dto.name,
+                        amount = 0.0,
+                        expected = dto.expected,
+                    )
+                } ?: emptyList()
+                expenseGroupDao.replaceAll(expenses.map { ExpenseGroupEntity.fromExpense(it) })
+                Resource.Success(expenses)
+            } else {
+                Resource.Error("Failed to fetch expense groups: HTTP ${response.code()}")
             }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
         }
     }
 
@@ -342,7 +348,7 @@ class BudgetRepositoryImpl @Inject constructor(
         cacheRefresher.launchIfStale(
             key = SyncKeys.EXPENSE_GROUPS,
             ttlMs = CachePolicy.EXPENSE_GROUPS_TTL_MS,
-        ) { refreshExpenseGroups() }
+        ) { refreshExpenseGroupsUnlocked() }
     }
 }
 

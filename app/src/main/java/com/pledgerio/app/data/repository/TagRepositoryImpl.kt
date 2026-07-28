@@ -44,7 +44,7 @@ class TagRepositoryImpl @Inject constructor(
             val response = apiService.createTag(CreateTagRequest(trimmed))
             if (response.isSuccessful) {
                 tagDao.insert(TagEntity(trimmed))
-                cacheRefresher.refreshInBackground(SyncKeys.TAGS) { refreshTags() }
+                cacheRefresher.refreshInBackground(SyncKeys.TAGS) { refreshTagsUnlocked() }
                 Resource.Success(Tag(trimmed))
             } else {
                 Resource.Error("Failed to create tag: HTTP ${response.code()}")
@@ -88,7 +88,7 @@ class TagRepositoryImpl @Inject constructor(
                 tagDao.deleteByName(name)
                 removeTagFromCachedTransactions(name)
                 if (refreshCatalog) {
-                    cacheRefresher.refreshInBackground(SyncKeys.TAGS) { refreshTags() }
+                    cacheRefresher.refreshInBackground(SyncKeys.TAGS) { refreshTagsUnlocked() }
                 }
                 Resource.Success(Unit)
             } else {
@@ -103,26 +103,30 @@ class TagRepositoryImpl @Inject constructor(
 
     override suspend fun refreshTags(): Resource<List<Tag>> {
         return cacheRefresher.refreshNow(SyncKeys.TAGS) {
-            try {
-                val response = apiService.getTags()
-                if (response.isSuccessful) {
-                    val tags = response.body()
-                        .orEmpty()
-                        .map { it.trim() }
-                        .filter { it.isNotEmpty() }
-                        .distinct()
-                        .sorted()
-                        .map { Tag(it) }
-                    tagDao.replaceAll(tags.map { it.name })
-                    Resource.Success(tags)
-                } else {
-                    Resource.Error("Failed to fetch tags: HTTP ${response.code()}")
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Resource.Error(e.message ?: "Network error")
+            refreshTagsUnlocked()
+        }
+    }
+
+    private suspend fun refreshTagsUnlocked(): Resource<List<Tag>> {
+        return try {
+            val response = apiService.getTags()
+            if (response.isSuccessful) {
+                val tags = response.body()
+                    .orEmpty()
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .distinct()
+                    .sorted()
+                    .map { Tag(it) }
+                tagDao.replaceAll(tags.map { it.name })
+                Resource.Success(tags)
+            } else {
+                Resource.Error("Failed to fetch tags: HTTP ${response.code()}")
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
         }
     }
 
@@ -150,6 +154,6 @@ class TagRepositoryImpl @Inject constructor(
         cacheRefresher.launchIfStale(
             key = SyncKeys.TAGS,
             ttlMs = CachePolicy.TAGS_TTL_MS,
-        ) { refreshTags() }
+        ) { refreshTagsUnlocked() }
     }
 }

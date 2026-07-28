@@ -62,9 +62,9 @@ import com.pledgerio.app.ui.transactions.form.localizedValidationSummary
 import com.pledgerio.app.ui.transactions.form.screenTitleLocalized
 import com.pledgerio.app.ui.transactions.form.submitLabelLocalized
 import com.pledgerio.app.ui.transactions.form.TransactionTypeSelector
-import java.time.Instant
+import com.pledgerio.app.ui.util.datePickerMillisToLocalDate
+import com.pledgerio.app.ui.util.toDatePickerMillis
 import java.time.LocalDate
-import java.time.ZoneId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,7 +79,6 @@ fun TransactionFormScreen(
     val sourceLabel = TransactionFormLabels.sourceLabel(uiState.type)
     val targetLabel = TransactionFormLabels.targetLabel(uiState.type)
     val flowHelperText = TransactionFormLabels.flowHelperText(uiState.type)
-    val zone = remember { ZoneId.systemDefault() }
     val today = remember { LocalDate.now() }
     val yesterday = remember { today.minusDays(1) }
     val defaultTemplateName = stringResource(R.string.transaction_template_default_name)
@@ -105,12 +104,8 @@ fun TransactionFormScreen(
     }
 
     if (uiState.showDatePicker) {
-        val initialMillis = uiState.date
-            .atStartOfDay(zone)
-            .toInstant()
-            .toEpochMilli()
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = initialMillis,
+            initialSelectedDateMillis = uiState.date.toDatePickerMillis(),
         )
         DatePickerDialog(
             onDismissRequest = viewModel::dismissDatePicker,
@@ -118,10 +113,7 @@ fun TransactionFormScreen(
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
-                            val selected = Instant.ofEpochMilli(millis)
-                                .atZone(zone)
-                                .toLocalDate()
-                            viewModel.onDateSelected(selected)
+                            viewModel.onDateSelected(datePickerMillisToLocalDate(millis))
                         } ?: viewModel.dismissDatePicker()
                     },
                 ) {

@@ -39,12 +39,11 @@ class IssueReportRepositoryImpl @Inject constructor(
             androidRelease = IssueReportFormatter.androidRelease(),
             androidSdk = android.os.Build.VERSION.SDK_INT,
             serverUrl = sessionManager.getBaseUrl(),
-            username = sessionManager.getUsername(),
         )
         val logs = appLog.export()
 
         appLog.i(TAG, "Opening GitHub issue form for bug report")
-        val (issueUrl, clipboardText) = IssueReportUrlBuilder.build(
+        val issueUrl = IssueReportUrlBuilder.build(
             title = issueTitle,
             whatHappened = whatHappened,
             logs = logs,
@@ -53,7 +52,6 @@ class IssueReportRepositoryImpl @Inject constructor(
         return Resource.Success(
             IssueReportResult(
                 issueUrl = issueUrl,
-                clipboardText = clipboardText,
             ),
         )
     }

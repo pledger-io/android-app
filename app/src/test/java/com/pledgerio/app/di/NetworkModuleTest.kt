@@ -1,24 +1,25 @@
 package com.pledgerio.app.di
 
+import com.pledgerio.app.data.remote.api.AuthInterceptor
+import com.pledgerio.app.data.remote.api.DynamicBaseUrlInterceptor
+import com.pledgerio.app.data.remote.api.IssueLogInterceptor
+import io.mockk.mockk
 import okhttp3.logging.HttpLoggingInterceptor
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class NetworkModuleTest {
 
     @Test
-    fun `debug HTTP logging excludes credential headers and bodies`() {
-        assertEquals(
-            HttpLoggingInterceptor.Level.BASIC,
-            NetworkModule.secretSafeHttpLoggingLevel(isDebug = true),
+    fun `network client omits raw URL logging interceptor`() {
+        val client = NetworkModule.provideOkHttpClient(
+            authInterceptor = mockk<AuthInterceptor>(),
+            dynamicBaseUrlInterceptor = mockk<DynamicBaseUrlInterceptor>(),
+            issueLogInterceptor = mockk<IssueLogInterceptor>(),
         )
-    }
 
-    @Test
-    fun `release HTTP logging remains disabled`() {
-        assertEquals(
-            HttpLoggingInterceptor.Level.NONE,
-            NetworkModule.secretSafeHttpLoggingLevel(isDebug = false),
-        )
+        assertEquals(3, client.interceptors.size)
+        assertFalse(client.interceptors.any { it is HttpLoggingInterceptor })
     }
 }

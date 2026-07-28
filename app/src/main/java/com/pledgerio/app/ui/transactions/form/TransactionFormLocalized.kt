@@ -6,6 +6,7 @@ import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.ui.transactions.TransactionFormFieldErrors
 import com.pledgerio.app.ui.transactions.TransactionFormUiState
+import com.pledgerio.app.ui.transactions.positiveMoneyOrNull
 
 enum class ClassifyPart {
     CATEGORY,
@@ -139,7 +140,7 @@ fun TransactionFormUiState.localizedFieldErrors(): TransactionFormFieldErrors {
     val sourceLabel = TransactionFormLabels.sourceLabel(type)
     val targetLabel = TransactionFormLabels.targetLabel(type)
     return TransactionFormFieldErrors(
-        amount = if (amount.toDoubleOrNull()?.let { it > 0 } != true) {
+        amount = if (amount.positiveMoneyOrNull() == null) {
             stringResource(R.string.transaction_error_amount)
         } else {
             null
@@ -149,10 +150,12 @@ fun TransactionFormUiState.localizedFieldErrors(): TransactionFormFieldErrors {
         } else {
             null
         },
-        target = if (targetAccountId == null) {
-            stringResource(R.string.transaction_error_choose_field, targetLabel)
-        } else {
-            null
+        target = when {
+            targetAccountId == null ->
+                stringResource(R.string.transaction_error_choose_field, targetLabel)
+            type == TransactionType.TRANSFER && sourceAccountId == targetAccountId ->
+                stringResource(R.string.transaction_error_same_account)
+            else -> null
         },
         description = if (description.isBlank()) {
             stringResource(R.string.transaction_error_description)
@@ -171,7 +174,7 @@ fun TransactionFormUiState.localizedSplitValidationError(): String? {
 fun TransactionFormUiState.splitValidationIssue(): SplitValidationIssue? {
     if (splitLines.isEmpty()) return null
     if (splitLines.any { it.description.isBlank() }) return SplitValidationIssue.LINE_DESCRIPTION
-    if (splitLines.any { it.amount.toDoubleOrNull() == null }) return SplitValidationIssue.LINE_AMOUNT
+    if (splitLines.any { it.amount.positiveMoneyOrNull() == null }) return SplitValidationIssue.LINE_AMOUNT
     if (kotlin.math.abs(splitRemaining) > 0.01) return SplitValidationIssue.TOTAL_MISMATCH
     return null
 }

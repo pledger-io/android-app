@@ -8,9 +8,10 @@ import com.pledgerio.app.util.Resource
 import com.pledgerio.app.util.SessionManager
 import io.mockk.every
 import io.mockk.mockk
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -26,7 +27,6 @@ class IssueReportRepositoryImplTest {
     fun setUp() {
         every { appLog.export() } returns "sample log"
         every { sessionManager.getBaseUrl() } returns "https://example.com"
-        every { sessionManager.getUsername() } returns "user"
         val packageManager = mockk<PackageManager>(relaxed = true)
         val packageInfo = PackageInfo().apply {
             versionName = "1.0.0"
@@ -64,10 +64,15 @@ class IssueReportRepositoryImplTest {
     }
 
     @Test
-    fun `submitBugReport provides clipboard when logs are very long`() = runTest {
-        every { appLog.export() } returns "x".repeat(5_000)
+    fun `submitBugReport redacts and bounds logs in url`() = runTest {
+        every { appLog.export() } returns
+            "GET /search?description=Salary&amount=1234.56\n".repeat(300)
         val result = repository.submitBugReport(title = "Crash", description = "Big logs")
-        assertTrue(result is Resource.Success)
-        assertNotNull((result as Resource.Success).data.clipboardText)
+        val url = (result as Resource.Success).data.issueUrl
+        val decoded = URLDecoder.decode(url, StandardCharsets.UTF_8)
+
+        assertFalse(decoded.contains("Salary"))
+        assertFalse(decoded.contains("1234.56"))
+        assertTrue(url.length <= 7_500)
     }
 }

@@ -21,6 +21,12 @@ data class PagedResult<T>(
 }
 
 interface TransactionRepository {
+    /**
+     * Returns transactions in the inclusive date range [startDate] through [endDate].
+     *
+     * Implementations are responsible for adapting this contract when a remote API uses an
+     * exclusive upper bound.
+     */
     suspend fun getTransactionsPage(
         startDate: LocalDate,
         endDate: LocalDate,

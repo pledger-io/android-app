@@ -3,7 +3,11 @@ package com.pledgerio.app.data.repository
 import com.pledgerio.app.data.local.dao.TransactionDao
 import com.pledgerio.app.data.local.entity.TransactionEntity
 import com.pledgerio.app.data.remote.api.PledgerApiService
+import com.pledgerio.app.data.remote.dto.AccountLinkDto
 import com.pledgerio.app.data.remote.dto.TransactionClassificationSuggestionDto
+import com.pledgerio.app.data.remote.dto.TransactionDatesDto
+import com.pledgerio.app.data.remote.dto.TransactionDto
+import com.pledgerio.app.data.remote.dto.TransactionPagedResponse
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.util.Resource
 import io.mockk.coEvery
@@ -37,6 +41,120 @@ class TransactionRepositoryImplTest {
         outboxFlushScheduler,
         sessionManager,
     )
+
+    @Test
+    fun `getTransactionsPage converts inclusive end date to exclusive API end`() = runTest {
+        coEvery {
+            apiService.getTransactions(
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(),
+            )
+        } returns Response.success(TransactionPagedResponse())
+
+        val result = repository.getTransactionsPage(
+            startDate = LocalDate.of(2026, 7, 1),
+            endDate = LocalDate.of(2026, 7, 31),
+        )
+
+        assertTrue(result is Resource.Success)
+        coVerify {
+            apiService.getTransactions(
+                startDate = "2026-07-01",
+                endDate = "2026-08-01",
+                accounts = null,
+                type = null,
+                description = null,
+                currency = null,
+                expenses = null,
+                categories = null,
+                contracts = null,
+                offset = 0,
+                numberOfResults = 25,
+            )
+        }
+    }
+
+    @Test
+    fun `getTransactionsPage upserts month pages without globally wiping cache`() = runTest {
+        coEvery {
+            apiService.getTransactions(
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(),
+            )
+        } returnsMany listOf(
+            Response.success(transactionPage(transactionDto(1, LocalDate.of(2026, 6, 15)))),
+            Response.success(transactionPage(transactionDto(2, LocalDate.of(2026, 7, 15)))),
+        )
+
+        repository.getTransactionsPage(
+            startDate = LocalDate.of(2026, 6, 1),
+            endDate = LocalDate.of(2026, 6, 30),
+        )
+        repository.getTransactionsPage(
+            startDate = LocalDate.of(2026, 7, 1),
+            endDate = LocalDate.of(2026, 7, 31),
+        )
+
+        coVerify(exactly = 0) { transactionDao.deleteAll() }
+        coVerify(exactly = 1) {
+            transactionDao.insertAll(match { entities -> entities.single().id == 1L })
+        }
+        coVerify(exactly = 1) {
+            transactionDao.insertAll(match { entities -> entities.single().id == 2L })
+        }
+    }
+
+    @Test
+    fun `getTransactionsPage offline fallback filters source and destination account`() = runTest {
+        coEvery {
+            apiService.getTransactions(
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(),
+            )
+        } throws java.io.IOException("offline")
+        coEvery { transactionDao.getAllOnce() } returns listOf(
+            cachedTransaction(
+                id = 1,
+                date = LocalDate.of(2026, 7, 10),
+                sourceAccountId = 42,
+            ),
+            cachedTransaction(
+                id = 2,
+                date = LocalDate.of(2026, 7, 11),
+                destinationAccountId = 42,
+            ),
+            cachedTransaction(
+                id = 3,
+                date = LocalDate.of(2026, 7, 12),
+                sourceAccountId = 7,
+                destinationAccountId = 8,
+            ),
+        )
+
+        val result = repository.getTransactionsPage(
+            startDate = LocalDate.of(2026, 7, 1),
+            endDate = LocalDate.of(2026, 7, 31),
+            accountId = 42,
+        )
+
+        assertTrue(result is Resource.Success)
+        assertEquals(listOf(1L, 2L), (result as Resource.Success).data.items.map { it.id })
+    }
+
+    @Test
+    fun `getTransactionsPage null successful body returns error without mutating cache`() = runTest {
+        coEvery {
+            apiService.getTransactions(
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(),
+            )
+        } returns Response.success<TransactionPagedResponse>(null)
+
+        val result = repository.getTransactionsPage(
+            startDate = LocalDate.of(2026, 7, 1),
+            endDate = LocalDate.of(2026, 7, 31),
+        )
+
+        assertTrue(result is Resource.Error)
+        coVerify(exactly = 0) { transactionDao.insertAll(any()) }
+        coVerify(exactly = 0) { transactionDao.deleteAll() }
+    }
 
     @Test
     fun `suggestClassifications maps dto to domain model`() = runTest {
@@ -231,11 +349,28 @@ class TransactionRepositoryImplTest {
         destinationAccountId = 2,
     )
 
-    private fun cachedTransaction(id: Long, date: LocalDate) = TransactionEntity(
+    private fun transactionPage(transaction: TransactionDto) = TransactionPagedResponse(
+        content = listOf(transaction),
+    )
+
+    private fun transactionDto(id: Long, date: LocalDate) = TransactionDto(
+        id = id,
+        dates = TransactionDatesDto(transaction = date.toString()),
+        source = AccountLinkDto(id = 1),
+    )
+
+    private fun cachedTransaction(
+        id: Long,
+        date: LocalDate,
+        sourceAccountId: Long? = null,
+        destinationAccountId: Long? = null,
+    ) = TransactionEntity(
         id = id,
         description = "Coffee",
         amount = 4.5,
         type = TransactionType.CREDIT.name,
         date = date,
+        sourceAccountId = sourceAccountId,
+        destinationAccountId = destinationAccountId,
     )
 }
