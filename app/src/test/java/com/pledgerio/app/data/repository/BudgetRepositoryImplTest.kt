@@ -122,6 +122,51 @@ class BudgetRepositoryImplTest {
     }
 
     @Test
+    fun `getBudgets keeps cached spent and stays stale when balances fail`() = runTest {
+        val cached = BudgetEntity(id = 1, name = "Groceries", amount = 400.0, spent = 42.0)
+        coEvery { budgetDao.getAll() } returns flowOf(listOf(cached))
+        syncMetadataDao.seed(SyncKeys.BUDGET_ROOM_MONTH, 2026 * 100L + 5)
+
+        val budgetDto = BudgetDto(
+            income = 3500.0,
+            expenses = listOf(ExpenseDto(id = 1, name = "Groceries", expected = 400.0)),
+        )
+        coEvery { apiService.getBudgets(2026, 5, any()) } returns Response.success(budgetDto)
+        coEvery { apiService.getExpenseBalance(2026, 5, any()) } returns Response.error(
+            500,
+            "".toResponseBody(),
+        )
+
+        val results = repository.getBudgets(2026, 5).toList()
+        val success = results.filterIsInstance<Resource.Success<BudgetListState>>().last()
+
+        assertEquals(42.0, success.data.budgets.single().spent, 0.001)
+        assertNull(cacheRefresher.lastSyncedAt(SyncKeys.budgetMonth(YearMonth.of(2026, 5))))
+    }
+
+    @Test
+    fun `getBudgets ignores cached spent from another month when balances fail`() = runTest {
+        val mayEntity = BudgetEntity(id = 1, name = "Groceries", amount = 400.0, spent = 42.0)
+        coEvery { budgetDao.getAll() } returns flowOf(listOf(mayEntity))
+        syncMetadataDao.seed(SyncKeys.BUDGET_ROOM_MONTH, 2026 * 100L + 5)
+
+        val budgetDto = BudgetDto(
+            income = 3500.0,
+            expenses = listOf(ExpenseDto(id = 1, name = "Groceries", expected = 400.0)),
+        )
+        coEvery { apiService.getBudgets(2026, 6, any()) } returns Response.success(budgetDto)
+        coEvery { apiService.getExpenseBalance(2026, 6, any()) } returns Response.error(
+            500,
+            "".toResponseBody(),
+        )
+
+        val results = repository.getBudgets(2026, 6).toList()
+        val success = results.filterIsInstance<Resource.Success<BudgetListState>>().last()
+
+        assertEquals(0.0, success.data.budgets.single().spent, 0.001)
+    }
+
+    @Test
     fun `getBudgets emits Room cache only for matching fresh month`() = runTest {
         val mayEntity = BudgetEntity(id = 1, name = "May Group", amount = 100.0, spent = 10.0)
         coEvery { budgetDao.getAll() } returns flowOf(listOf(mayEntity))

@@ -45,14 +45,16 @@ class LoginViewModel @Inject constructor(
         onMfaRequired: () -> Unit,
     ) {
         val state = _uiState.value
+        if (state.isLoading) return
         if (state.username.isBlank() || state.password.isBlank()) {
             _uiState.update { it.copy(error = "Please fill in all fields") }
             return
         }
 
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+        // Claimed before suspending so a second tap in the same frame cannot start a second login.
+        _uiState.update { it.copy(isLoading = true, error = null) }
 
+        viewModelScope.launch {
             when (val result = loginUseCase(state.username, state.password)) {
                 is Resource.Success -> when (result.data) {
                     LoginResult.FullyAuthenticated -> {

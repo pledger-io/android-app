@@ -211,6 +211,7 @@
     <string name="settings_sign_out_confirm_title">Abmelden</string>
     <string name="settings_sign_out_confirm_message">Möchtest du dich wirklich abmelden?</string>
     <string name="settings_sign_out_failed">Die sichere Abmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.</string>
+    <string name="session_expired_message">Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.</string>
     <string name="settings_loading_currencies">Währungen werden geladen…</string>
     <string name="settings_experience_format">%1$s — %2$s</string>
 
@@ -263,7 +264,6 @@
     <string name="account_form_create">Konto erstellen</string>
     <string name="account_form_save_changes">Änderungen speichern</string>
     <string name="account_error_name_required">Bitte einen Namen angeben</string>
-    <string name="account_error_opening_balance">Gültigen Anfangssaldo eingeben</string>
     <string name="account_ownership_personal">Persönlich</string>
     <string name="account_ownership_joint">Gemeinsam</string>
     <string name="account_ownership_checking">Girokonto</string>
@@ -438,7 +438,6 @@
     <string name="account_description_label">Beschreibung</string>
     <string name="account_iban_label">IBAN</string>
     <string name="account_bic_label">BIC</string>
-    <string name="account_opening_balance_label">Anfangssaldo</string>
     <string name="account_type_label">Kontotyp *</string>
     <string name="account_currency_label">Währung *</string>
 

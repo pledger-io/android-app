@@ -20,6 +20,8 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,6 +30,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.activity.compose.LocalActivity
@@ -47,6 +50,7 @@ import com.pledgerio.app.ui.navigation.Screen
 import com.pledgerio.app.ui.theme.PledgerGreen
 import com.pledgerio.app.ui.theme.PledgerTheme
 import com.pledgerio.app.ui.theme.TextSecondary
+import kotlinx.coroutines.launch
 data class BottomNavItem(
     val route: String,
     val icon: ImageVector,
@@ -89,6 +93,7 @@ fun PledgerRoot(
     val isOnline by appViewModel.isOnline.collectAsState()
     val biometricSignOutFailed by appViewModel.biometricSignOutFailed.collectAsState()
     val biometricSignOutInProgress by appViewModel.biometricSignOutInProgress.collectAsState()
+    val sessionTerminated by appViewModel.sessionTerminated.collectAsState()
     val requiresBiometricUnlock by biometricLockManager.requiresUnlock.collectAsState()
     val activity = LocalActivity.current as? androidx.appcompat.app.AppCompatActivity
     val systemDark = isSystemInDarkTheme()
@@ -113,6 +118,19 @@ fun PledgerRoot(
     val baseRoute = currentRoute.baseRoute()
     val showBottomBar = baseRoute in mainScreenRoutes
     val showOfflineBanner = baseRoute != null && baseRoute !in onboardingRoutes
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val sessionExpiredMessage = stringResource(R.string.session_expired_message)
+    val snackbarScope = rememberCoroutineScope()
+    LaunchedEffect(sessionTerminated) {
+        if (!sessionTerminated) return@LaunchedEffect
+        navController.navigate(Screen.Login.route) {
+            popUpTo(0) { inclusive = true }
+        }
+        // Shown outside this effect: acknowledging the signal flips its key and would cancel it.
+        snackbarScope.launch { snackbarHostState.showSnackbar(sessionExpiredMessage) }
+        appViewModel.onSessionTerminationHandled()
+    }
 
     LaunchedEffect(deepLink, sessionManager.isLoggedIn()) {
         if (deepLink == null || !sessionManager.isLoggedIn()) return@LaunchedEffect
@@ -155,6 +173,7 @@ fun PledgerRoot(
                 showOfflineBanner = showOfflineBanner,
                 navBackStackEntry = navBackStackEntry,
                 isOnline = isOnline,
+                snackbarHostState = snackbarHostState,
             )
             if (showBiometricLock && activity != null) {
                 BiometricLockScreen(
@@ -188,8 +207,10 @@ private fun PledgerAppContent(
     showOfflineBanner: Boolean,
     navBackStackEntry: androidx.navigation.NavBackStackEntry?,
     isOnline: Boolean,
+    snackbarHostState: SnackbarHostState,
 ) {
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             AnimatedVisibility(
                     visible = showBottomBar,

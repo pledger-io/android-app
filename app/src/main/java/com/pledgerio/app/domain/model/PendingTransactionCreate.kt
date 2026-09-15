@@ -4,6 +4,9 @@ import java.time.LocalDate
 
 enum class OutboxStatus {
     PENDING,
+
+    /** Claimed for a send attempt whose outcome is not yet known. */
+    IN_FLIGHT,
     FAILED,
     ;
 

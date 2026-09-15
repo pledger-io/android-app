@@ -75,9 +75,30 @@ class TransactionOutboxRepositoryImpl @Inject constructor(
     override suspend fun flushPending(generation: String): FlushResult {
         if (!sessionGuard.isCurrent(generation)) return FlushResult.AbortedStaleSession
 
+        val unresolved = outboxDao.getByStatus(OutboxStatus.IN_FLIGHT.name)
+        for (entity in unresolved) {
+            if (!sessionGuard.isCurrent(generation)) return FlushResult.AbortedStaleSession
+            when (resolveUnknownOutcome(entity)) {
+                UnknownOutcome.Created -> Unit
+                UnknownOutcome.NotCreated -> requeue(entity)
+                UnknownOutcome.Unresolved -> return FlushResult.StoppedOnNetworkError
+            }
+        }
+
         val pending = outboxDao.getByStatus(OutboxStatus.PENDING.name)
         for (entity in pending) {
             if (!sessionGuard.isCurrent(generation)) return FlushResult.AbortedStaleSession
+
+            // A row is claimed before the POST, so a crash or unknown network outcome leaves it
+            // IN_FLIGHT and the next flush reconciles it against the server instead of re-posting.
+            if (outboxDao.claimForSend(
+                    localId = entity.localId,
+                    pendingStatus = OutboxStatus.PENDING.name,
+                    inFlightStatus = OutboxStatus.IN_FLIGHT.name,
+                ) == 0
+            ) {
+                continue
+            }
 
             val request = entity.toCreateRequest()
             try {
@@ -85,7 +106,9 @@ class TransactionOutboxRepositoryImpl @Inject constructor(
                 if (response.isSuccessful) {
                     val created = response.body()?.toDomain()
                     if (created == null) {
-                        markFailed(entity, "Invalid response while syncing queued transaction")
+                        // The server accepted it; drop the row rather than risk a duplicate.
+                        outboxDao.deleteByLocalId(entity.localId)
+                        runCatching { mutationInvalidator.invalidate(entity.parsedDate()) }
                     } else {
                         transactionDao.insert(TransactionEntity.fromDomain(created))
                         runCatching { mutationInvalidator.invalidate(created.date) }
@@ -94,18 +117,75 @@ class TransactionOutboxRepositoryImpl @Inject constructor(
                 } else if (response.code() in 400..499) {
                     markFailed(entity, "Failed to sync: HTTP ${response.code()}")
                 } else {
-                    // 5xx — leave PENDING for a later cycle
+                    // 5xx — the request was rejected, so it is safe to send again later.
+                    requeue(entity)
                     return FlushResult.StoppedOnNetworkError
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (_: IOException) {
                 return FlushResult.StoppedOnNetworkError
-            } catch (e: Exception) {
-                markFailed(entity, e.message ?: "Failed to sync queued transaction")
+            } catch (_: Exception) {
+                // The outcome of the POST is unknown, so the row stays IN_FLIGHT and is
+                // reconciled against the server on the next flush.
+                continue
             }
         }
         return FlushResult.Completed
+    }
+
+    private enum class UnknownOutcome { Created, NotCreated, Unresolved }
+
+    /**
+     * Determines whether a claimed row reached the server, by looking for a transaction on the
+     * same day with the same accounts, amount and description.
+     */
+    private suspend fun resolveUnknownOutcome(entity: TransactionOutboxEntity): UnknownOutcome {
+        val date = entity.parsedDate()
+        return try {
+            val response = apiService.getTransactions(
+                startDate = date.formatApi(),
+                endDate = date.plusDays(1).formatApi(),
+                accounts = listOf(entity.sourceAccountId, entity.destinationAccountId),
+                numberOfResults = MAX_RECONCILE_RESULTS,
+            )
+            if (!response.isSuccessful) return UnknownOutcome.Unresolved
+            val match = response.body()?.content.orEmpty()
+                .map { it.toDomain() }
+                .firstOrNull { entity.matches(it) }
+                ?: return UnknownOutcome.NotCreated
+            transactionDao.insert(TransactionEntity.fromDomain(match))
+            runCatching { mutationInvalidator.invalidate(match.date) }
+            outboxDao.deleteByLocalId(entity.localId)
+            UnknownOutcome.Created
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            UnknownOutcome.Unresolved
+        }
+    }
+
+    private fun TransactionOutboxEntity.matches(transaction: Transaction): Boolean =
+        transaction.date == parsedDate() &&
+            transaction.description == description &&
+            kotlin.math.abs(transaction.amount - amount) < AMOUNT_TOLERANCE &&
+            transaction.sourceAccountId == sourceAccountId &&
+            transaction.destinationAccountId == destinationAccountId
+
+    private fun TransactionOutboxEntity.parsedDate(): LocalDate = LocalDate.parse(date)
+
+    private suspend fun requeue(entity: TransactionOutboxEntity) {
+        val attempts = entity.attemptCount + 1
+        if (attempts >= MAX_SEND_ATTEMPTS) {
+            markFailed(entity, "Failed to sync after $attempts attempts")
+            return
+        }
+        outboxDao.updateStatus(
+            localId = entity.localId,
+            status = OutboxStatus.PENDING.name,
+            lastError = entity.lastError,
+            attemptCount = attempts,
+        )
     }
 
     private suspend fun markFailed(entity: TransactionOutboxEntity, message: String) {
@@ -204,6 +284,10 @@ class TransactionOutboxRepositoryImpl @Inject constructor(
         )
 
     companion object {
+        private const val MAX_RECONCILE_RESULTS = 200
+        private const val MAX_SEND_ATTEMPTS = 5
+        private const val AMOUNT_TOLERANCE = 0.005
+
         fun encodeTags(tags: List<String>): String =
             tags.joinToString(prefix = "[", postfix = "]") { tag ->
                 "\"${tag.replace("\\", "\\\\").replace("\"", "\\\"")}\""

@@ -4,6 +4,7 @@ import com.pledgerio.app.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.LoginRequest
 import com.pledgerio.app.data.remote.dto.Verify2FactorRequest
 import com.pledgerio.app.domain.model.LoginResult
+import com.pledgerio.app.di.HealthCheckClient
 import com.pledgerio.app.domain.repository.AuthRepository
 import com.pledgerio.app.util.AuthenticatedSessionCoordinator
 import com.pledgerio.app.util.JwtPayload
@@ -22,7 +23,7 @@ class AuthRepositoryImpl @Inject constructor(
     private val sessionManager: SessionManager,
     private val authenticatedSessionCoordinator: AuthenticatedSessionCoordinator,
     private val pendingMfaSession: PendingMfaSession,
-    private val okHttpClient: OkHttpClient,
+    @HealthCheckClient private val healthCheckClient: OkHttpClient,
 ) : AuthRepository {
 
     override suspend fun login(username: String, password: String): Resource<LoginResult> {
@@ -158,7 +159,7 @@ class AuthRepositoryImpl @Inject constructor(
 
             val url = "$normalizedUrl/health"
             val request = Request.Builder().url(url).build()
-            val response = okHttpClient.newCall(request).execute()
+            val response = healthCheckClient.newCall(request).execute()
             response.use { resp ->
                 if (resp.isSuccessful) {
                     Resource.Success(normalizedUrl)

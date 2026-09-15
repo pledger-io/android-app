@@ -98,6 +98,13 @@ class TransactionsViewModel @Inject constructor(
     val uiState: StateFlow<TransactionsUiState> = _uiState.asStateFlow()
 
     private var loadJob: Job? = null
+    private var pageJob: Job? = null
+
+    /**
+     * Identifies the month/filter combination a request was started for. Results carrying an
+     * older generation belong to a query the user already navigated away from and are dropped.
+     */
+    private var queryGeneration: Long = 0L
 
     private val categoryQueryFlow = MutableStateFlow("")
     private val expenseQueryFlow = MutableStateFlow("")
@@ -401,8 +408,12 @@ class TransactionsViewModel @Inject constructor(
 
     private fun loadFirstPage() {
         loadJob?.cancel()
+        pageJob?.cancel()
+        val generation = ++queryGeneration
         loadJob = viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = !_uiState.value.isRefreshing) }
+            _uiState.update {
+                it.copy(isLoading = !it.isRefreshing, isLoadingMore = false)
+            }
 
             val state = _uiState.value
             val startDate = state.currentMonth.atDay(1)
@@ -416,6 +427,7 @@ class TransactionsViewModel @Inject constructor(
                 page = 0,
                 pageSize = PAGE_SIZE,
             )
+            if (generation != queryGeneration) return@launch
             when (result) {
                 is Resource.Success -> {
                     val items = result.data.items
@@ -450,10 +462,11 @@ class TransactionsViewModel @Inject constructor(
 
     private fun loadNextPage() {
         val state = _uiState.value
+        val generation = queryGeneration
         _uiState.update { it.copy(isLoadingMore = true) }
         val nextPage = state.currentPage + 1
 
-        viewModelScope.launch {
+        pageJob = viewModelScope.launch {
             val startDate = state.currentMonth.atDay(1)
             val endDate = state.currentMonth.atEndOfMonth()
 
@@ -465,10 +478,11 @@ class TransactionsViewModel @Inject constructor(
                 page = nextPage,
                 pageSize = PAGE_SIZE,
             )
+            if (generation != queryGeneration) return@launch
             when (result) {
                 is Resource.Success -> {
-                    val allItems = (state.transactions + result.data.items).distinctBy { it.id }
                     _uiState.update {
+                        val allItems = (it.transactions + result.data.items).distinctBy { tx -> tx.id }
                         it.copy(
                             isLoadingMore = false,
                             transactions = allItems,

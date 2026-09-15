@@ -34,8 +34,6 @@ data class AccountFormUiState(
     val currency: String = "EUR",
     val iban: String = "",
     val bic: String = "",
-    val openingBalance: String = "0.00",
-    val openingBalanceError: String? = null,
     val availableCurrencies: List<Currency> = emptyList(),
     val ownedAccountTypes: List<AccountTypeOption> = emptyList(),
     val counterpartyAccountTypes: List<AccountTypeOption> = emptyList(),
@@ -75,6 +73,9 @@ class AccountFormViewModel @Inject constructor(
     val uiState: StateFlow<AccountFormUiState> = _uiState.asStateFlow()
 
     private var pendingAccountSync: Account? = null
+
+    /** Holds server-owned fields of the edited account that the form does not expose. */
+    private var loadedAccount: Account? = null
 
     fun peekPendingAccountSync(): Account? =
         pendingAccountSync.also { pendingAccountSync = null }
@@ -117,30 +118,19 @@ class AccountFormViewModel @Inject constructor(
         _uiState.update { it.copy(bic = bic) }
     }
 
-    fun onOpeningBalanceChanged(balance: String) {
-        _uiState.update { it.copy(openingBalance = balance, openingBalanceError = null) }
-    }
-
     fun save() {
         val state = _uiState.value
+        if (state.isSaving || state.saveSuccess) return
         if (!state.isValid) {
             _uiState.update {
                 it.copy(error = context.getString(R.string.account_error_name_required))
             }
             return
         }
-        val openingBalance = state.openingBalance.toDoubleOrNull()
-            ?.takeIf { it.isFinite() }
-        if (openingBalance == null) {
-            _uiState.update {
-                it.copy(openingBalanceError = context.getString(R.string.account_error_opening_balance))
-            }
-            return
-        }
+        // Claimed before suspending so a second tap in the same frame cannot start a second save.
+        _uiState.update { it.copy(isSaving = true, error = null) }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isSaving = true, error = null, openingBalanceError = null) }
-
             val account = Account(
                 id = accountId ?: 0L,
                 name = state.name.trim(),
@@ -149,7 +139,7 @@ class AccountFormViewModel @Inject constructor(
                 typeCode = state.typeCode,
                 iban = state.iban.trim().ifBlank { null },
                 bic = state.bic.trim().ifBlank { null },
-                openingBalance = openingBalance,
+                openingBalance = loadedAccount?.openingBalance ?: 0.0,
             )
 
             val result = if (state.isEditing) {
@@ -210,6 +200,7 @@ class AccountFormViewModel @Inject constructor(
             when (val result = accountRepository.getAccount(id)) {
                 is Resource.Success -> {
                     val account = result.data
+                    loadedAccount = account
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -219,7 +210,6 @@ class AccountFormViewModel @Inject constructor(
                             currency = account.currency,
                             iban = account.iban ?: "",
                             bic = account.bic ?: "",
-                            openingBalance = account.openingBalance.toString(),
                         )
                     }
                 }

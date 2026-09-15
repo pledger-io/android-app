@@ -234,13 +234,21 @@ class BudgetRepositoryImpl @Inject constructor(
                     val dto = budgetResponse.body()
                         ?: return Resource.Error("Empty budget response")
                     val balanceResponse = apiService.getExpenseBalance(year, month)
-                    val balances = if (balanceResponse.isSuccessful) {
+                    val balancesAvailable = balanceResponse.isSuccessful
+                    val balances = if (balancesAvailable) {
                         balanceResponse.body()?.associateBy { it.id } ?: emptyMap()
                     } else {
                         emptyMap()
                     }
-                    val budgets = mapBudgets(dto.expenses, balances)
-                    replaceBudgetSnapshot(requested, budgets)
+                    // Without balances every budget would report zero spent; reuse the cached
+                    // amounts and leave the month stale so the next read retries.
+                    val cachedSpent = if (balancesAvailable || readRoomBudgetMonth() != requested) {
+                        emptyMap()
+                    } else {
+                        budgetDao.getAll().first().associate { it.id to it.spent }
+                    }
+                    val budgets = mapBudgets(dto.expenses, balances, cachedSpent)
+                    replaceBudgetSnapshot(requested, budgets, markFresh = balancesAvailable)
                     cacheExpenseGroups(dto.expenses)
                     Resource.Success(
                         BudgetListState(
@@ -275,17 +283,22 @@ class BudgetRepositoryImpl @Inject constructor(
         return cacheRefresher.lastSyncedAt(SyncKeys.budgetMonth(month)) != null
     }
 
-    private suspend fun replaceBudgetSnapshot(month: YearMonth, budgets: List<Budget>) {
+    private suspend fun replaceBudgetSnapshot(
+        month: YearMonth,
+        budgets: List<Budget>,
+        markFresh: Boolean,
+    ) {
         val previous = readRoomBudgetMonth()
         if (previous != null && previous != month) {
             cacheRefresher.invalidate(SyncKeys.budgetMonth(previous))
         }
-        budgetDao.deleteAll()
-        if (budgets.isNotEmpty()) {
-            budgetDao.insertAll(budgets.map { BudgetEntity.fromDomain(it) })
-        }
+        budgetDao.replaceAll(budgets.map { BudgetEntity.fromDomain(it) })
         writeRoomBudgetMonth(month)
-        cacheRefresher.markFresh(SyncKeys.budgetMonth(month))
+        if (markFresh) {
+            cacheRefresher.markFresh(SyncKeys.budgetMonth(month))
+        } else {
+            cacheRefresher.invalidate(SyncKeys.budgetMonth(month))
+        }
     }
 
     private suspend fun clearBudgetSnapshot(month: YearMonth) {
@@ -323,11 +336,12 @@ class BudgetRepositoryImpl @Inject constructor(
     private fun mapBudgets(
         expenses: List<ExpenseDto>,
         balances: Map<Long, ExpenseComputedDto>,
+        cachedSpent: Map<Long, Double> = emptyMap(),
     ): List<Budget> = expenses.map { expense ->
         val computed = balances[expense.id]
         // The balance API reports outflows as negative amounts; the UI treats spent as
         // a positive magnitude when computing remaining budget and progress.
-        val spent = computed?.spentAsPositive() ?: 0.0
+        val spent = computed?.spentAsPositive() ?: cachedSpent[expense.id] ?: 0.0
         Budget(
             id = expense.id,
             name = expense.name,
