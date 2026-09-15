@@ -39,6 +39,23 @@ interface TransactionOutboxDao {
         attemptCount: Int,
     )
 
+    /**
+     * Takes ownership of a queued row for a single send attempt. Returns the number of rows
+     * claimed, so a concurrent flush that lost the race skips the row instead of re-posting it.
+     */
+    @Query(
+        """
+        UPDATE transaction_outbox
+        SET status = :inFlightStatus, attemptCount = attemptCount + 1
+        WHERE localId = :localId AND status = :pendingStatus
+        """,
+    )
+    suspend fun claimForSend(
+        localId: String,
+        pendingStatus: String,
+        inFlightStatus: String,
+    ): Int
+
     @Query("DELETE FROM transaction_outbox WHERE localId = :localId")
     suspend fun deleteByLocalId(localId: String)
 

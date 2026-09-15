@@ -216,6 +216,7 @@
     <string name="settings_sign_out_confirm_title">Sign out</string>
     <string name="settings_sign_out_confirm_message">Are you sure you want to sign out?</string>
     <string name="settings_sign_out_failed">Secure sign out could not be completed. Please try again.</string>
+    <string name="session_expired_message">Your session expired. Please sign in again.</string>
     <string name="settings_loading_currencies">Loading currencies…</string>
     <string name="settings_experience_format">%1$s — %2$s</string>
 
@@ -268,7 +269,6 @@
     <string name="account_form_create">Create account</string>
     <string name="account_form_save_changes">Save changes</string>
     <string name="account_error_name_required">Please provide a name</string>
-    <string name="account_error_opening_balance">Enter a valid opening balance</string>
     <string name="account_ownership_personal">Personal</string>
     <string name="account_ownership_joint">Joint</string>
     <string name="account_ownership_checking">Checking account</string>
@@ -457,7 +457,6 @@
     <string name="account_description_label">Description</string>
     <string name="account_iban_label">IBAN</string>
     <string name="account_bic_label">BIC</string>
-    <string name="account_opening_balance_label">Opening balance</string>
     <string name="account_type_label">Account type *</string>
     <string name="account_currency_label">Currency *</string>
 

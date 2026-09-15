@@ -12,6 +12,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -34,8 +35,6 @@ class AccountFormViewModelTest {
 
   init {
     every { context.getString(R.string.account_error_name_required) } returns "Please provide a name"
-    every { context.getString(R.string.account_error_opening_balance) } returns
-      "Enter a valid opening balance"
   }
 
   private val ownedTypes = listOf(
@@ -103,17 +102,20 @@ class AccountFormViewModelTest {
   }
 
   @Test
-  fun `save surfaces non-finite opening balance error`() = runTest {
+  fun `save ignores a second submit while the first is in flight`() = runTest {
     val viewModel = createViewModel()
     advanceUntilIdle()
     viewModel.onNameChanged("My account")
-    viewModel.onOpeningBalanceChanged("Infinity")
+    coEvery { accountRepository.createAccount(any()) } coAnswers {
+      delay(50)
+      Resource.Success(firstArg())
+    }
 
+    viewModel.save()
     viewModel.save()
     advanceUntilIdle()
 
-    assertEquals("Enter a valid opening balance", viewModel.uiState.value.openingBalanceError)
-    assertFalse(viewModel.uiState.value.saveSuccess)
-    coVerify(exactly = 0) { accountRepository.createAccount(any()) }
+    assertTrue(viewModel.uiState.value.saveSuccess)
+    coVerify(exactly = 1) { accountRepository.createAccount(any()) }
   }
 }

@@ -23,4 +23,13 @@ interface BudgetDao {
 
     @Query("DELETE FROM budgets")
     suspend fun deleteAll()
+
+    /** Swaps the cached month in one transaction so readers never observe an empty table. */
+    @Transaction
+    suspend fun replaceAll(budgets: List<BudgetEntity>) {
+        deleteAll()
+        if (budgets.isNotEmpty()) {
+            insertAll(budgets)
+        }
+    }
 }

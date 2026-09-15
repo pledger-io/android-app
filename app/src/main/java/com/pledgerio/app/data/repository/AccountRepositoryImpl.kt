@@ -76,8 +76,11 @@ class AccountRepositoryImpl @Inject constructor(
 
     private suspend fun refreshOwnedAccountsUnlocked(): Resource<List<Account>> {
         return try {
-            val accounts = fetchOwnedAccountsFromApi()
-            if (accounts != null) {
+            val page = fetchOwnedAccountsFromApi()
+            val accounts = page.accounts
+            if (accounts == null) {
+                cachedOwnedOrError("Failed to fetch accounts")
+            } else if (page.complete) {
                 val enriched = enrichWithBalances(accounts)
                 accountDao.replaceByTypes(
                     types = ownedTypesForCacheReplace(enriched),
@@ -85,7 +88,11 @@ class AccountRepositoryImpl @Inject constructor(
                 )
                 Resource.Success(enriched)
             } else {
-                cachedOwnedOrError("Failed to fetch accounts")
+                // A page failed midway: upsert what arrived but never replace the cache with a
+                // truncated list, and report an error so the key is not marked fresh.
+                val enriched = enrichWithBalances(accounts)
+                accountDao.insertAll(enriched.map { AccountEntity.fromDomain(it) })
+                Resource.Error("Failed to fetch all accounts")
             }
         } catch (e: CancellationException) {
             throw e
@@ -177,18 +184,32 @@ class AccountRepositoryImpl @Inject constructor(
      * Owned asset accounts only. Creditor/debtor accounts are loaded on demand via
      * [getCounterpartyAccountsPage] so large counterparty lists stay paginated.
      */
-    private suspend fun fetchOwnedAccountsFromApi(): List<Account>? {
+    private suspend fun fetchOwnedAccountsFromApi(): OwnedAccountsPage {
         val ownedTypes = resolveOwnedTypeCodes()
-        val dtos = when {
+        val page = when {
             ownedTypes.isNotEmpty() -> fetchAccountDtosPaged(types = ownedTypes)
             else -> fetchAccountDtosPaged(types = null)
-        } ?: return null
+        }
+        val dtos = page.dtos ?: return OwnedAccountsPage(accounts = null, complete = false)
 
-        return dtos
-            .map { it.toDomain() }
-            .distinctBy { it.id }
-            .filter { !AccountTypeCatalog.isCounterparty(it.typeCode) }
+        return OwnedAccountsPage(
+            accounts = dtos
+                .map { it.toDomain() }
+                .distinctBy { it.id }
+                .filter { !AccountTypeCatalog.isCounterparty(it.typeCode) },
+            complete = page.complete,
+        )
     }
+
+    private data class OwnedAccountsPage(
+        val accounts: List<Account>?,
+        val complete: Boolean,
+    )
+
+    private data class AccountDtoPage(
+        val dtos: List<com.pledgerio.app.data.remote.dto.AccountDto>?,
+        val complete: Boolean,
+    )
 
     private suspend fun resolveOwnedTypeCodes(): List<String> {
         // Cache-first: returns instantly from Room, refreshes in the background if stale.
@@ -231,9 +252,7 @@ class AccountRepositoryImpl @Inject constructor(
         return (fromApi + fromCache).distinct()
     }
 
-    private suspend fun fetchAccountDtosPaged(
-        types: List<String>?,
-    ): List<com.pledgerio.app.data.remote.dto.AccountDto>? {
+    private suspend fun fetchAccountDtosPaged(types: List<String>?): AccountDtoPage {
         val collected = mutableListOf<com.pledgerio.app.data.remote.dto.AccountDto>()
         var offset = 0
         val pageSize = 200
@@ -244,7 +263,10 @@ class AccountRepositoryImpl @Inject constructor(
                 numberOfResults = pageSize,
             )
             if (!response.isSuccessful) {
-                return if (collected.isEmpty()) null else collected
+                return AccountDtoPage(
+                    dtos = collected.distinctBy { it.id }.ifEmpty { null },
+                    complete = false,
+                )
             }
             val body = response.body()
             val items = body?.content.orEmpty()
@@ -255,7 +277,7 @@ class AccountRepositoryImpl @Inject constructor(
             if (totalRecords == 0L && items.size < pageSize) break
             offset = collected.size
         }
-        return collected.distinctBy { it.id }
+        return AccountDtoPage(dtos = collected.distinctBy { it.id }, complete = true)
     }
 
     /**
@@ -328,12 +350,22 @@ class AccountRepositoryImpl @Inject constructor(
                     account.copy(balance = balance)
                 }
             } else {
-                accounts
+                withCachedBalances(accounts)
             }
         } catch (_: Exception) {
-            accounts
+            withCachedBalances(accounts)
         }
     }
+
+    /**
+     * Keeps the last known balance when the balance endpoint is unavailable, so a failed
+     * balance call does not persist a zero balance over a good cached value.
+     */
+    private suspend fun withCachedBalances(accounts: List<Account>): List<Account> =
+        accounts.map { account ->
+            val cached = accountDao.getById(account.id)?.balance
+            if (cached != null) account.copy(balance = cached) else account
+        }
 
     private suspend fun ownedFromCache(): List<Account> =
         accountDao.getAll().first()

@@ -48,9 +48,11 @@ class WorkManagerOutboxFlushScheduler @Inject constructor(
             )
             .build()
 
+        // Appending keeps a running flush alive; REPLACE cancelled it mid-POST, leaving the
+        // outcome of an in-flight create unknown.
         workManager.enqueueUniqueWork(
             WORK_NAME,
-            ExistingWorkPolicy.REPLACE,
+            ExistingWorkPolicy.APPEND_OR_REPLACE,
             request,
         ).await()
     }

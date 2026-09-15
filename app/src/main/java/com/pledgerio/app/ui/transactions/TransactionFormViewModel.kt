@@ -928,11 +928,11 @@ class TransactionFormViewModel @Inject constructor(
     fun submit() {
         _uiState.update { it.copy(validationAttempted = true) }
         val state = _uiState.value
-        if (!state.canSubmit) return
+        if (!state.canSubmit || state.isSaving || state.saveSuccess) return
+        // Claimed before suspending so a second tap in the same frame cannot start a second save.
+        _uiState.update { it.copy(isSaving = true, error = null) }
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isSaving = true, error = null) }
-
             val sourceName = resolveAccountDisplayName(
                 accountId = state.sourceAccountId,
                 selected = state.sourceSelected,

@@ -2,6 +2,7 @@ package com.pledgerio.app.ui
 
 import com.pledgerio.app.domain.model.ThemeMode
 import com.pledgerio.app.domain.repository.AuthRepository
+import com.pledgerio.app.util.AuthenticatedSessionCoordinator
 import com.pledgerio.app.util.BiometricAuthenticator
 import com.pledgerio.app.util.BiometricLockManager
 import com.pledgerio.app.util.DurableLogoutException
@@ -56,6 +57,9 @@ class AppViewModelTest {
             biometricLockManager = biometricLockManager,
             biometricAuthenticator = mockk<BiometricAuthenticator>(relaxed = true),
             authRepository = authRepository,
+            authenticatedSessionCoordinator = mockk<AuthenticatedSessionCoordinator>(relaxed = true) {
+                every { sessionTerminated } returns MutableStateFlow(false)
+            },
             userPreferences = userPreferences,
             networkMonitor = networkMonitor,
         )

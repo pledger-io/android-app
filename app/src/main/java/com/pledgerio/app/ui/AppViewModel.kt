@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.ThemeMode
 import com.pledgerio.app.domain.repository.AuthRepository
+import com.pledgerio.app.util.AuthenticatedSessionCoordinator
 import com.pledgerio.app.util.BiometricAuthenticator
 import com.pledgerio.app.util.BiometricLockManager
 import com.pledgerio.app.util.NetworkMonitor
@@ -25,10 +26,12 @@ class AppViewModel @Inject constructor(
     val biometricLockManager: BiometricLockManager,
     val biometricAuthenticator: BiometricAuthenticator,
     private val authRepository: AuthRepository,
+    private val authenticatedSessionCoordinator: AuthenticatedSessionCoordinator,
     userPreferences: UserPreferences,
     networkMonitor: NetworkMonitor,
 ) : ViewModel() {
     val themeMode: StateFlow<ThemeMode> = userPreferences.themeMode
+    val sessionTerminated: StateFlow<Boolean> = authenticatedSessionCoordinator.sessionTerminated
     private val _biometricSignOutFailed = MutableStateFlow(false)
     val biometricSignOutFailed: StateFlow<Boolean> = _biometricSignOutFailed.asStateFlow()
     private val _biometricSignOutInProgress = MutableStateFlow(false)
@@ -44,6 +47,10 @@ class AppViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = true,
     )
+
+    fun onSessionTerminationHandled() {
+        authenticatedSessionCoordinator.onSessionTerminationHandled()
+    }
 
     fun signOutFromBiometricLock(onComplete: () -> Unit) {
         viewModelScope.launch {

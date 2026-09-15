@@ -8,6 +8,9 @@ import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -37,6 +40,18 @@ class AuthenticatedSessionCoordinator @Inject constructor(
 ) {
     private val transitionMutex = Mutex()
     private val credentialLock = Any()
+
+    private val _sessionTerminated = MutableStateFlow(false)
+
+    /**
+     * Signals that credentials were invalidated without the user asking for it, so the UI can
+     * leave the authenticated back stack. Cleared through [onSessionTerminationHandled].
+     */
+    val sessionTerminated: StateFlow<Boolean> = _sessionTerminated.asStateFlow()
+
+    fun onSessionTerminationHandled() {
+        _sessionTerminated.value = false
+    }
 
     suspend fun activateSession(
         accessToken: String,
@@ -71,6 +86,8 @@ class AuthenticatedSessionCoordinator @Inject constructor(
                             expiresInSeconds = expiresInSeconds,
                         )
                     }
+
+                    _sessionTerminated.value = false
 
                     try {
                         syncWorkScheduler.schedule(generation)
@@ -221,6 +238,7 @@ class AuthenticatedSessionCoordinator @Inject constructor(
         }
         if (!invalidated) return
         appLog.clear()
+        _sessionTerminated.value = true
 
         applicationScope.launch {
             transitionMutex.withLock {
