@@ -28,6 +28,9 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The obsolete "tools" package the action installs by default no longer resolves.
+          packages: ""
 
       - name: Install Android 16 (API 36) SDK
         run: |
@@ -71,6 +74,9 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The obsolete "tools" package the action installs by default no longer resolves.
+          packages: ""
 
       - name: Enable KVM
         run: |
