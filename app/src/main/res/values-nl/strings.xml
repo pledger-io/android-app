@@ -221,7 +221,37 @@
     <string name="report_type_budget">Budgetprestaties</string>
     <string name="report_type_net_worth">Nettovermogen</string>
     <string name="report_type_balance">Rekeningsaldo</string>
+    <string name="report_type_insights">Inzichten</string>
     <string name="report_income">Inkomsten</string>
+
+    <!-- Spending insights -->
+    <string name="insights_detected_title">Deze maand gedetecteerd</string>
+    <string name="insights_patterns_title">Uitgavenpatronen</string>
+    <string name="insights_empty_title">Niets bijzonders</string>
+    <string name="insights_empty_message">Er zijn deze maand geen afwijkingen of uitgavenpatronen gevonden.</string>
+    <string name="insights_confidence">%1$d%% zeker</string>
+    <string name="insights_uncategorized">Zonder categorie</string>
+    <string name="insights_open_transaction">Open de transactie achter dit inzicht</string>
+    <string name="insights_dashboard_title">Inzichten</string>
+    <plurals name="insights_dashboard_more">
+        <item quantity="one">Nog %1$d inzicht</item>
+        <item quantity="other">Nog %1$d inzichten</item>
+    </plurals>
+    <string name="insight_type_unusual_amount">Ongebruikelijk bedrag</string>
+    <string name="insight_type_unusual_frequency">Ongebruikelijke frequentie</string>
+    <string name="insight_type_unusual_merchant">Ongebruikelijke winkelier</string>
+    <string name="insight_type_unusual_timing">Ongebruikelijk tijdstip</string>
+    <string name="insight_type_potential_duplicate">Mogelijk dubbel</string>
+    <string name="insight_type_budget_exceeded">Budget overschreden</string>
+    <string name="insight_type_spending_spike">Piek in uitgaven</string>
+    <string name="insight_type_unusual_location">Ongebruikelijke locatie</string>
+    <string name="insight_type_unknown">Inzicht</string>
+    <string name="pattern_type_recurring_monthly">Maandelijks terugkerend</string>
+    <string name="pattern_type_recurring_weekly">Wekelijks terugkerend</string>
+    <string name="pattern_type_seasonal">Seizoensgebonden</string>
+    <string name="pattern_type_increasing_trend">Stijgende trend</string>
+    <string name="pattern_type_decreasing_trend">Dalende trend</string>
+    <string name="pattern_type_unknown">Patroon</string>
     <string name="report_expenses">Uitgaven</string>
 
     <!-- Dashboard -->

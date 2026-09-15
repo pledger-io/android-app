@@ -464,6 +464,9 @@ fun NavGraph(
                         launchSingleTop = true
                     }
                 },
+                onTransactionClick = { transactionId ->
+                    navController.navigate(Screen.TransactionDetail.createRoute(transactionId))
+                },
             )
         }
 

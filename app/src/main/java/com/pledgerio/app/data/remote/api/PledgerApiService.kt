@@ -213,6 +213,19 @@ interface PledgerApiService {
         @Body request: BalanceRequest,
     ): Response<List<BalanceDatedDto>>
 
+    // Detected spending insights and patterns
+    @GET("v2/api/detected/insight")
+    suspend fun getDetectedInsights(
+        @Query("year") year: Int,
+        @Query("month") month: Int,
+    ): Response<List<DetectedInsightDto>>
+
+    @GET("v2/api/detected/pattern")
+    suspend fun getDetectedPatterns(
+        @Query("year") year: Int,
+        @Query("month") month: Int,
+    ): Response<List<DetectedPatternDto>>
+
     // Contracts
     @GET("v2/api/contracts")
     suspend fun getContracts(

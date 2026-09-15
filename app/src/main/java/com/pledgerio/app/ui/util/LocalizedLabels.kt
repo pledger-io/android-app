@@ -68,5 +68,6 @@ fun ReportType.localizedTitle(): String = stringResource(
         ReportType.BUDGET -> R.string.report_type_budget
         ReportType.NET_WORTH -> R.string.report_type_net_worth
         ReportType.BALANCE -> R.string.report_type_balance
+        ReportType.INSIGHTS -> R.string.report_type_insights
     },
 )
