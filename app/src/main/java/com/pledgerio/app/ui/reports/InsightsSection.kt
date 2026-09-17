@@ -26,8 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pledgerio.app.R
@@ -39,6 +37,7 @@ import com.pledgerio.app.domain.model.SpendingInsights
 import com.pledgerio.app.domain.model.SpendingPattern
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.theme.ExpenseRed
+import com.pledgerio.app.util.formatDisplay
 
 @Composable
 fun InsightsSection(
@@ -114,10 +113,9 @@ fun InsightRow(
     PledgerCard(
         modifier = modifier
             .fillMaxWidth()
-            .then(if (clickable) Modifier.clickable(onClick = onClick) else Modifier)
             .then(
-                if (openLabel != null) {
-                    Modifier.semantics { contentDescription = openLabel }
+                if (clickable) {
+                    Modifier.clickable(onClickLabel = openLabel, onClick = onClick)
                 } else {
                     Modifier
                 },
@@ -132,20 +130,22 @@ fun InsightRow(
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = insight.type.localizedLabel(),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = insight.severity.tint(),
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Spacer(modifier = Modifier.height(2.dp))
+                if (insight.type != InsightType.UNKNOWN) {
+                    Text(
+                        text = insight.type.localizedLabel(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = insight.severity.tint(),
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                }
                 Text(
                     text = insight.message.ifBlank { insight.type.localizedLabel() },
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 val subtitle = listOfNotNull(
                     insight.category.takeIf { it.isNotBlank() },
-                    insight.detectedDate?.toString(),
+                    insight.detectedDate?.formatDisplay(),
                 ).joinToString(" · ")
                 if (subtitle.isNotBlank()) {
                     Spacer(modifier = Modifier.height(2.dp))
@@ -166,11 +166,16 @@ private fun PatternRow(
     onClick: () -> Unit,
 ) {
     val confidencePercent = (pattern.confidence * 100).toInt().coerceIn(0, 100)
+    val openLabel = stringResource(R.string.reports_open_category, pattern.category)
     PledgerCard(
         modifier = Modifier
             .fillMaxWidth()
             .then(
-                if (pattern.categoryId != null) Modifier.clickable(onClick = onClick) else Modifier,
+                if (pattern.categoryId != null) {
+                    Modifier.clickable(onClickLabel = openLabel, onClick = onClick)
+                } else {
+                    Modifier
+                },
             ),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -187,11 +192,13 @@ private fun PatternRow(
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                 )
-                Text(
-                    text = pattern.type.localizedLabel(),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                if (pattern.type != PatternType.UNKNOWN) {
+                    Text(
+                        text = pattern.type.localizedLabel(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
             Text(
                 text = stringResource(R.string.insights_confidence, confidencePercent),

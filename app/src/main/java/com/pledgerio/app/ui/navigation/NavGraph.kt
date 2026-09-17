@@ -131,6 +131,21 @@ fun NavGraph(
                 onNavigateToSearch = {
                     navController.navigate(Screen.Search.route)
                 },
+                onNavigateToCategory = { categoryId, categoryName, yearMonth ->
+                    navController.navigate(
+                        Screen.Transactions.createRoute(
+                            categoryId = categoryId,
+                            categoryName = categoryName,
+                            year = yearMonth.year,
+                            month = yearMonth.monthValue,
+                        ),
+                    ) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                    }
+                },
                 viewModel = dashboardViewModel,
             )
         }

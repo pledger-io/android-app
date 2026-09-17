@@ -71,6 +71,7 @@ import com.pledgerio.app.ui.reports.InsightRow
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.IncomeGreen
 import com.pledgerio.app.util.formatCurrency
+import java.time.YearMonth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,6 +83,8 @@ fun DashboardScreen(
     onNavigateToAddAccount: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToSearch: () -> Unit = {},
+    onNavigateToCategory: (categoryId: Long, categoryName: String, yearMonth: YearMonth) -> Unit =
+        { _, _, _ -> },
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -181,13 +184,21 @@ fun DashboardScreen(
                                     fontWeight = FontWeight.SemiBold,
                                 )
                             }
-                            items(uiState.insights, key = { insight ->
-                                "${insight.type}-${insight.category}-${insight.detectedDate}-${insight.message}"
-                            }) { insight ->
+                            items(uiState.insights) { insight ->
                                 InsightRow(
                                     insight = insight,
                                     onClick = {
-                                        insight.transactionId?.let(onNavigateToTransaction)
+                                        val transactionId = insight.transactionId
+                                        val categoryId = insight.categoryId
+                                        when {
+                                            transactionId != null ->
+                                                onNavigateToTransaction(transactionId)
+                                            categoryId != null -> onNavigateToCategory(
+                                                categoryId,
+                                                insight.category,
+                                                YearMonth.now(),
+                                            )
+                                        }
                                     },
                                 )
                             }

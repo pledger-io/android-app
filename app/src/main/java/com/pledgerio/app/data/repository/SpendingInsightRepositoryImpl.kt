@@ -14,9 +14,11 @@ import com.pledgerio.app.domain.model.SpendingPattern
 import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.SpendingInsightRepository
 import com.pledgerio.app.util.Resource
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
 import java.time.YearMonth
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -59,17 +61,24 @@ class SpendingInsightRepositoryImpl @Inject constructor(
             )
             cache.put(month, insights)
             Resource.Success(insights)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Could not load insights")
         }
     }
 
     private suspend fun categoryIdsByName(): Map<String, Long> =
-        loadCategories().associate { it.name to it.id }
+        loadCategories().associate { it.name.normalizedCategoryKey() to it.id }
 
     private suspend fun loadCategories(): List<Category> {
-        val cached = runCatching { categoryRepository.observeCategories().first() }
-            .getOrDefault(emptyList())
+        val cached = try {
+            categoryRepository.observeCategories().first()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            emptyList()
+        }
         if (cached.isNotEmpty()) return cached
         return when (val refreshed = categoryRepository.refreshCategories()) {
             is Resource.Success -> refreshed.data
@@ -79,7 +88,7 @@ class SpendingInsightRepositoryImpl @Inject constructor(
 }
 
 private fun DetectedInsightDto.toDomain(categoryIds: Map<String, Long>): SpendingInsight {
-    val categoryName = category.orEmpty()
+    val categoryName = category.orEmpty().trim()
     return SpendingInsight(
         type = InsightType.fromString(type),
         severity = InsightSeverity.fromString(severity),
@@ -88,20 +97,22 @@ private fun DetectedInsightDto.toDomain(categoryIds: Map<String, Long>): Spendin
         score = score,
         detectedDate = detectedDate.toLocalDateOrNull(),
         transactionId = transactionId,
-        categoryId = categoryIds[categoryName],
+        categoryId = categoryIds[categoryName.normalizedCategoryKey()],
     )
 }
 
 private fun DetectedPatternDto.toDomain(categoryIds: Map<String, Long>): SpendingPattern {
-    val categoryName = category.orEmpty()
+    val categoryName = category.orEmpty().trim()
     return SpendingPattern(
         type = PatternType.fromString(type),
         category = categoryName,
         confidence = confidence,
         detectedDate = detectedDate.toLocalDateOrNull(),
-        categoryId = categoryIds[categoryName],
+        categoryId = categoryIds[categoryName.normalizedCategoryKey()],
     )
 }
+
+private fun String.normalizedCategoryKey(): String = trim().lowercase(Locale.ROOT)
 
 private fun String?.toLocalDateOrNull(): LocalDate? =
     this?.let { runCatching { LocalDate.parse(it) }.getOrNull() }

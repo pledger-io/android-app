@@ -14,12 +14,15 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import retrofit2.Response
@@ -101,6 +104,30 @@ class SpendingInsightRepositoryImplTest {
         assertEquals(InsightType.UNKNOWN, insight.type)
         assertEquals(InsightSeverity.INFO, insight.severity)
         assertNull(insight.categoryId)
+    }
+
+    @Test
+    fun `category ids resolve regardless of casing and padding`() = runTest {
+        stubCategories(Category(id = 3, name = "Groceries"))
+        coEvery { apiService.getDetectedInsights(2026, 5) } returns Response.success(
+            listOf(DetectedInsightDto(type = "BUDGET_EXCEEDED", category = " groceries ")),
+        )
+        coEvery { apiService.getDetectedPatterns(2026, 5) } returns Response.success(emptyList())
+
+        val insight = (repository.getInsights(month) as Resource.Success).data.insights.single()
+
+        assertEquals(3L, insight.categoryId)
+        assertEquals("groceries", insight.category)
+    }
+
+    @Test
+    fun `cancellation is not turned into an error result`() = runTest {
+        stubCategories()
+        coEvery { apiService.getDetectedInsights(2026, 5) } throws CancellationException("cancelled")
+
+        assertThrows(CancellationException::class.java) {
+            runBlocking { repository.getInsights(month) }
+        }
     }
 
     @Test
