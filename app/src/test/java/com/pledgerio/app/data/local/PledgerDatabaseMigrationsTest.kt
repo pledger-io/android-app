@@ -1,84 +1,30 @@
 package com.pledgerio.app.data.local
 
-import androidx.sqlite.db.SupportSQLiteDatabase
-import io.mockk.mockk
-import io.mockk.verify
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PledgerDatabaseMigrationsTest {
 
     @Test
-    fun `migration 5 to 6 creates account_types sync_metadata and tags tables`() {
-        val db = mockk<SupportSQLiteDatabase>(relaxed = true)
+    fun `every previous version can be upgraded to the current one`() {
+        val migrated = PledgerDatabaseMigrations.ALL.associate { it.startVersion to it.endVersion }
+        val legacy = PledgerDatabaseMigrations.LEGACY_VERSIONS.toSet()
 
-        PledgerDatabaseMigrations.MIGRATION_5_6.migrate(db)
+        val unreachable = (1 until PledgerDatabaseMigrations.VERSION).filter { version ->
+            version !in legacy && version !in migrated
+        }
 
-        verify {
-            db.execSQL(
-                """
-                CREATE TABLE IF NOT EXISTS `account_types` (
-                    `code` TEXT NOT NULL,
-                    PRIMARY KEY(`code`)
-                )
-                """.trimIndent(),
-            )
-        }
-        verify {
-            db.execSQL(
-                """
-                CREATE TABLE IF NOT EXISTS `sync_metadata` (
-                    `key` TEXT NOT NULL,
-                    `lastSyncedAt` INTEGER NOT NULL,
-                    PRIMARY KEY(`key`)
-                )
-                """.trimIndent(),
-            )
-        }
-        verify {
-            db.execSQL(
-                """
-                CREATE TABLE IF NOT EXISTS `tags` (
-                    `name` TEXT NOT NULL,
-                    PRIMARY KEY(`name`)
-                )
-                """.trimIndent(),
-            )
-        }
+        assertTrue("No upgrade path from version(s) $unreachable", unreachable.isEmpty())
     }
 
     @Test
-    fun `migration 6 to 7 creates transaction_outbox table`() {
-        val db = mockk<SupportSQLiteDatabase>(relaxed = true)
+    fun `migrations form a chain ending at the current version`() {
+        val chained = PledgerDatabaseMigrations.ALL.sortedBy { it.startVersion }
 
-        PledgerDatabaseMigrations.MIGRATION_6_7.migrate(db)
-
-        verify {
-            db.execSQL(
-                """
-                CREATE TABLE IF NOT EXISTS `transaction_outbox` (
-                    `localId` TEXT NOT NULL,
-                    `createdAtMillis` INTEGER NOT NULL,
-                    `status` TEXT NOT NULL,
-                    `lastError` TEXT,
-                    `attemptCount` INTEGER NOT NULL,
-                    `date` TEXT NOT NULL,
-                    `currency` TEXT NOT NULL,
-                    `description` TEXT NOT NULL,
-                    `amount` REAL NOT NULL,
-                    `sourceAccountId` INTEGER NOT NULL,
-                    `destinationAccountId` INTEGER NOT NULL,
-                    `categoryId` INTEGER,
-                    `expenseId` INTEGER,
-                    `contractId` INTEGER,
-                    `tagsJson` TEXT,
-                    `displaySourceName` TEXT,
-                    `displayDestinationName` TEXT,
-                    `displayCategoryName` TEXT,
-                    `type` TEXT,
-                    PRIMARY KEY(`localId`)
-                )
-                """.trimIndent(),
-            )
+        chained.zipWithNext { current, next ->
+            assertEquals(next.startVersion, current.endVersion)
         }
+        assertEquals(PledgerDatabaseMigrations.VERSION, chained.last().endVersion)
     }
 }

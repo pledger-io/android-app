@@ -5,6 +5,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 object PledgerDatabaseMigrations {
 
+    const val VERSION = 7
+
     val MIGRATION_5_6: Migration = object : Migration(5, 6) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL(
@@ -67,4 +69,10 @@ object PledgerDatabaseMigrations {
     }
 
     val ALL: Array<Migration> = arrayOf(MIGRATION_5_6, MIGRATION_6_7)
+
+    /**
+     * Versions predating the exported schemas. The database only mirrors server state, so such
+     * installations are recreated instead of migrated.
+     */
+    val LEGACY_VERSIONS: IntArray = intArrayOf(1, 2, 3, 4)
 }

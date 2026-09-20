@@ -35,6 +35,10 @@ object DatabaseModule {
             "pledger_database"
         )
             .addMigrations(*PledgerDatabaseMigrations.ALL)
+            .fallbackToDestructiveMigrationFrom(
+                dropAllTables = true,
+                *PledgerDatabaseMigrations.LEGACY_VERSIONS,
+            )
             .build()
 
     @Provides
