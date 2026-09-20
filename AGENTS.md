@@ -15,9 +15,9 @@ This is a single native **Android** app (Kotlin, Jetpack Compose, Gradle). See `
 - Debug APK: `./gradlew assembleDebug --no-daemon` → `app/build/outputs/apk/debug/app-debug.apk`.
 - First Gradle invocation downloads all dependencies and can take a few minutes.
 
-### Emulator / running the GUI app — NOT possible in this VM
-- There is **no `/dev/kvm`** (no nested virtualization). x86/x86_64 system images refuse to start ("x86_64 emulation currently requires hardware acceleration"), and the modern emulator (v36+) rejects arm64 images on an x86_64 host ("Avd's CPU Architecture 'arm64' is not supported ... on x86_64 host").
-- Therefore `connectedDebugAndroidTest` (instrumented tests) and interactive app launch cannot run here. Validate changes with unit tests, lint, and `assembleDebug` instead. Instrumented/GUI testing must be done on a machine with KVM (e.g. GitHub Actions `reactivecircus/android-emulator-runner`, as in `.github/workflows/ci.yml`).
+### Emulator / running the GUI app
+- Check `ls -l /dev/kvm` first: when it exists (and the user can read/write it), an x86_64 AVD boots fine, e.g. `system-images;android-35;google_apis;x86_64` launched with `-gpu swiftshader_indirect -no-audio -no-boot-anim`. Instrumented tests and interactive launch work in that case.
+- Without `/dev/kvm` there is no nested virtualization: x86/x86_64 images refuse to start ("x86_64 emulation currently requires hardware acceleration") and the modern emulator (v36+) rejects arm64 images on an x86_64 host. Validate with unit tests, lint, and `assembleDebug`, and leave instrumented/GUI testing to CI (`reactivecircus/android-emulator-runner`, see `.github/workflows/ci.yml`).
 
 ### Runtime dependency
 - The app is a client for a self-hosted **Pledger.io REST backend** (`/v2/api/…`); onboarding asks for a server URL and JWT login. No backend runs in this VM, so end-to-end flows that hit the network can only be validated via the mocked unit tests.
