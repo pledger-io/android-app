@@ -8,6 +8,7 @@ import com.pledgerio.app.data.repository.ContractRepositoryImpl
 import com.pledgerio.app.data.repository.CurrencyRepositoryImpl
 import com.pledgerio.app.data.repository.IssueReportRepositoryImpl
 import com.pledgerio.app.data.repository.ReportRepositoryImpl
+import com.pledgerio.app.data.repository.SpendingInsightRepositoryImpl
 import com.pledgerio.app.data.repository.TagRepositoryImpl
 import com.pledgerio.app.data.repository.TransactionOutboxRepositoryImpl
 import com.pledgerio.app.data.repository.TransactionRepositoryImpl
@@ -24,6 +25,7 @@ import com.pledgerio.app.domain.repository.IssueReportRepository
 import com.pledgerio.app.domain.repository.InvoiceTextReader
 import com.pledgerio.app.domain.repository.ReportRepository
 import com.pledgerio.app.domain.repository.ReportsOverviewStore
+import com.pledgerio.app.domain.repository.SpendingInsightRepository
 import com.pledgerio.app.domain.repository.TagRepository
 import com.pledgerio.app.domain.repository.TransactionOutboxRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
@@ -91,6 +93,12 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindReportsOverviewStore(impl: ReportsOverviewCache): ReportsOverviewStore
+
+    @Binds
+    @Singleton
+    abstract fun bindSpendingInsightRepository(
+        impl: SpendingInsightRepositoryImpl,
+    ): SpendingInsightRepository
 
     @Binds
     @Singleton

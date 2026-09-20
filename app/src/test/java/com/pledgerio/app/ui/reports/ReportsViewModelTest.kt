@@ -2,9 +2,14 @@ package com.pledgerio.app.ui.reports
 
 import com.pledgerio.app.domain.model.IncomeExpenseSummary
 import com.pledgerio.app.domain.model.PartitionAmount
+import com.pledgerio.app.domain.model.InsightSeverity
+import com.pledgerio.app.domain.model.InsightType
 import com.pledgerio.app.domain.model.ReportsOverview
+import com.pledgerio.app.domain.model.SpendingInsight
+import com.pledgerio.app.domain.model.SpendingInsights
 import com.pledgerio.app.domain.repository.ReportRepository
 import com.pledgerio.app.domain.repository.ReportsOverviewStore
+import com.pledgerio.app.domain.repository.SpendingInsightRepository
 import com.pledgerio.app.util.MainDispatcherRule
 import com.pledgerio.app.util.Resource
 import io.mockk.coEvery
@@ -30,6 +35,7 @@ class ReportsViewModelTest {
 
     private val reportRepository = mockk<ReportRepository>()
     private val overviewStore = mockk<ReportsOverviewStore>()
+    private val insightRepository = mockk<SpendingInsightRepository>(relaxed = true)
 
     @Test
     fun `init uses fresh cached overview without network calls`() = runTest {
@@ -43,7 +49,7 @@ class ReportsViewModelTest {
         every { entry.isFresh(month, any(), any()) } returns true
         coEvery { overviewStore.get(month) } returns entry
 
-        val viewModel = ReportsViewModel(reportRepository, overviewStore)
+        val viewModel = ReportsViewModel(reportRepository, overviewStore, insightRepository)
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -62,7 +68,7 @@ class ReportsViewModelTest {
         coEvery { overviewStore.put(any(), any(), any()) } returns Unit
         stubOverviewNetwork(month, prior)
 
-        val viewModel = ReportsViewModel(reportRepository, overviewStore)
+        val viewModel = ReportsViewModel(reportRepository, overviewStore, insightRepository)
         advanceUntilIdle()
         viewModel.refresh()
         advanceUntilIdle()
@@ -88,7 +94,7 @@ class ReportsViewModelTest {
             priorIncome = IncomeExpenseSummary(income = 100.0, expense = 50.0),
         )
 
-        val viewModel = ReportsViewModel(reportRepository, overviewStore)
+        val viewModel = ReportsViewModel(reportRepository, overviewStore, insightRepository)
         advanceUntilIdle()
 
         val overview = viewModel.uiState.value.overview
@@ -116,7 +122,7 @@ class ReportsViewModelTest {
         coEvery { reportRepository.getBudgetPerformance(month) } returns Resource.Success(emptyList())
         coEvery { reportRepository.getNetWorthTrend(month) } returns Resource.Success(emptyList())
 
-        val viewModel = ReportsViewModel(reportRepository, overviewStore)
+        val viewModel = ReportsViewModel(reportRepository, overviewStore, insightRepository)
         advanceUntilIdle()
 
         val overview = viewModel.uiState.value.overview
@@ -125,6 +131,44 @@ class ReportsViewModelTest {
         assertNull(overview.priorIncomeExpense)
         assertNull(overview.netCashFlowDelta)
         assertNull(viewModel.uiState.value.error)
+    }
+
+    @Test
+    fun `selecting insights loads them and refresh forces a network fetch`() = runTest {
+        val month = YearMonth.now()
+        val entry = mockk<ReportsOverviewStore.Entry>()
+        every { entry.overview } returns ReportsOverview(
+            incomeExpense = IncomeExpenseSummary(income = 0.0, expense = 0.0),
+        )
+        every { entry.fetchedAtMillis } returns 1234L
+        every { entry.isFresh(month, any(), any()) } returns true
+        coEvery { overviewStore.get(month) } returns entry
+        val insights = SpendingInsights(
+            insights = listOf(
+                SpendingInsight(
+                    type = InsightType.BUDGET_EXCEEDED,
+                    severity = InsightSeverity.WARNING,
+                    category = "Groceries",
+                    message = "Over budget",
+                    score = 0.6,
+                    detectedDate = null,
+                ),
+            ),
+        )
+        coEvery { insightRepository.getInsights(month, any()) } returns Resource.Success(insights)
+
+        val viewModel = ReportsViewModel(reportRepository, overviewStore, insightRepository)
+        advanceUntilIdle()
+        viewModel.selectReportType(ReportType.INSIGHTS)
+        advanceUntilIdle()
+
+        assertEquals(insights, viewModel.uiState.value.insights)
+        coVerify(exactly = 1) { insightRepository.getInsights(month, false) }
+
+        viewModel.refresh()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { insightRepository.getInsights(month, true) }
     }
 
     private fun stubOverviewNetwork(

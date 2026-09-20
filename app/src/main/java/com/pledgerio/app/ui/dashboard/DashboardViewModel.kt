@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.FinanceExperienceMode
+import com.pledgerio.app.domain.model.SpendingInsight
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.repository.CurrencyRepository
+import com.pledgerio.app.domain.repository.SpendingInsightRepository
 import com.pledgerio.app.domain.usecase.GetDashboardDataUseCase
 import com.pledgerio.app.util.Resource
 import com.pledgerio.app.util.UserPreferences
@@ -16,7 +18,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.YearMonth
 import javax.inject.Inject
+
+/** Number of detected insights surfaced on the dashboard; the rest live in Reports. */
+private const val DASHBOARD_INSIGHT_LIMIT = 3
 
 data class DashboardUiState(
     val isLoading: Boolean = true,
@@ -29,6 +35,8 @@ data class DashboardUiState(
     val financeExperienceMode: FinanceExperienceMode = FinanceExperienceMode.GUIDED,
     val accounts: List<Account> = emptyList(),
     val recentTransactions: List<Transaction> = emptyList(),
+    val insights: List<SpendingInsight> = emptyList(),
+    val additionalInsightCount: Int = 0,
     val lastUpdatedAtMillis: Long? = null,
 )
 
@@ -37,11 +45,13 @@ class DashboardViewModel @Inject constructor(
     private val getDashboardDataUseCase: GetDashboardDataUseCase,
     private val currencyRepository: CurrencyRepository,
     private val userPreferences: UserPreferences,
+    private val spendingInsightRepository: SpendingInsightRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
     private var dashboardJob: Job? = null
+    private var insightsJob: Job? = null
 
     init {
         viewModelScope.launch { currencyRepository.sync() }
@@ -56,11 +66,13 @@ class DashboardViewModel @Inject constructor(
             }
         }
         loadDashboard()
+        loadInsights(forceRefresh = false)
     }
 
     fun refresh() {
         _uiState.update { it.copy(isRefreshing = true) }
         loadDashboard()
+        loadInsights(forceRefresh = true)
     }
 
     /** Reload recent transactions when returning to the dashboard (e.g. after creating one). */
@@ -73,6 +85,25 @@ class DashboardViewModel @Inject constructor(
             state.copy(
                 recentTransactions = state.recentTransactions.filterNot { it.id == id },
             )
+        }
+    }
+
+    /**
+     * Insights load independently of the rest of the dashboard: they are supplementary, so a
+     * failure leaves the previously shown insights (if any) in place instead of failing the screen.
+     */
+    private fun loadInsights(forceRefresh: Boolean) {
+        insightsJob?.cancel()
+        insightsJob = viewModelScope.launch {
+            val result = spendingInsightRepository.getInsights(YearMonth.now(), forceRefresh)
+            if (result !is Resource.Success) return@launch
+            val highlights = result.data.highlights(DASHBOARD_INSIGHT_LIMIT)
+            _uiState.update {
+                it.copy(
+                    insights = highlights,
+                    additionalInsightCount = result.data.insights.size - highlights.size,
+                )
+            }
         }
     }
 

@@ -5,6 +5,7 @@ import androidx.room.withTransaction
 import coil.Coil
 import coil.annotation.ExperimentalCoilApi
 import com.pledgerio.app.data.cache.ReportsOverviewCache
+import com.pledgerio.app.data.cache.SpendingInsightsCache
 import com.pledgerio.app.util.CurrencyProvider
 import com.pledgerio.app.util.TransactionTemplateStore
 import com.pledgerio.app.util.UserPreferences
@@ -27,6 +28,7 @@ class LocalDataCleaner @Inject constructor(
     private val userPreferences: Lazy<UserPreferences>,
     private val transactionTemplateStore: Lazy<TransactionTemplateStore>,
     private val reportsOverviewCache: ReportsOverviewCache,
+    private val spendingInsightsCache: SpendingInsightsCache,
 ) {
 
     @OptIn(ExperimentalCoilApi::class)
@@ -39,6 +41,7 @@ class LocalDataCleaner @Inject constructor(
             userPreferences.get().clearSessionData()
             transactionTemplateStore.get().clearAll()
             reportsOverviewCache.clearAll()
+            spendingInsightsCache.clearAll()
             runCatching {
                 val loader = Coil.imageLoader(context)
                 loader.memoryCache?.clear()

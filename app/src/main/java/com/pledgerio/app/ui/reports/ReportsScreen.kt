@@ -43,6 +43,7 @@ enum class ReportType {
     BUDGET,
     NET_WORTH,
     BALANCE,
+    INSIGHTS,
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,6 +53,7 @@ fun ReportsScreen(
     onCategoryClick: (categoryId: Long, categoryName: String, yearMonth: YearMonth) -> Unit = { _, _, _ -> },
     onAccountClick: (accountId: Long) -> Unit = {},
     onBudgetExpenseClick: (expenseId: Long, expenseName: String, yearMonth: YearMonth) -> Unit = { _, _, _ -> },
+    onTransactionClick: (transactionId: Long) -> Unit = {},
     viewModel: ReportsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -114,7 +116,8 @@ fun ReportsScreen(
                         uiState.incomeExpense == null &&
                         uiState.partitions.isEmpty() &&
                         uiState.budgetItems.isEmpty() &&
-                        uiState.netWorthTrend.isEmpty() -> {
+                        uiState.netWorthTrend.isEmpty() &&
+                        uiState.insights == null -> {
                         ErrorScreen(
                             message = uiState.error ?: "",
                             onRetry = viewModel::refresh,
@@ -184,6 +187,35 @@ fun ReportsScreen(
                                     }
                                     ReportType.NET_WORTH -> {
                                         NetWorthSection(points = uiState.netWorthTrend)
+                                    }
+                                    ReportType.INSIGHTS -> {
+                                        uiState.insights?.let { insights ->
+                                            InsightsSection(
+                                                insights = insights,
+                                                onInsightClick = { insight ->
+                                                    val transactionId = insight.transactionId
+                                                    val categoryId = insight.categoryId
+                                                    when {
+                                                        transactionId != null ->
+                                                            onTransactionClick(transactionId)
+                                                        categoryId != null -> onCategoryClick(
+                                                            categoryId,
+                                                            insight.category,
+                                                            uiState.currentMonth,
+                                                        )
+                                                    }
+                                                },
+                                                onPatternClick = { pattern ->
+                                                    val categoryId = pattern.categoryId
+                                                        ?: return@InsightsSection
+                                                    onCategoryClick(
+                                                        categoryId,
+                                                        pattern.category,
+                                                        uiState.currentMonth,
+                                                    )
+                                                },
+                                            )
+                                        }
                                     }
                                 }
                             }

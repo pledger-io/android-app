@@ -226,7 +226,38 @@
     <string name="report_type_budget">Budget performance</string>
     <string name="report_type_net_worth">Net worth</string>
     <string name="report_type_balance">Account balance</string>
+    <string name="report_type_insights">Insights</string>
     <string name="report_income">Income</string>
+
+    <!-- Spending insights -->
+    <string name="insights_detected_title">Detected this month</string>
+    <string name="insights_patterns_title">Spending patterns</string>
+    <string name="insights_empty_title">Nothing unusual</string>
+    <string name="insights_empty_message">No anomalies or spending patterns were detected for this month.</string>
+    <string name="insights_confidence">%1$d%% sure</string>
+    <string name="insights_uncategorized">Uncategorized</string>
+    <string name="insights_open_transaction">Open the transaction behind this insight</string>
+    <string name="insights_dashboard_title">Insights</string>
+    <plurals name="insights_dashboard_more">
+        <item quantity="one">%1$d more insight</item>
+        <item quantity="other">%1$d more insights</item>
+    </plurals>
+    <string name="insight_type_unusual_amount">Unusual amount</string>
+    <string name="insight_type_unusual_frequency">Unusual frequency</string>
+    <string name="insight_type_unusual_merchant">Unusual merchant</string>
+    <string name="insight_type_unusual_timing">Unusual timing</string>
+    <string name="insight_type_potential_duplicate">Possible duplicate</string>
+    <string name="insight_type_budget_exceeded">Budget exceeded</string>
+    <string name="insight_type_spending_spike">Spending spike</string>
+    <string name="insight_type_unusual_location">Unusual location</string>
+    <string name="insight_type_unknown">Insight</string>
+    <string name="pattern_type_recurring_monthly">Recurs monthly</string>
+    <string name="pattern_type_recurring_weekly">Recurs weekly</string>
+    <string name="pattern_type_seasonal">Seasonal</string>
+    <string name="pattern_type_increasing_trend">Increasing trend</string>
+    <string name="pattern_type_decreasing_trend">Decreasing trend</string>
+    <string name="pattern_type_unknown">Pattern</string>
+
     <string name="report_expenses">Expenses</string>
 
     <!-- Dashboard -->

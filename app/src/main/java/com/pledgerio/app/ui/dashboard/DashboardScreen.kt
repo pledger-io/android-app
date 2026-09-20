@@ -53,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.R
@@ -66,9 +67,11 @@ import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.ui.theme.PledgerThemeExt
+import com.pledgerio.app.ui.reports.InsightRow
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.IncomeGreen
 import com.pledgerio.app.util.formatCurrency
+import java.time.YearMonth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,6 +83,8 @@ fun DashboardScreen(
     onNavigateToAddAccount: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToSearch: () -> Unit = {},
+    onNavigateToCategory: (categoryId: Long, categoryName: String, yearMonth: YearMonth) -> Unit =
+        { _, _, _ -> },
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -168,6 +173,48 @@ fun DashboardScreen(
                                 expense = uiState.monthlyExpense,
                                 currency = uiState.currency,
                             )
+                        }
+
+                        // Detected spending insights
+                        if (uiState.insights.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = stringResource(R.string.insights_dashboard_title),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                            items(uiState.insights) { insight ->
+                                InsightRow(
+                                    insight = insight,
+                                    onClick = {
+                                        val transactionId = insight.transactionId
+                                        val categoryId = insight.categoryId
+                                        when {
+                                            transactionId != null ->
+                                                onNavigateToTransaction(transactionId)
+                                            categoryId != null -> onNavigateToCategory(
+                                                categoryId,
+                                                insight.category,
+                                                YearMonth.now(),
+                                            )
+                                        }
+                                    },
+                                )
+                            }
+                            if (uiState.additionalInsightCount > 0) {
+                                item {
+                                    Text(
+                                        text = pluralStringResource(
+                                            R.plurals.insights_dashboard_more,
+                                            uiState.additionalInsightCount,
+                                            uiState.additionalInsightCount,
+                                        ),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
                         }
 
                         // Recent Transactions Header

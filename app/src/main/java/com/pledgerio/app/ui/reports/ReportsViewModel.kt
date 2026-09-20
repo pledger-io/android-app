@@ -7,8 +7,10 @@ import com.pledgerio.app.domain.model.DatedAmount
 import com.pledgerio.app.domain.model.IncomeExpenseSummary
 import com.pledgerio.app.domain.model.PartitionAmount
 import com.pledgerio.app.domain.model.ReportsOverview
+import com.pledgerio.app.domain.model.SpendingInsights
 import com.pledgerio.app.domain.repository.ReportRepository
 import com.pledgerio.app.domain.repository.ReportsOverviewStore
+import com.pledgerio.app.domain.repository.SpendingInsightRepository
 import com.pledgerio.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -37,6 +39,7 @@ data class ReportsUiState(
     val partitions: List<PartitionAmount> = emptyList(),
     val budgetItems: List<BudgetPerformanceItem> = emptyList(),
     val netWorthTrend: List<DatedAmount> = emptyList(),
+    val insights: SpendingInsights? = null,
     val lastUpdatedAtMillis: Long? = null,
 ) {
     val monthLabel: String get() = currentMonth.format(MONTH_FORMATTER)
@@ -46,6 +49,7 @@ data class ReportsUiState(
 class ReportsViewModel @Inject constructor(
     private val reportRepository: ReportRepository,
     private val overviewCache: ReportsOverviewStore,
+    private val spendingInsightRepository: SpendingInsightRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReportsUiState())
@@ -93,7 +97,7 @@ class ReportsViewModel @Inject constructor(
                     if (!state.isRefreshing) {
                         _uiState.update { it.copy(isLoading = true, error = null) }
                     }
-                    loadSingleReport(state.selectedType, state.currentMonth)
+                    loadSingleReport(state.selectedType, state.currentMonth, state.isRefreshing)
                 }
             }
         }
@@ -192,6 +196,7 @@ class ReportsViewModel @Inject constructor(
                 partitions = emptyList(),
                 budgetItems = emptyList(),
                 netWorthTrend = emptyList(),
+                insights = null,
                 lastUpdatedAtMillis = lastUpdatedAtMillis,
             )
         }
@@ -200,6 +205,7 @@ class ReportsViewModel @Inject constructor(
     private suspend fun loadSingleReport(
         type: ReportType,
         month: YearMonth,
+        forceRefresh: Boolean,
     ) {
         when (type) {
             ReportType.INCOME_EXPENSE -> applySingleReportResult(
@@ -227,6 +233,11 @@ class ReportsViewModel @Inject constructor(
             ) { cleared, data ->
                 cleared.copy(netWorthTrend = data.inMonth(month))
             }
+            ReportType.INSIGHTS -> applySingleReportResult(
+                result = spendingInsightRepository.getInsights(month, forceRefresh),
+            ) { cleared, data ->
+                cleared.copy(insights = data)
+            }
             ReportType.OVERVIEW -> return
         }
     }
@@ -242,6 +253,7 @@ class ReportsViewModel @Inject constructor(
             partitions = emptyList(),
             budgetItems = emptyList(),
             netWorthTrend = emptyList(),
+            insights = null,
         )
     }
 
