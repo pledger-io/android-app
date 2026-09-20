@@ -40,7 +40,7 @@ import com.pledgerio.app.data.local.entity.TransactionOutboxEntity
         SyncMetadataEntity::class,
         TransactionOutboxEntity::class,
     ],
-    version = 7,
+    version = PledgerDatabaseMigrations.VERSION,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)
