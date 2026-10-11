@@ -2,6 +2,8 @@ package com.pledgerio.app.data.repository
 
 import com.pledgerio.app.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.BalanceDatedDto
+import com.pledgerio.app.data.remote.dto.BalanceDto
+import com.pledgerio.app.data.remote.dto.BalanceRequest
 import com.pledgerio.app.data.remote.dto.BalancePartitionedDto
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.Budget
@@ -77,10 +79,11 @@ class ReportRepositoryImplTest {
         )
         coEvery { accountRepository.refreshOwnedAccounts() } returns Resource.Success(owned)
         coEvery {
-            apiService.getPartitionedBalance("account", any())
-        } returns Response.success(
-            listOf(BalancePartitionedDto(balance = 100.0, partition = "Checking")),
-        )
+            apiService.getBalance(match<BalanceRequest> { it.accounts == listOf(1L) })
+        } returns Response.success(BalanceDto(balance = -100.0))
+        coEvery {
+            apiService.getBalance(match<BalanceRequest> { it.accounts == listOf(2L) })
+        } returns Response.success(BalanceDto(balance = 0.0))
 
         val result = repository.getAccountBalances(month)
 
@@ -89,6 +92,7 @@ class ReportRepositoryImplTest {
         assertEquals(2, partitions.size)
         assertEquals("Checking", partitions[0].label)
         assertEquals(1L, partitions[0].id)
+        assertEquals(100.0, partitions[0].amount, 0.01)
         assertEquals("Savings", partitions[1].label)
         assertEquals(2L, partitions[1].id)
         assertEquals(0.0, partitions[1].amount, 0.01)

@@ -18,6 +18,9 @@ import com.pledgerio.app.domain.model.PagedAccounts
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.util.Resource
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -330,13 +333,47 @@ class AccountRepositoryImpl @Inject constructor(
 
     private suspend fun enrichWithBalances(accounts: List<Account>): List<Account> {
         if (accounts.isEmpty()) return accounts
+        val (counterparties, owned) = accounts.partition { AccountTypeCatalog.isCounterparty(it.typeCode) }
+        val enrichedById = (enrichOwnedWithBalances(owned) + enrichCounterpartiesWithBalances(counterparties))
+            .associateBy { it.id }
+        return accounts.map { enrichedById[it.id] ?: it }
+    }
+
+    /**
+     * One `POST v2/api/balance` per account id, mirroring the web UI: the partitioned endpoint
+     * keys results by name and some server versions omit owned accounts from it entirely.
+     */
+    private suspend fun enrichOwnedWithBalances(accounts: List<Account>): List<Account> {
+        if (accounts.isEmpty()) return accounts
+        return coroutineScope {
+            accounts.map { account ->
+                async {
+                    val balance = try {
+                        val response = apiService.getBalance(
+                            BalanceRequest(
+                                range = ownedBalanceRange(account),
+                                accounts = listOf(account.id),
+                                currency = account.currency,
+                            ),
+                        )
+                        if (response.isSuccessful) response.body()?.balance else null
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (_: Exception) {
+                        null
+                    }
+                    if (balance != null) account.copy(balance = balance) else withCachedBalances(listOf(account)).first()
+                }
+            }.awaitAll()
+        }
+    }
+
+    private suspend fun enrichCounterpartiesWithBalances(accounts: List<Account>): List<Account> {
+        if (accounts.isEmpty()) return accounts
 
         return try {
             val balanceRequest = BalanceRequest(
-                range = DateRangeDto(
-                    startDate = "1970-01-01",
-                    endDate = LocalDate.now().plusDays(1).toString(),
-                ),
+                range = allTimeRange(),
                 accounts = accounts.map { it.id },
             )
             val balanceResponse = apiService.getPartitionedBalance("account", balanceRequest)
@@ -352,10 +389,27 @@ class AccountRepositoryImpl @Inject constructor(
             } else {
                 withCachedBalances(accounts)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             withCachedBalances(accounts)
         }
     }
+
+    /** Like the web UI, include transactions up to the account's last (possibly future-dated) one. */
+    private fun ownedBalanceRange(account: Account): DateRangeDto {
+        val tomorrow = LocalDate.now().plusDays(1)
+        val afterLastActivity = account.lastActivity
+            ?.let { runCatching { LocalDate.parse(it.take(10)) }.getOrNull() }
+            ?.plusDays(1)
+        val end = if (afterLastActivity != null && afterLastActivity.isAfter(tomorrow)) afterLastActivity else tomorrow
+        return DateRangeDto(startDate = "1970-01-01", endDate = end.toString())
+    }
+
+    private fun allTimeRange() = DateRangeDto(
+        startDate = "1970-01-01",
+        endDate = LocalDate.now().plusDays(1).toString(),
+    )
 
     /**
      * Keeps the last known balance when the balance endpoint is unavailable, so a failed
