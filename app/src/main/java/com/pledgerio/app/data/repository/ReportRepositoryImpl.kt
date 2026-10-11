@@ -13,6 +13,9 @@ import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ReportRepository
 import com.pledgerio.app.util.Resource
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import java.time.YearMonth
 import javax.inject.Inject
@@ -77,24 +80,24 @@ class ReportRepositoryImpl @Inject constructor(
                     if (accounts.isEmpty()) {
                         return Resource.Success(emptyList())
                     }
-                    val response = apiService.getPartitionedBalance(
-                        partition = "account",
-                        request = BalanceRequest(
-                            range = monthRange(month),
-                            //accounts = accounts.map { it.id },
-                        ),
-                    )
-                    if (!response.isSuccessful) {
-                        return Resource.Error("Failed to load report: HTTP ${response.code()}")
+                    val range = monthRange(month)
+                    val responses = coroutineScope {
+                        accounts.map { account ->
+                            async {
+                                apiService.getBalance(
+                                    BalanceRequest(range = range, accounts = listOf(account.id)),
+                                )
+                            }
+                        }.awaitAll()
                     }
-                    val balancesByName = response.body()
-                        ?.associateBy({ it.partition }, { it.balance })
-                        ?: emptyMap()
-                    val partitions = accounts
-                        .map { account ->
+                    responses.firstOrNull { !it.isSuccessful }?.let { failed ->
+                        return Resource.Error("Failed to load report: HTTP ${failed.code()}")
+                    }
+                    val partitions = accounts.zip(responses)
+                        .map { (account, response) ->
                             PartitionAmount(
                                 label = account.name,
-                                amount = kotlin.math.abs(balancesByName[account.name] ?: 0.0),
+                                amount = kotlin.math.abs(response.body()?.balance ?: 0.0),
                                 id = account.id,
                             )
                         }

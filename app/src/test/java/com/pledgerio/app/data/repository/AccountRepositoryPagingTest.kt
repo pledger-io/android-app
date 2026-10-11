@@ -7,7 +7,9 @@ import com.pledgerio.app.data.local.entity.AccountEntity
 import com.pledgerio.app.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.AccountDto
 import com.pledgerio.app.data.remote.dto.AccountPagedResponse
+import com.pledgerio.app.data.remote.dto.BalanceDto
 import com.pledgerio.app.data.remote.dto.BalancePartitionedDto
+import com.pledgerio.app.data.remote.dto.BalanceRequest
 import com.pledgerio.app.data.remote.dto.PageInfo
 import com.pledgerio.app.domain.model.AccountTypeCodes
 import com.pledgerio.app.util.FakeSyncMetadataDao
@@ -22,6 +24,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import okhttp3.ResponseBody.Companion.toResponseBody
 import retrofit2.Response
 
 class AccountRepositoryPagingTest {
@@ -113,9 +116,7 @@ class AccountRepositoryPagingTest {
                 info = PageInfo(records = 2, pages = 1, pageSize = 200),
             ),
         )
-        coEvery {
-            apiService.getPartitionedBalance("account", any())
-        } returns Response.success(emptyList())
+        coEvery { apiService.getBalance(any()) } returns Response.success(BalanceDto(balance = 0.0))
         coEvery { accountDao.replaceByTypes(any(), any()) } returns Unit
 
         val result = repository.refreshOwnedAccounts()
@@ -164,9 +165,7 @@ class AccountRepositoryPagingTest {
                 info = PageInfo(records = 215, pages = 2, pageSize = 15),
             ),
         )
-        coEvery {
-            apiService.getPartitionedBalance("account", any())
-        } returns Response.success(emptyList())
+        coEvery { apiService.getBalance(any()) } returns Response.success(BalanceDto(balance = 0.0))
         coEvery { accountDao.replaceByTypes(any(), any()) } returns Unit
 
         val result = repository.refreshOwnedAccounts()
@@ -180,5 +179,46 @@ class AccountRepositoryPagingTest {
                 numberOfResults = 200,
             )
         }
+    }
+
+    @Test
+    fun `refreshOwnedAccounts loads each owned balance by account id`() = runTest {
+        coEvery { accountTypeDao.getAllCodes() } returns listOf("default", "savings")
+        coEvery {
+            apiService.getAccounts(
+                type = listOf("default", "savings"),
+                offset = 0,
+                numberOfResults = 200,
+            )
+        } returns Response.success(
+            AccountPagedResponse(
+                content = listOf(
+                    AccountDto(id = 1, name = "Checking", type = "default"),
+                    AccountDto(id = 2, name = "Savings", type = "savings"),
+                    AccountDto(id = 3, name = "Savings", type = "savings"),
+                ),
+                info = PageInfo(records = 3, pages = 1, pageSize = 200),
+            ),
+        )
+        coEvery {
+            apiService.getBalance(match<BalanceRequest> { it.accounts == listOf(1L) })
+        } returns Response.success(BalanceDto(balance = 1250.5))
+        coEvery {
+            apiService.getBalance(match<BalanceRequest> { it.accounts == listOf(2L) })
+        } returns Response.success(BalanceDto(balance = 300.0))
+        coEvery {
+            apiService.getBalance(match<BalanceRequest> { it.accounts == listOf(3L) })
+        } returns Response.error(500, "".toResponseBody())
+        coEvery { accountDao.getById(3) } returns AccountEntity(id = 3, name = "Savings", type = "savings", balance = 42.0)
+        coEvery { accountDao.replaceByTypes(any(), any()) } returns Unit
+
+        val result = repository.refreshOwnedAccounts()
+
+        assertTrue(result is Resource.Success)
+        val balances = (result as Resource.Success).data.associate { it.id to it.balance }
+        assertEquals(1250.5, balances.getValue(1), 0.001)
+        assertEquals(300.0, balances.getValue(2), 0.001)
+        assertEquals(42.0, balances.getValue(3), 0.001)
+        coVerify(exactly = 0) { apiService.getPartitionedBalance(any(), any()) }
     }
 }
