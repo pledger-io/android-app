@@ -26,7 +26,7 @@ OIDC AppAuth remains a separate concern (especially server-returned `client-secr
    `UserSessionRepository`.
 5. Defer OIDC login to a later PR.
 
-Design details: [mfa-enroll-verify.md](../design/mfa-enroll-verify.md).
+Design details: [mfa-enroll-verify.md](../feature/mfa/mfa-enroll-verify.md).
 
 ## Consequences
 

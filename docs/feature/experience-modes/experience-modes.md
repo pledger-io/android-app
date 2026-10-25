@@ -54,7 +54,7 @@ This mode system ensures the same feature set is available while changing only d
 
 ## Next usability iterations
 
-See the full prioritized backlog in [USABILITY_IMPROVEMENT_PLAN.md](USABILITY_IMPROVEMENT_PLAN.md) and [ADR-016](adr/016-usability-improvement-program.md).
+See the full prioritized backlog in [usability-improvement-plan.md](../usability/usability-improvement-plan.md) and [ADR-016](../../adr/016-usability-improvement-program.md).
 
 Planned extensions for experience modes:
 

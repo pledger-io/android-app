@@ -1,5 +1,7 @@
 # Invoice and bill scan to transaction: design plan
 
+> Historical design / progress record. Some problem statements describe the pre-implementation state. For current behavior and boundaries, see [Features](../../FEATURES.md), [C4 architecture](../../ARCHITECTURE.md), and [Constraints](../../CONSTRAINTS.md).
+
 This document proposes an end-to-end flow for scanning invoices/bills, extracting text, and turning that into a prefilled transaction.
 
 ## 1) Goal

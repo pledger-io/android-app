@@ -50,4 +50,4 @@ The Pledger Android app supports **English** (default), **Dutch**, and **German*
 
 ## Related
 
-- [ADR-018: App localization](adr/018-app-localization.md)
+- [ADR-018: App localization](../../adr/018-app-localization.md)

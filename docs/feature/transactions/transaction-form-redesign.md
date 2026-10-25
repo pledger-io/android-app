@@ -1,9 +1,11 @@
 # Transaction form redesign
 
+> Historical design / progress record. Some problem statements describe the pre-implementation state. For current behavior and boundaries, see [Features](../../FEATURES.md), [C4 architecture](../../ARCHITECTURE.md), and [Constraints](../../CONSTRAINTS.md).
+
 Design and implementation plan for the **New Transaction** screen (`TransactionFormScreen` / `TransactionFormViewModel`). Goal: a clearer, more attractive flow that matches how people think about money (income, spending, transfers) while keeping Pledger’s account-type rules intact.
 
 **Status:** Phase 1–3 implemented (templates, tags, split). Experience-mode defaults shipped (Guided/Power) for novice + advanced workflows.  
-**Related:** [Architecture — transaction create form](ARCHITECTURE.md#transaction-create-form), [Account types](ACCOUNTS.md)
+**Related:** [Architecture — transaction create form](../../ARCHITECTURE.md#transaction-create-form), [Account types](../accounts/accounts.md)
 
 ---
 

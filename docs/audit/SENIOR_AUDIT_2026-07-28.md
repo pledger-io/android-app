@@ -62,7 +62,7 @@ This document is the remediation backlog. Issues are grouped into tasks for seni
 
 ## Medium / Low (backlog — tasked, not started this cycle)
 
-See [TASK-BACKLOG](#task-backlog--mediumlow) for the full list. Notable items: CancellationException swallowing, Moshi on domain `TransactionTemplate`, Resource living in `util`, biometric lock is UI-only, MFA JWT fail-open, cleartext on distributed debug APKs, localization debt, lint baseline burn-down, docs drift.
+See [TASK-BACKLOG](#task-backlog-mediumlow) for the full list. Notable items: CancellationException swallowing, Moshi on domain `TransactionTemplate`, Resource living in `util`, biometric lock is UI-only, MFA JWT fail-open, cleartext on distributed debug APKs, localization debt, lint baseline burn-down, docs drift.
 
 ---
 

@@ -35,3 +35,15 @@ Each ADR follows the format:
 - **Context** — What prompted the decision
 - **Decision** — What was decided
 - **Consequences** — Trade-offs and implications
+
+## Relationship to the C4 views
+
+- Context and containers: ADR-004, 006, 010, 014, 020, 021 explain remote access, credentials, workers, images, and authentication.
+- Android components: ADR-001–003, 007, 008, 011, 013 explain layering, UI, dependency injection, state, navigation, module boundaries, and code generation.
+- Cross-cutting constraints: ADR-005, 009, 012, 015–019 explain storage/cache evolution, appearance, typography, usability, localization, and hardening.
+
+ADRs record decision history, not a feature checklist. Later decisions can refine earlier ones: ADR-015 extends ADR-005 caching; ADR-019 replaces its destructive-migration policy; ADR-021 extends the MFA scope deferred in ADR-020. Current implementation boundaries are in [Constraints](../CONSTRAINTS.md) and [C4 architecture](../ARCHITECTURE.md).
+
+For a new decision, use the next available number, describe alternatives and consequences, and link any superseded decision. Mark only the affected policy superseded when the rest of an ADR still applies. Do not infer a new accepted decision solely from an unimplemented design plan.
+
+Return to [documentation home](../README.md).

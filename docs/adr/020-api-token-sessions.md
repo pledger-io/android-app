@@ -22,7 +22,7 @@ credentials with durable API tokens would confuse users and revoke the wrong cre
 4. Surface profile **`mfa`** as read-only on Settings; defer OIDC login and MFA enroll/verify
    (see [ADR-021](021-mfa-enroll-verify.md)).
 
-Design details: [api-token-sessions.md](../design/api-token-sessions.md).
+Design details: [api-token-sessions.md](../feature/api-token-sessions/api-token-sessions.md).
 
 ## Consequences
 

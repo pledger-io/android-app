@@ -1,5 +1,7 @@
 # Mobile Application Improvement Audit
 
+> Historical design / progress record. Some problem statements describe the pre-implementation state. For current behavior and boundaries, see [Features](../FEATURES.md), [C4 architecture](../ARCHITECTURE.md), and [Constraints](../CONSTRAINTS.md).
+
 **Project:** `pledger-io/android-app`  
 **Date:** 2026-05-24  
 **Audit type:** Static code and configuration review (architecture, security, reliability, testing, and maintainability)

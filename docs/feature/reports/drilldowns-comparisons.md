@@ -2,7 +2,7 @@
 
 **Status:** Approved for implementation  
 **Branch:** `cursor/reports-drilldowns-comparisons-25b7`  
-**Related:** `docs/REPORTS_OVERVIEW.md`, ADR-017
+**Related:** `docs/feature/reports/reports.md`, ADR-017
 
 ## Problem
 
@@ -118,7 +118,7 @@ en / nl / de for MoM labels (“vs previous month”, “+%1$s”, “-%1$s”, 
 
 ### Docs
 
-- Update `REPORTS_OVERVIEW.md`: move MoM + tap-to-filter from “Future” into implemented behaviour.
+- Update `reports.md`: move MoM + tap-to-filter from “Future” into implemented behaviour.
 - Brief note in ADR-017 consequences if useful.
 
 ### Tests
