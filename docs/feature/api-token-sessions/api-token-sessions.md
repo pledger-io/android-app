@@ -28,7 +28,7 @@ Android already has unused `listSessions` / `createSession` Retrofit stubs. Web 
 ## Non-goals (later / separate PRs)
 
 - OIDC AppAuth login / `.well-known` consumption in onboarding
-- Login-time `verify-2-factor` and MFA QR enroll/disable — see [mfa-enroll-verify.md](mfa-enroll-verify.md)
+- Login-time `verify-2-factor` and MFA QR enroll/disable — see [mfa-enroll-verify.md](../mfa/mfa-enroll-verify.md)
 - Treating JWT “this device” as a revocable session row (these are durable API tokens, not interactive JWTs)
 
 ## Design
@@ -94,7 +94,7 @@ en/nl/de for all new copy.
 
 ### Docs
 
-- `docs/design/api-token-sessions.md` (this file)
+- `docs/feature/api-token-sessions/api-token-sessions.md` (this file)
 - Short ADR or ARCHITECTURE note under security: durable sessions vs JWT
 - Roadmap note: OIDC + MFA enroll remain follow-ups
 

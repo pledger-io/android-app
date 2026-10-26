@@ -1,7 +1,7 @@
 # ADR-005: Room for Offline Caching
 
 **Date:** 2026-05-13 (updated 2026-05-16)
-**Status:** Accepted (cache strategy extended by [ADR-015](015-stale-while-revalidate-cache.md))
+**Status:** Accepted (cache strategy extended by [ADR-015](015-stale-while-revalidate-cache.md); destructive-migration policy superseded by [ADR-019](019-security-and-quality-hardening.md))
 
 ## Context
 
@@ -25,7 +25,7 @@ Design choices:
 - DAOs expose `Flow<List<Entity>>` for observable queries and `suspend` functions for writes
 - Explicit migrations for schema bumps (`MIGRATION_5_6`, `MIGRATION_6_7`); destructive fallback is not the primary path
 - Each cache entity includes a `lastSynced` timestamp for staleness detection
-- **Write outbox (create-only MVP):** offline or `IOException` transaction creates persist in `transaction_outbox` and flush under the current sync generation (see [offline-transaction-outbox design](../design/offline-transaction-outbox.md)). Edit/delete remain online-only. Ambiguous timeouts may rarely duplicate a create — accepted for MVP without server idempotency keys.
+- **Write outbox (create-only MVP):** offline or `IOException` transaction creates persist in `transaction_outbox` and flush under the current sync generation (see [offline-transaction-outbox design](../feature/offline-transactions/offline-transaction-outbox.md)). Edit/delete remain online-only. Ambiguous timeouts may rarely duplicate a create — accepted for MVP without server idempotency keys.
 
 ## Consequences
 
@@ -34,11 +34,11 @@ Design choices:
 - Flow-returning DAOs enable reactive UI updates when cached data changes
 - Seamless coroutine support — no callback-based APIs
 - Battle-tested on Android with extensive documentation
-- Destructive migration is acceptable since Room is a cache, not the source of truth
+- Historical consequence: destructive migration was considered acceptable for a read cache. ADR-019 supersedes this policy with explicit migrations; the outbox now also holds unsent user intent.
 
 ### Negative
 - Mapping between Entity ↔ Domain Model ↔ DTO adds boilerplate
-- Destructive migration means schema changes lose cached data (acceptable for a cache layer)
+- Explicit migrations now require maintenance and review for every schema change (ADR-019).
 - Room's auto-generated code increases build time slightly
 
 ### Caching Strategy

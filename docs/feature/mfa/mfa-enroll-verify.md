@@ -3,7 +3,7 @@
 **Status:** Approved for implementation  
 **Roadmap:** [pledger-io/.github#34](https://github.com/pledger-io/.github/issues/34) — OIDC, 2FA, and session management  
 **Branch:** `cursor/mfa-enroll-verify-25b7` (bases on API token sessions)  
-**Depends on:** [api-token-sessions.md](api-token-sessions.md) / PR #15 (`UserSessionRepository`, profile `mfa`, Settings security row)
+**Depends on:** [api-token-sessions.md](../api-token-sessions/api-token-sessions.md) / PR #15 (`UserSessionRepository`, profile `mfa`, Settings security row)
 
 ## Context
 
@@ -155,4 +155,4 @@ en / nl / de for login verify + MFA setup copy. Do not log OTP or QR bytes.
 3. Auth + UserSession repository methods + tests  
 4. Login verify UI + nav  
 5. MFA setup UI + Settings wiring  
-6. Strings, ARCHITECTURE, unit/lint/assemble  
+6. Strings, ARCHITECTURE, unit/lint/assemble

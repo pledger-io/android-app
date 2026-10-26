@@ -1,7 +1,9 @@
 # Usability Improvement Plan
 
+> Historical design / progress record. Some problem statements describe the pre-implementation state. For current behavior and boundaries, see [Features](../../FEATURES.md), [C4 architecture](../../ARCHITECTURE.md), and [Constraints](../../CONSTRAINTS.md).
+
 **Status:** Active (Tier 3 partial — T3.3 create-outbox MVP in progress; T3.4 deferred)  
-**Related:** [ADR-016](adr/016-usability-improvement-program.md), [USABILITY_MODES.md](USABILITY_MODES.md), [TRANSACTION_FORM_REDESIGN.md](TRANSACTION_FORM_REDESIGN.md)
+**Related:** [ADR-016](../../adr/016-usability-improvement-program.md), [experience-modes.md](../experience-modes/experience-modes.md), [transaction-form-redesign.md](../transactions/transaction-form-redesign.md)
 
 ## Purpose
 
@@ -14,9 +16,9 @@ The app already provides:
 - Five-tab navigation (Dashboard, Transactions, Budgets, Accounts, Reports)
 - Shared `LoadingScreen`, `ErrorScreen`, `EmptyScreen`
 - Pull-to-refresh on main data screens
-- Stale-while-revalidate caching ([ADR-015](adr/015-stale-while-revalidate-cache.md))
+- Stale-while-revalidate caching ([ADR-015](../../adr/015-stale-while-revalidate-cache.md))
 - Offline banner on main tabs when disconnected
-- Guided / Power finance experience modes ([USABILITY_MODES.md](USABILITY_MODES.md))
+- Guided / Power finance experience modes ([experience-modes.md](../experience-modes/experience-modes.md))
 - Redesigned transaction form (type selector, amount card, flow card, date picker, templates)
 
 ## User goals
@@ -80,7 +82,7 @@ The app already provides:
 | T3.3 | Offline write queue / draft transactions |
 | T3.4 | Push notifications for budget alerts |
 | T3.5 | Global search (transactions, accounts, categories) |
-| T3.6 | Extend Guided/Power defaults per [USABILITY_MODES.md](USABILITY_MODES.md) |
+| T3.6 | Extend Guided/Power defaults per [experience-modes.md](../experience-modes/experience-modes.md) |
 
 ## Implementation tracking
 
@@ -124,7 +126,7 @@ The app already provides:
 
 ## References
 
-- Architecture: [ARCHITECTURE.md](ARCHITECTURE.md)
-- Decision record: [ADR-016](adr/016-usability-improvement-program.md)
-- Transaction form: [TRANSACTION_FORM_REDESIGN.md](TRANSACTION_FORM_REDESIGN.md)
-- Experience modes: [USABILITY_MODES.md](USABILITY_MODES.md)
+- Architecture: [ARCHITECTURE.md](../../ARCHITECTURE.md)
+- Decision record: [ADR-016](../../adr/016-usability-improvement-program.md)
+- Transaction form: [transaction-form-redesign.md](../transactions/transaction-form-redesign.md)
+- Experience modes: [experience-modes.md](../experience-modes/experience-modes.md)

@@ -12,13 +12,13 @@ The Android client has a coherent v1 architecture (Compose, MVVM, SWR cache, off
 - **Offline banner** appears only above the bottom navigation bar, not on forms or detail screens where failed saves are most confusing.
 - **Error recovery** is inconsistent: list screens offer Retry via `ErrorScreen`; detail screens often do not.
 - **Theme mismatch:** `PledgerTopBar` uses `isSystemInDarkTheme()` while the app theme follows user `ThemeMode` from Settings ([ADR-009](009-dark-first-design.md)).
-- **Guided/Power modes** ([USABILITY_MODES.md](../USABILITY_MODES.md)) are implemented for the transaction form but not yet extended to empty states, navigation shortcuts, or global feedback.
+- **Guided/Power modes** ([experience-modes.md](../feature/experience-modes/experience-modes.md)) are implemented for the transaction form but not yet extended to empty states, navigation shortcuts, or global feedback.
 
 A single ad-hoc fix per screen would drift patterns further. We need a documented, tiered program so UX work stays consistent with existing shared components and ADRs.
 
 ## Decision
 
-Adopt a **tiered usability improvement program** documented in [USABILITY_IMPROVEMENT_PLAN.md](../USABILITY_IMPROVEMENT_PLAN.md).
+Adopt a **tiered usability improvement program** documented in [usability-improvement-plan.md](../feature/usability/usability-improvement-plan.md).
 
 ### Principles
 
@@ -26,7 +26,7 @@ Adopt a **tiered usability improvement program** documented in [USABILITY_IMPROV
 2. **Honest connectivity** — Users must see offline/stale state anywhere they can read or write financial data (authenticated stack included).
 3. **Recoverable errors** — Any full-screen error state that blocks content must offer **Retry** when the ViewModel can reload.
 4. **No false affordances** — Placeholder features (Reports charts, notification settings, biometric without prompt) must be labeled, hidden, or implemented; not silent no-ops.
-5. **Mode-aware, not mode-limited** — Guided/Power changes defaults and prominence only ([USABILITY_MODES.md](../USABILITY_MODES.md)); capabilities stay the same.
+5. **Mode-aware, not mode-limited** — Guided/Power changes defaults and prominence only ([experience-modes.md](../feature/experience-modes/experience-modes.md)); capabilities stay the same.
 6. **Incremental delivery** — Tier 1 (quick wins) ships first; Tier 2–3 are scheduled without blocking Tier 1.
 
 ### Tier 1 (immediate)
@@ -66,5 +66,5 @@ Sync/last-updated indicators, mode-aware empty CTAs, server URL edit with cache 
 
 ### Follow-up
 
-- Update [USABILITY_IMPROVEMENT_PLAN.md](../USABILITY_IMPROVEMENT_PLAN.md) checkboxes as tiers complete.
+- Update [usability-improvement-plan.md](../feature/usability/usability-improvement-plan.md) checkboxes as tiers complete.
 - When Reports ship real data, add ADR amendment or ADR-017 if chart library choice is significant.

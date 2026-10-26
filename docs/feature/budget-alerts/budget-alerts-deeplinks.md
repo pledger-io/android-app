@@ -2,7 +2,7 @@
 
 **Status:** Approved for implementation (roadmap after PR #10)  
 **Branch:** `cursor/budget-alerts-deeplinks-25b7`  
-**Related:** ADR-010 (WorkManager sync), ADR-017 (deep links), `docs/BUDGETS.md`
+**Related:** ADR-010 (WorkManager sync), ADR-017 (deep links), `docs/feature/budgets/budgets.md`
 
 ## Problem
 
@@ -99,7 +99,7 @@ Add en/nl/de for:
 
 - Update ADR-010 notification strategy (configurable threshold, deep link, dedup).
 - Update ADR-017 / README if they claim unfinished deep-link-from-notification behavior.
-- Short note in `docs/BUDGETS.md` under background sync.
+- Short note in `docs/feature/budgets/budgets.md` under background sync.
 
 ### Tests
 

@@ -1,7 +1,7 @@
 # Reports — overview and UX design
 
 **Status:** Implemented (2026-05); drill-downs + MoM (2026-07)  
-**Related:** [ADR-017](adr/017-deep-links-and-reports.md), [USABILITY_IMPROVEMENT_PLAN.md](USABILITY_IMPROVEMENT_PLAN.md), [design/reports-drilldowns-comparisons.md](design/reports-drilldowns-comparisons.md)
+**Related:** [ADR-017](../../adr/017-deep-links-and-reports.md), [usability-improvement-plan.md](../usability/usability-improvement-plan.md), [drilldowns-comparisons.md](drilldowns-comparisons.md)
 
 ## Problem
 

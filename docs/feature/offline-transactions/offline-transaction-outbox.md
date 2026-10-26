@@ -121,7 +121,7 @@ en/nl/de: saved offline, pending section title, discard, flush failed message.
 
 ### Docs
 
-- New short `docs/design/offline-transaction-outbox.md` (this file).
+- New short `docs/feature/offline-transactions/offline-transaction-outbox.md` (this file).
 - ADR-005 or small ADR-018 note: write outbox create-only.
 - USABILITY T3.3 partial checkbox note.
 - README offline bullet.

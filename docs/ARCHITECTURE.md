@@ -1,291 +1,132 @@
-# Architecture Documentation
+# Architecture: C4 views
 
-## Overview
+Pledger.io Android is a Kotlin client for a user-configured Pledger REST server. The views below describe the checked-in application. Diagrams use Mermaid with explicit C4 element types and labeled relationships. Embedded databases and packages are not independently deployed services.
 
-Pledger.io Android is a native client for the self-hosted Pledger.io personal finance manager. It connects to a user-configured REST backend and provides a mobile experience for accounts, transactions, budgets, and reports.
+## Level 1: system context
 
-All API paths use the **v2** prefix (e.g. `/v2/api/accounts`, `/v2/api/security/authenticate`). The base URL is stored per installation and applied at request time.
+Scope: the Pledger personal-finance system as used from Android. The person chooses and trusts a self-hosted server, manages finances, and reviews any issue report before submission.
 
-## High-Level Architecture
-
-The application follows **Clean Architecture** with three layers:
-
-```
-┌─────────────────────────────────────────────┐
-│                  UI Layer                    │
-│  (Compose screens + ViewModels + UiState)   │
-├─────────────────────────────────────────────┤
-│               Domain Layer                   │
-│  (Models + Repository interfaces + UseCases) │
-├─────────────────────────────────────────────┤
-│                Data Layer                    │
-│  (Retrofit + Room + Repository implementations)│
-└─────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    user["Finance user (Person)"]
+    pledger["Pledger (Software system)\nAndroid client and self-hosted backend"]
+    github["GitHub (External software system)\nIssue form"]
+    user -->|"Manages accounts, transactions, budgets, reports"| pledger
+    pledger -->|"Opens prefilled issue form in browser"| github
+    user -->|"Reviews and submits issue"| github
 ```
 
-### Dependency Rule
+Pledger's server is authoritative for financial records and authentication. The Android client does not connect directly to banks. Backend internals, server administration, and banking integrations are outside this repository's scope.
 
-Dependencies point **inward only**: UI → Domain ← Data. The domain layer has no Android, Retrofit, or Room types. Repository interfaces live in `domain/`; implementations in `data/`.
+## Level 2: containers
 
-## Layer Details
+Scope: the Pledger software system. The APK and backend are separate deployment/runtime units. Stores shown inside Android are embedded implementation details, not additional C4 containers.
 
-### UI Layer (`ui/`)
-
-Each feature package typically contains:
-
-| Artifact | Role |
-|----------|------|
-| `*Screen.kt` | `@Composable` UI; reads `StateFlow<UiState>`; forwards events to ViewModel |
-| `*ViewModel.kt` | `@HiltViewModel`; coroutines; maps `Resource` / repository data to `UiState` |
-| `*UiState` | Data class colocated with ViewModel |
-
-Shared UI lives in `ui/components/` (`PledgerCard`, `LoadingScreen`, `ErrorScreen`, `EmptyScreen`, `AccountIcon`, …).
-
-#### Feature packages
-
-```
-ui/
-├── theme/              # Material 3 colors, typography (Sora + DM Sans)
-├── components/         # Reusable composables
-├── navigation/         # NavGraph, Screen routes
-├── onboarding/         # Server setup, login
-├── dashboard/          # Overview, recent transactions
-├── transactions/       # List, detail, form, filters, autocomplete
-├── accounts/           # List, detail, form
-├── budgets/            # Overview, initial setup, expense groups, detail
-├── reports/
-├── settings/
-└── PledgerApp.kt       # Scaffold + bottom navigation
+```mermaid
+flowchart LR
+    user["Finance user (Person)"]
+    subgraph pledger["Pledger system"]
+        subgraph android["Android application (Container: Kotlin / Compose)"]
+            app["Mobile client\nUI, orchestration, networking, local OCR, workers"]
+            db[("Embedded Room / SQLite\nRead cache, outbox, sync metadata")]
+            prefs[("Embedded preferences\nEncrypted session; DataStore settings/templates")]
+            app -->|"DAOs / SQL / Flow"| db
+            app -->|"Reads and writes local preferences"| prefs
+        end
+        backend["REST backend (Container: server application)\nAuthoritative records, auth, reports, text interpretation"]
+    end
+    os["Android OS (External platform)\nCamera, content picker, biometrics, jobs, notifications"]
+    github["GitHub (External system)"]
+    fonts["Google Fonts provider (External service)"]
+    user -->|"Touch input and displayed state"| app
+    app -->|"HTTPS JSON /v2/api; GET /health; authenticated images"| backend
+    app -->|"Platform APIs and intents"| os
+    app -->|"Browser intent with report fields"| github
+    app -->|"Downloadable typography via provider"| fonts
 ```
 
-#### Navigation
+Room schema v7 holds accounts/types, transactions, budgets, expense groups, categories, tags, contracts, currencies, sync metadata, and pending transaction creates. Room is mainly a read cache; the outbox is durable local intent awaiting server acceptance. In-memory report/insight caches are lost on process death.
 
-- Routes are defined in `Screen` (sealed class).
-- `NavGraph` wires composable destinations; path args (`accountId`, `transactionId`) are read in ViewModels via `SavedStateHandle`.
-- **Bottom tabs:** Dashboard, Transactions, Budgets, Accounts, Reports.
-- **Stack screens:** Detail views, add/edit forms, onboarding, settings (bottom bar hidden when not on a main tab).
-- Outer scaffold padding is passed into `NavGraph` so FABs clear the bottom navigation bar.
-- **Usability roadmap:** Tiered improvements (settings discoverability, offline banner scope, error retry, theme alignment) are documented in [USABILITY_IMPROVEMENT_PLAN.md](USABILITY_IMPROVEMENT_PLAN.md) and [ADR-016](adr/016-usability-improvement-program.md).
+`SessionManager` stores session material using EncryptedSharedPreferences; DataStore holds user preferences and transaction templates. Token encryption does not imply Room or image-cache encryption. Local OCR reads images on-device; extracted text is sent to the configured backend for interpretation. The shared OkHttp stack also authenticates Coil logo requests.
 
-#### Transaction list UX
+The configured host is a trust boundary. `DynamicBaseUrlInterceptor` replaces scheme, host, and port; it does not prepend a reverse-proxy path prefix. Release transport requires HTTPS. See [constraints](CONSTRAINTS.md) for storage, session, and offline limits.
 
-- **Paging:** `TransactionRepository.getTransactionsPage()` returns `PagedResult`; ViewModels merge pages and deduplicate by `id`.
-- **Month navigator:** `startDate` / `endDate` sent to API per visible month; can load older months when scrolling.
-- **Filters:** Optional `category`, `expense`, `contract` query params; UI uses debounced autocomplete against category/budget/contract APIs.
-- **Type display:** `DEBIT` = income (green), `CREDIT` = expense (red) in lists.
+## Level 3: Android components
 
-#### Transaction create form
+Scope: internals of the Android application container. Arrows show runtime collaboration; source dependencies use domain contracts, with Hilt binding implementations. Packages provide conventions within one Gradle module, not compiler-enforced module isolation.
 
-Account fields depend on transaction type:
-
-| Type | From account | To account |
-|------|--------------|------------|
-| Income (`DEBIT`) | Debtor autocomplete (`type=debtor`) | Owned accounts dropdown |
-| Expense (`CREDIT`) | Owned accounts dropdown | Creditor autocomplete (`type=creditor`) |
-| Transfer | Owned accounts dropdown | Owned accounts dropdown |
-
-Owned account types come from `GET /v2/api/account-types` (excluding counterparty types); lists are loaded with `GET /v2/api/accounts?type=…`.
-
-The form adapts using a persisted **finance experience mode**:
-
-- **Guided** (default): cleaner first-pass form with optional sections collapsed.
-- **Power**: optional sections (and templates on new transactions) are visible by default for faster repetitive entry.
-
-**Redesign (planned):** See [Transaction form redesign](TRANSACTION_FORM_REDESIGN.md) for UX goals (type-first layout, money-flow card, date picker, sticky submit) and phased implementation.
-
-#### Account logos
-
-- Accounts expose `iconFileCode` from the API.
-- `AccountIconUrlProvider` builds `{baseUrl}/v2/api/files/{fileCode}`.
-- Coil loads images with the same `OkHttpClient` as Retrofit (JWT + dynamic host).
-- Shown on **account detail** (balance card) and **transaction detail** (from/to rows; accounts fetched by id for icon codes).
-
-#### Accounts list UX
-
-- **Filter chips** (All, Owned, Parties) stay visible above the list, including empty and error states, so users can always switch views (e.g. back from an empty Parties tab).
-- **Owned** accounts load in full; **Parties** use paginated search (`type=creditor,debtor,debit`, 50 per page). See [Account types](ACCOUNTS.md).
-
-#### Budgets UX
-
-- **Initial setup:** `GET /v2/api/budgets` for the current month returns **404** when no budget exists → form → `POST /v2/api/budgets`.
-- **Overview:** Cards per expense group with spent/budgeted from `GET …/expenses/balance`.
-- **Add / edit groups:** `BudgetsScreen` (FAB) and `BudgetDetailScreen` (edit) — `PATCH /v2/api/budgets/expenses` to create (no `id`) or update amount (`id` set).
-- **DTO note:** `DateRangeDto.endDate` is nullable for the active month.
-
-See [Budgets](BUDGETS.md) for API and screen details.
-
-### Domain Layer (`domain/`)
-
-- **Models** — `Account`, `Transaction`, `Budget`, `Category`, `Currency`, `ApiSession`, `UserProfile`, `TransactionFilters`, `FilterOption`, `AccountTypeOption`, etc.
-- **Repositories** — `AuthRepository`, `UserSessionRepository`, `AccountRepository`, `TransactionRepository`, `BudgetRepository`, `CategoryRepository`, `ContractRepository`, `CurrencyRepository`.
-- **Use cases** — e.g. `GetDashboardDataUseCase`, `CreateInitialBudgetUseCase`, `SaveBudgetExpenseUseCase`.
-
-`AccountRepository` additionally supports `searchAccounts(typeCode, nameQuery)` and `getAccountsByTypes(typeCodes)` for the transaction form.
-
-### Data Layer (`data/`)
-
-- **Remote** — `PledgerApiService`, Moshi DTOs (`@JsonClass(generateAdapter = true)`).
-- **Local** — Room (`PledgerDatabase` v6): accounts, transactions, budgets, categories, currencies, contracts, expense groups, account types, sync metadata.
-- **Repositories** — Stale-while-revalidate cache for reference data, network-first for paged data:
-
-  1. Read returns cached values from Room immediately (via Flow or one-shot query).
-  2. `CacheRefresher` checks the `sync_metadata` TTL for that key.
-  3. If stale, a background refresh is launched on the `@ApplicationScope` coroutine scope.
-  4. The network call writes through to Room and marks the key fresh; Room Flow emits the new data.
-  5. Mutations write through to Room and invoke `CacheRefresher.refreshInBackground` so other observers re-emit.
-  6. If the cache is empty and the network fails the repository returns `Resource.Error`.
-
-  See [ADR-015](adr/015-stale-while-revalidate-cache.md) for the full design.
-
-Account balances are enriched via `POST /v2/api/balance/account` (partitioned by account name) after list/detail fetches.
-
-## Dependency Injection
-
-| Module | Provides |
-|--------|----------|
-| `NetworkModule` | Moshi, `OkHttpClient`, `TokenRefresher`, `AuthInterceptor`, `Retrofit`, `PledgerApiService`, Coil `ImageLoader` |
-| `DatabaseModule` | `PledgerDatabase`, DAOs (including `SyncMetadataDao`, `ContractDao`, `ExpenseGroupDao`) |
-| `DispatcherModule` | `@IoDispatcher`, `@DefaultDispatcher`, `@ApplicationScope` (for background cache refresh) |
-| `RepositoryModule` | Repository bindings |
-
-ViewModels: `@HiltViewModel` + `hiltViewModel()` in Compose.
-
-`PledgerApp` sets global `CurrencyProvider` and `Coil.setImageLoader()` on startup.
-
-## Networking
-
-### Request pipeline
-
-```
-Screen → ViewModel → Repository → Retrofit
-                                    ↓
-                              OkHttpClient
-                    ┌───────────────┼───────────────┐
-         DynamicBaseUrlInterceptor   AuthInterceptor   LoggingInterceptor
-                    (user base URL)   (Bearer JWT + refresh)
+```mermaid
+flowchart TB
+    subgraph mobile["Android application container"]
+        ui["Presentation (Component)\nCompose, NavGraph, ViewModels, UiState"]
+        domain["Domain (Component)\nModels, repository contracts, use cases"]
+        repos["Data adapters (Component)\nRepository implementations, cache policy, invalidation"]
+        remote["Remote access (Component)\nRetrofit, Moshi, OkHttp, auth and refresh"]
+        local["Local persistence (Component)\nRoom DAOs/entities, DataStore"]
+        ocr["Image reader (Component)\nInvoiceTextReader / ML Kit"]
+        session["Session lifecycle (Component)\nCoordinator, SessionManager, barrier, generation guard"]
+        work["Background processing (Component)\nSchedulers, SyncWorker, SyncWorkRunner, notifier"]
+        di["Composition root (Component)\nApplication and Hilt modules"]
+    end
+    server["Pledger REST backend (External container)"]
+    ui -->|"Events and observable state via contracts/use cases"| domain
+    domain -->|"Repository calls resolved by Hilt"| repos
+    repos -->|"API requests / DTO mapping"| remote
+    repos -->|"Read/write cache and outbox; observe Flow"| local
+    domain -->|"InvoiceTextReader contract"| ocr
+    ui -->|"Activate / end session"| session
+    remote -->|"Read credentials; coordinate auth failure"| session
+    work -->|"Refresh catalogs, flush outbox, load budgets"| repos
+    work -->|"Check current session before work/publication"| session
+    session -->|"Clear user stores through LocalDataCleaner"| local
+    remote -->|"HTTPS JSON / authenticated image bytes"| server
+    di -->|"Provides dependencies and lifecycle wiring"| ui
+    di -->|"Binds contracts and adapters"| repos
+    di -->|"Provides clients and stores"| remote
 ```
 
-- **Placeholder Retrofit base URL** — Real host comes from `DynamicBaseUrlInterceptor` using `SessionManager.getBaseUrl()`.
-- **Auth** — `AuthInterceptor` adds `Authorization: Bearer …`, refreshes the token before expiry via `POST /v2/api/security/oauth`, retries once on **401**, then clears **auth tokens only** (`clearAuthTokens`) so the **server URL is preserved** (user returns to login, not server setup).
+Compose screens render ViewModel `StateFlow` and send user events. ViewModels use repository contracts directly for simple operations and use cases for orchestration. Models and interfaces live under `domain`; Retrofit DTOs and Room entities are mapped in `data`. A compatibility bridge remains between `util.Resource` and `domain/common/Resource`; package boundaries are a design intent rather than a claim of perfect isolation.
 
-### Authentication flow
+Repositories choose caching by operation. Reference catalogs use Room observation with TTL metadata and stale-while-revalidate refresh (`CacheRefresher`). Paged transactions/counterparties use network requests and bounded cached fallback. Reports use domain store contracts backed by in-memory caches. Successful transaction changes invalidate derived budget/report data through `TransactionMutationInvalidator`.
 
-1. User enters server URL → validated with `GET {baseUrl}/health` (OkHttp, not Retrofit).
-2. URL saved → `POST /v2/api/security/authenticate` → access/refresh tokens. If the JWT roles
-   include `PRE_VERIFICATION_USER`, credentials stay in an in-memory pending MFA store until
-   `POST /v2/api/user-account/verify-2-factor` succeeds; only then does `activateSession` install
-   tokens in `SessionManager` and schedule sync.
-3. Subsequent API and image requests use the stored base URL and token; `TokenRefresher` calls the oauth endpoint when the access token is near expiry.
-4. Logout calls `POST /v2/api/security/logout` when possible, then `clearAuthTokens()` (base URL and biometric preference remain).
+### Authentication and session flow
 
-**Durable API sessions vs JWT:** Interactive login uses short-lived JWTs (with refresh) stored in `SessionManager`. Separately, `UserSessionRepository` manages **durable API tokens** (`GET/POST/DELETE …/user-account/{user}/sessions`) for integrations. Those tokens are not the device’s JWT and are never logged in full; the list UI always masks them. MFA enroll/disable uses `GET/PATCH …/user-account/{user}/2-factor`; login OTP uses `verify-2-factor`. See [design/api-token-sessions.md](design/api-token-sessions.md), [design/mfa-enroll-verify.md](design/mfa-enroll-verify.md), [ADR-020](adr/020-api-token-sessions.md), and [ADR-021](adr/021-mfa-enroll-verify.md).
+1. Server setup validates `/health` and stores the address; login posts credentials to the server.
+2. A JWT with `PRE_VERIFICATION_USER` enters `PendingMfaSession` in memory. The OTP screen verifies TOTP before activating a full session. Process death requires password login again.
+3. `AuthenticatedSessionCoordinator` coordinates session transitions, cleanup, and sync scheduling. Session generation and `SessionDataBarrier` prevent old background work from publishing into a new session.
+4. `AuthInterceptor` attaches Bearer credentials and `TokenRefresher` handles refresh using a separate qualified refresh client. Explicit verification Authorization must survive interception.
+5. Logout/server changes invalidate background work and clear user caches, templates, outbox, report/insight caches, and images. Authentication reset preserves the configured server where appropriate.
 
-### Key API surface (non-exhaustive)
+Durable API tokens managed in Settings are separate credentials from the device's interactive JWT session. See [ADR-020](adr/020-api-token-sessions.md) and [ADR-021](adr/021-mfa-enroll-verify.md).
 
-| Area | Endpoints |
-|------|-----------|
-| Auth | `/v2/api/security/authenticate`, `/v2/api/security/oauth`, `/v2/api/security/logout`, `/v2/api/user-account/verify-2-factor` |
-| User sessions / profile | `/v2/api/user-account/{user}/sessions`, `/v2/api/user-account/{user}`, `/v2/api/user-account/{user}/2-factor` |
-| Accounts | `/v2/api/accounts`, `/v2/api/accounts/{id}`, `/v2/api/account-types` |
-| Transactions | `/v2/api/transactions`, `/v2/api/transactions/{id}`, `/v2/api/ai/auto-complete` |
-| Categories | `/v2/api/categories` |
-| Budgets | `/v2/api/budgets` (GET/POST/PATCH), `/v2/api/budgets/expenses` (GET/PATCH), `/v2/api/budgets/expenses/balance` |
-| Contracts | `/v2/api/contracts` |
-| Balance | `/v2/api/balance`, `/v2/api/balance/{partition}` |
-| Currencies | `/v2/api/currencies` |
-| Files | `/v2/api/files/{fileCode}` |
-| Health | `/health` |
+### Transaction create form
 
-### Error handling
+Income is `DEBIT` (debtor to owned account); expense is `CREDIT` (owned account to creditor); transfers use owned accounts on both sides. The server account catalog controls ownership/type choices. Guided/Power changes defaults, not available capabilities.
 
-Repositories return `Resource<T>`:
+Invoice flow: camera/image picker -> `InvoiceTextReader` local OCR -> `ProcessInvoiceScanUseCase` -> backend text extraction -> prefilled transaction form -> user review -> normal submit. OCR success alone never saves a transaction.
 
-- `Resource.Success(data)`
-- `Resource.Error(message)`
-- `Resource.Loading`
+### Offline create and synchronization
 
-`Resource` is defined in `domain/common` (with a temporary compatibility alias in `util` while imports are migrated).
+Eligible creates can be stored in Room's outbox when offline or after an I/O failure. The transaction list observes pending entries and supports discard. Reconnect scheduling and periodic work attempt delivery under the current session generation. Offline edit/delete/split PATCH and offline creation of missing accounts are outside this queue.
 
-## Offline Strategy
+Outbox delivery claims rows as `IN_FLIGHT` before POST. Unknown outcomes are reconciled against server transactions before reposting; successful delivery caches the record, invalidates derived data, and removes the pending row. Permanent errors produce failed entries; transient errors stop/requeue according to retry rules. This is a client-side duplicate mitigation, not a server-guaranteed exactly-once protocol.
 
-### Room cache
+`SyncWorkScheduler` schedules connected periodic work every 12 hours. `SyncWorkRunner` refreshes catalogs/accounts, flushes pending creates, and loads budget data while checking session validity. `SyncWorker` classifies outcomes and publishes alerts only for the current generation. Preferences control alert enablement and threshold; fingerprints suppress repeated alert sets. `BudgetAlertNotifier` opens the relevant budget month via a `pledger://budgets` pending intent. Android scheduling and notification permission govern actual execution/display.
 
-Entities: accounts (owned + counterparty, including `iconFileCode`), transactions, budgets,
-categories, contracts, expense groups, currencies, sync metadata. Reads serve from Room first;
-mutations write through.
+## Code map
 
-### Stale-while-revalidate
+C4 level 4 is represented by these implementation entry points rather than a duplicate class diagram. Paths are relative to this document.
 
-A `sync_metadata` table tracks `key → lastSyncedAt` per resource. `CacheRefresher`:
+| Responsibility | Source |
+|---|---|
+| Startup / Hilt / workers | [Application](../app/src/main/java/com/pledgerio/app/PledgerApp.kt), [DI modules](../app/src/main/java/com/pledgerio/app/di) |
+| Navigation and deep links | [NavGraph](../app/src/main/java/com/pledgerio/app/ui/navigation/NavGraph.kt), [DeepLinkParser](../app/src/main/java/com/pledgerio/app/ui/navigation/DeepLinkParser.kt) |
+| Transaction orchestration | [Form ViewModel](../app/src/main/java/com/pledgerio/app/ui/transactions/TransactionFormViewModel.kt), [domain use cases](../app/src/main/java/com/pledgerio/app/domain/usecase) |
+| API / authenticated networking | [PledgerApiService](../app/src/main/java/com/pledgerio/app/data/remote/api/PledgerApiService.kt), [NetworkModule](../app/src/main/java/com/pledgerio/app/di/NetworkModule.kt) |
+| Storage / migrations | [PledgerDatabase](../app/src/main/java/com/pledgerio/app/data/local/PledgerDatabase.kt), [migrations](../app/src/main/java/com/pledgerio/app/data/local/PledgerDatabaseMigrations.kt) |
+| Outbox delivery | [TransactionOutboxRepositoryImpl](../app/src/main/java/com/pledgerio/app/data/repository/TransactionOutboxRepositoryImpl.kt) |
+| Session isolation | [AuthenticatedSessionCoordinator](../app/src/main/java/com/pledgerio/app/util/AuthenticatedSessionCoordinator.kt), [SessionDataBarrier](../app/src/main/java/com/pledgerio/app/util/SessionDataBarrier.kt) |
+| Sync and alerts | [SyncWorkRunner](../app/src/main/java/com/pledgerio/app/util/SyncWorkRunner.kt), [BudgetAlertNotifier](../app/src/main/java/com/pledgerio/app/util/BudgetAlertNotifier.kt) |
+| Read caching | [CacheRefresher](../app/src/main/java/com/pledgerio/app/data/cache/CacheRefresher.kt), [report cache](../app/src/main/java/com/pledgerio/app/data/cache/ReportsOverviewCache.kt) |
 
-- `refreshNow(key, block)` runs the block and marks the key fresh (coalesced per-key via mutex).
-- `launchIfStale(key, ttl, block)` triggers a background refresh on the `@ApplicationScope`
-  coroutine scope only if the cache is older than the TTL (called from Flow `onStart` blocks).
-- `refreshInBackground(key, block)` is the fire-and-forget refresh after mutations.
-
-TTLs live in `CachePolicy`: 15 min for accounts, 60 min for catalogs (categories, contracts,
-expense groups), 24 h for currencies and account types.
-
-### Background sync (`SyncWorker`)
-
-Periodic work (every 12 h, requires network) scheduled from `PledgerApp.onCreate`. Each run
-refreshes currencies, account types, categories, contracts, expense groups, owned accounts,
-counterparty accounts, and the current-month budget; fires local notifications when any
-budget group meets or exceeds the user-configured alert threshold (default 80%).
-
-Transactions are refreshed on screen load rather than in the worker.
-
-### Network monitoring
-
-`NetworkMonitor` exposes connectivity as `Flow<Boolean>` for optional offline UI.
-
-## Security
-
-| Concern | Implementation |
-|---------|----------------|
-| Token storage | `EncryptedSharedPreferences` (AES-256-GCM) |
-| Transport | User-supplied URL; cleartext denied by default and enabled only in debug override config |
-| Biometric | Optional via settings (`BiometricPrompt`) |
-| MFA | Profile `mfa`; Settings enroll (QR) / disable; login OTP via `verify-2-factor` |
-| API tokens | Durable sessions via Settings → API tokens; mask in list; show once on create |
-| Session expiry | Proactive JWT refresh + 401 retry; `clearAuthTokens` keeps server URL |
-| Platform | compile/target SDK 36 (Android 16); edge-to-edge in `MainActivity` |
-| Build | Version catalog `gradle/libs.versions.toml`; AGP 8.13 / Gradle 8.13 |
-| Release | ProGuard / R8 enabled |
-
-## State Management
-
-Unidirectional flow per screen:
-
-```
-User action → ViewModel → StateFlow<UiState> → Compose recomposition
-```
-
-Navigation arguments via `SavedStateHandle`. No Android framework types inside ViewModels beyond `SavedStateHandle`.
-
-`UserPreferences` stores user-controlled UI defaults such as theme, display currency, app locale (`system` / `en` / `nl` / `de`), last transaction type, and finance experience mode (`guided` / `power`) so novice-friendly behavior does not block power-user workflows.
-
-#### Localization
-
-- User-visible copy lives in `res/values/strings.xml` (English) with `values-nl` and `values-de` translations.
-- `AppLocale` + `LocaleManager` apply per-app language via `AppCompatDelegate`; see [LOCALIZATION.md](LOCALIZATION.md) and [ADR-018](adr/018-app-localization.md).
-- Composables use `stringResource()`; enum labels use `ui/util/LocalizedLabels.kt`.
-
-## Theming
-
-- **Dark-first** navy background with **emerald** primary (`#00C896`)
-- **Semantic:** income green, expense red, warning amber
-- **Fonts:** Sora (headlines), DM Sans (body) via Google Fonts provider
-
-## Testing Strategy (target)
-
-| Layer | Tools |
-|-------|--------|
-| Use cases | JUnit, MockK, coroutines-test |
-| ViewModels | JUnit, MockK, Turbine |
-| Repositories | JUnit, MockK |
-| UI | Compose UI tests for critical flows (`androidTest` smoke coverage in CI) |
-
-## Module Boundaries
-
-Single `:app` module today; package layout supports future `:core:*` and `:feature:*` modules (see ADR-011).
+See [constraints](CONSTRAINTS.md), [ADRs](adr/README.md), and [features](FEATURES.md). Historical plans are indexed in [documentation home](README.md).
