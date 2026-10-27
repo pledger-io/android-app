@@ -246,6 +246,12 @@
     <string name="insight_type_spending_spike">Ausgabenspitze</string>
     <string name="insight_type_unusual_location">Ungewöhnlicher Ort</string>
     <string name="insight_type_unknown">Erkenntnis</string>
+    <string name="insight_message_amount_high">Unsere Analyse hat einen ungewöhnlich hohen Transaktionsbetrag für diese Budgetkategorie im Vergleich zu Ihren typischen Ausgaben festgestellt.</string>
+    <string name="insight_message_amount_low">Unsere Analyse hat einen ungewöhnlich niedrigen Transaktionsbetrag für diese Budgetkategorie im Vergleich zu Ihren typischen Ausgaben festgestellt.</string>
+    <string name="insight_message_frequency_high">Unsere Analyse hat in diesem Monat eine ungewöhnlich hohe Anzahl von Transaktionen für diese Budgetkategorie im Vergleich zu Ihrem üblichen monatlichen Muster festgestellt.</string>
+    <string name="insight_message_frequency_low">Unsere Analyse hat in diesem Monat eine ungewöhnlich niedrige Anzahl von Transaktionen für diese Budgetkategorie im Vergleich zu Ihrem üblichen monatlichen Muster festgestellt.</string>
+    <string name="insight_message_merchant_unusual">Unsere Analyse hat eine Transaktion mit einem Händler festgestellt, der für diese Budgetkategorie ungewöhnlich ist.</string>
+    <string name="insight_message_spending_spike">Unsere Analyse hat festgestellt, dass die Ausgaben in dieser Kategorie in diesem Monat deutlich von Ihrem üblichen monatlichen Gesamtbetrag abweichen.</string>
     <string name="pattern_type_recurring_monthly">Monatlich wiederkehrend</string>
     <string name="pattern_type_recurring_weekly">Wöchentlich wiederkehrend</string>
     <string name="pattern_type_seasonal">Saisonal</string>

@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.reports
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -140,7 +141,7 @@ fun InsightRow(
                     Spacer(modifier = Modifier.height(2.dp))
                 }
                 Text(
-                    text = insight.message.ifBlank { insight.type.localizedLabel() },
+                    text = insight.localizedMessage(),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 val subtitle = listOfNotNull(
@@ -246,6 +247,32 @@ fun InsightType.localizedLabel(): String = stringResource(
         InsightType.UNKNOWN -> R.string.insight_type_unknown
     },
 )
+
+/**
+ * The backend sends insight messages as `computed.insight.*` i18n keys (see the
+ * REST application's messages.properties). Resolve known keys to resources and
+ * pass anything else through as plain text.
+ */
+@StringRes
+internal fun insightMessageRes(message: String): Int? = when (message) {
+    "computed.insight.amount.high" -> R.string.insight_message_amount_high
+    "computed.insight.amount.low" -> R.string.insight_message_amount_low
+    "computed.insight.frequency.high" -> R.string.insight_message_frequency_high
+    "computed.insight.frequency.low" -> R.string.insight_message_frequency_low
+    "computed.insight.merchant.unusual" -> R.string.insight_message_merchant_unusual
+    "computed.insight.spending.spike" -> R.string.insight_message_spending_spike
+    else -> null
+}
+
+@Composable
+private fun SpendingInsight.localizedMessage(): String {
+    val resId = insightMessageRes(message)
+    return when {
+        resId != null -> stringResource(resId)
+        message.isNotBlank() -> message
+        else -> type.localizedLabel()
+    }
+}
 
 @Composable
 private fun PatternType.localizedLabel(): String = stringResource(
