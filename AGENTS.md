@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## Feature development pipeline
+
+Feature work follows the four-stage agent pipeline in [`docs/AGENT_WORKFLOW.md`](docs/AGENT_WORKFLOW.md): **analyst → architect → developer → reviewer**, with the GitHub issue as the handoff artifact. Role definitions for GitHub Copilot live in [`.github/agents/`](.github/agents/); every agent (Devin, Codex, Cursor) follows the same stage contracts. Do not implement a feature whose issue lacks a `## Functional analysis` and a `## Technical impact & architecture` section.
+
 ## Cursor Cloud specific instructions
 
 This is a single native **Android** app (Kotlin, Jetpack Compose, Gradle). See `README.md` for the full stack, project structure, and standard commands (`./gradlew assembleDebug`, `scripts/build-release.sh`, etc.). Notes below cover only non-obvious, durable caveats for this environment.

@@ -9,6 +9,7 @@ Start with the [feature overview](FEATURES.md), then read the architecture from 
 | [Design constraints](CONSTRAINTS.md) | Platform, API, persistence, security, and UX boundaries |
 | [ADRs](adr/README.md) | Architectural decisions and consequences |
 | [Development](DEVELOPMENT.md) | Setup, builds, CI, and releases |
+| [Agent workflow](AGENT_WORKFLOW.md) | Issue-to-PR pipeline: analyst, architect, developer, reviewer |
 
 ## Feature references
 
