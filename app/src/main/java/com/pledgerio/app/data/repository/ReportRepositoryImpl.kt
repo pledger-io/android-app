@@ -97,7 +97,7 @@ class ReportRepositoryImpl @Inject constructor(
                         .map { (account, response) ->
                             PartitionAmount(
                                 label = account.name,
-                                amount = kotlin.math.abs(response.body()?.balance ?: 0.0),
+                                amount = signedBalance(account, response.body()?.balance ?: 0.0),
                                 id = account.id,
                             )
                         }
@@ -191,6 +191,10 @@ class ReportRepositoryImpl @Inject constructor(
             Resource.Error(e.message ?: "Could not load report data")
         }
     }
+
+    /** Assets count positive, liabilities negative (amount owed), whatever the range sign. */
+    private fun signedBalance(account: com.pledgerio.app.domain.model.Account, balance: Double): Double =
+        if (account.isLiability) -kotlin.math.abs(balance) else kotlin.math.abs(balance)
 
     private fun monthRange(month: YearMonth): DateRangeDto {
         val start = month.atDay(1).toString()

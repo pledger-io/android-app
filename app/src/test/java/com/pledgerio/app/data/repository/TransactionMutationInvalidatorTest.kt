@@ -41,4 +41,11 @@ class TransactionMutationInvalidatorTest {
         coVerify(exactly = 0) { reportsOverviewStore.invalidate(any()) }
         coVerify(exactly = 0) { cacheRefresher.invalidate(any()) }
     }
+
+    @Test
+    fun `invalidate marks owned account balances stale`() = runTest {
+        invalidator.invalidate(LocalDate.of(2026, 7, 18))
+
+        coVerify { cacheRefresher.invalidate(SyncKeys.OWNED_ACCOUNTS) }
+    }
 }

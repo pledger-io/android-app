@@ -207,4 +207,30 @@ class AccountDetailViewModelTest {
             )
         }
     }
+
+    @Test
+    fun `resuming after the first time re-fetches the account and first page`() = runTest {
+        coEvery { accountRepository.getAccount(accountId) } returnsMany listOf(
+            Resource.Success(account.copy(balance = -10000.0)),
+            Resource.Success(account.copy(balance = -9500.0)),
+        )
+        coEvery {
+            transactionRepository.getTransactionsPage(startDate = any(), endDate = any(), accountId = accountId, pageSize = any(), offset = 0)
+        } returns Resource.Success(PagedResult(items = emptyList(), totalRecords = 0, totalPages = 0, pageSize = 25))
+        val viewModel = AccountDetailViewModel(
+            SavedStateHandle(mapOf("accountId" to accountId)),
+            accountRepository,
+            transactionRepository,
+        )
+        advanceUntilIdle()
+
+        viewModel.onScreenResumed()
+        advanceUntilIdle()
+        coVerify(exactly = 1) { accountRepository.getAccount(accountId) }
+
+        viewModel.onScreenResumed()
+        advanceUntilIdle()
+        assertEquals(-9500.0, viewModel.uiState.value.account!!.balance, 0.0)
+        coVerify(exactly = 2) { transactionRepository.getTransactionsPage(startDate = any(), endDate = any(), accountId = accountId, pageSize = any(), offset = 0) }
+    }
 }

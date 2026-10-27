@@ -142,4 +142,26 @@ class ReportRepositoryImplTest {
         assertEquals(7L, partitions.find { it.label == "Food" }?.id)
         assertNull(partitions.find { it.label == "Unknown" }?.id)
     }
+
+    @Test
+    fun `getAccountBalances reports liabilities as negative`() = runTest {
+        val month = YearMonth.of(2026, 10)
+        val owned = listOf(
+            Account(id = 1, name = "Checking", balance = 19500.0),
+            Account(id = 2, name = "Car loan", typeCode = "loan", balance = -9500.0),
+        )
+        coEvery { accountRepository.refreshOwnedAccounts() } returns Resource.Success(owned)
+        coEvery {
+            apiService.getBalance(match<BalanceRequest> { it.accounts == listOf(1L) })
+        } returns Response.success(BalanceDto(balance = -19500.0))
+        coEvery {
+            apiService.getBalance(match<BalanceRequest> { it.accounts == listOf(2L) })
+        } returns Response.success(BalanceDto(balance = 9500.0))
+
+        val partitions = (repository.getAccountBalances(month) as Resource.Success).data
+
+        assertEquals(19500.0, partitions.single { it.id == 1L }.amount, 0.01)
+        assertEquals(-9500.0, partitions.single { it.id == 2L }.amount, 0.01)
+        assertEquals(10000.0, partitions.sumOf { it.amount }, 0.01)
+    }
 }

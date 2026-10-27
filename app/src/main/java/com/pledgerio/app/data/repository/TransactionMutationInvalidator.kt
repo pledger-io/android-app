@@ -29,10 +29,13 @@ class TransactionMutationInvalidator @Inject constructor(
                 failure?.addSuppressed(error) ?: run { failure = error }
             }
         }
-        try {
-            cacheRefresher.invalidate(SyncKeys.budgetMonth(month))
-        } catch (error: Exception) {
-            failure?.addSuppressed(error) ?: throw error
+        // Balances of the involved owned accounts (incl. liabilities) changed.
+        for (key in listOf(SyncKeys.budgetMonth(month), SyncKeys.OWNED_ACCOUNTS)) {
+            try {
+                cacheRefresher.invalidate(key)
+            } catch (error: Exception) {
+                failure?.addSuppressed(error) ?: run { failure = error }
+            }
         }
         failure?.let { throw it }
     }
