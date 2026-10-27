@@ -251,6 +251,13 @@
     <string name="insight_type_spending_spike">Spending spike</string>
     <string name="insight_type_unusual_location">Unusual location</string>
     <string name="insight_type_unknown">Insight</string>
+    <!-- Backend insight messages arrive as computed.insight.* keys; map them in InsightsSection -->
+    <string name="insight_message_amount_high">Our analysis detected an unusually high transaction amount for this budget category compared to your typical spending.</string>
+    <string name="insight_message_amount_low">Our analysis detected an unusually low transaction amount for this budget category compared to your typical spending.</string>
+    <string name="insight_message_frequency_high">Our analysis detected an unusually high number of transactions for this budget category this month compared to your usual monthly pattern.</string>
+    <string name="insight_message_frequency_low">Our analysis detected an unusually low number of transactions for this budget category this month compared to your usual monthly pattern.</string>
+    <string name="insight_message_merchant_unusual">Our analysis detected a transaction with a merchant that is unusual for this budget category.</string>
+    <string name="insight_message_spending_spike">Our analysis detected that spending in this category this month deviates significantly from your usual monthly total.</string>
     <string name="pattern_type_recurring_monthly">Recurs monthly</string>
     <string name="pattern_type_recurring_weekly">Recurs weekly</string>
     <string name="pattern_type_seasonal">Seasonal</string>
