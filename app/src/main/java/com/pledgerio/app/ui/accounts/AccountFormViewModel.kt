@@ -12,6 +12,8 @@ import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.util.Resource
 import android.content.Context
 import com.pledgerio.app.R
+import com.pledgerio.app.ui.transactions.finiteDoubleOrNull
+import com.pledgerio.app.ui.transactions.positiveMoneyOrNull
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,8 +22,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.pledgerio.app.ui.transactions.finiteDoubleOrNull
-import com.pledgerio.app.ui.transactions.positiveMoneyOrNull
 import java.math.BigDecimal
 import java.time.LocalDate
 import javax.inject.Inject
