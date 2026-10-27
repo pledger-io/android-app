@@ -116,18 +116,24 @@ object AccountTypeCatalog {
             displayName = "Loan",
             description = "A loan balance you repay over time.",
             group = AccountTypeGroup.LIABILITIES,
+            showOpeningBalance = false,
+            showBankDetails = false,
         ),
         "mortgage" to metadata(
             code = "mortgage",
             displayName = "Mortgage",
             description = "Property financing — principal and interest owed to the lender.",
             group = AccountTypeGroup.LIABILITIES,
+            showOpeningBalance = false,
+            showBankDetails = false,
         ),
         "debt" to metadata(
             code = "debt",
             displayName = "Debt",
             description = "General debt or liability you are paying down.",
             group = AccountTypeGroup.LIABILITIES,
+            showOpeningBalance = false,
+            showBankDetails = false,
         ),
         "liability" to metadata(
             code = "liability",
@@ -193,6 +199,9 @@ object AccountTypeCatalog {
             else -> metadataFor(typeCode).isCounterparty
         }
     }
+
+    fun isLiability(typeCode: String): Boolean =
+        typeCode.trim().lowercase() in AccountTypeCodes.liabilityTypeCodes
 
     fun toOptions(apiOwnedTypeCodes: List<String>): List<AccountTypeOption> {
         val owned = apiOwnedTypeCodes.map { code ->

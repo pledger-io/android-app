@@ -143,7 +143,7 @@ class AccountRepositoryPagingTest {
         }
         coEvery {
             apiService.getAccounts(
-                type = listOf("default", "savings"),
+                type = listOf("default", "savings") + AccountTypeCodes.liabilityTypeCodes,
                 offset = 0,
                 numberOfResults = 200,
             )
@@ -155,7 +155,7 @@ class AccountRepositoryPagingTest {
         )
         coEvery {
             apiService.getAccounts(
-                type = listOf("default", "savings"),
+                type = listOf("default", "savings") + AccountTypeCodes.liabilityTypeCodes,
                 offset = 200,
                 numberOfResults = 200,
             )
@@ -174,7 +174,7 @@ class AccountRepositoryPagingTest {
         assertEquals(215, (result as Resource.Success).data.size)
         coVerify {
             apiService.getAccounts(
-                type = listOf("default", "savings"),
+                type = listOf("default", "savings") + AccountTypeCodes.liabilityTypeCodes,
                 offset = 200,
                 numberOfResults = 200,
             )
@@ -186,7 +186,7 @@ class AccountRepositoryPagingTest {
         coEvery { accountTypeDao.getAllCodes() } returns listOf("default", "savings")
         coEvery {
             apiService.getAccounts(
-                type = listOf("default", "savings"),
+                type = listOf("default", "savings") + AccountTypeCodes.liabilityTypeCodes,
                 offset = 0,
                 numberOfResults = 200,
             )

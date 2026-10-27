@@ -43,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pledgerio.app.R
+import com.pledgerio.app.domain.model.AccountTypeCatalog
 import com.pledgerio.app.domain.model.AccountTypeGroup
 import com.pledgerio.app.domain.model.AccountTypeOption
 import com.pledgerio.app.ui.theme.PledgerThemeExt
@@ -62,8 +63,9 @@ fun AccountAddFabMenu(
     )
 
     val ownedEntries = AccountTypePicker.ownedPickerEntries(
-        accountTypeOptions.filter { !it.isCounterparty },
+        accountTypeOptions.filter { !it.isCounterparty && !AccountTypeCatalog.isLiability(it.code) },
     )
+    val liabilityOptions = accountTypeOptions.filter { AccountTypeCatalog.isLiability(it.code) }
     val counterpartyOptions = accountTypeOptions.filter { it.isCounterparty }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -117,6 +119,15 @@ fun AccountAddFabMenu(
                                 AddPickerEntryRow(entry = entry, onAddAccount = {
                                     onExpandedChange(false)
                                     onAddAccount(entry.soloTypeCode)
+                                })
+                            }
+                        }
+                        if (liabilityOptions.isNotEmpty()) {
+                            AddTypeSectionHeader(AccountTypeGroup.LIABILITIES.localizedTitle())
+                            liabilityOptions.forEach { option ->
+                                AddTypeRow(option = option, onAddAccount = {
+                                    onExpandedChange(false)
+                                    onAddAccount(option.code)
                                 })
                             }
                         }

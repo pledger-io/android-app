@@ -35,6 +35,7 @@ import com.pledgerio.app.ui.transactions.TransactionsScreen
 import com.pledgerio.app.ui.transactions.TransactionsViewModel
 import com.pledgerio.app.ui.transactions.scan.InvoiceScanScreen
 import com.pledgerio.app.ui.accounts.AccountDetailViewModel
+import com.pledgerio.app.domain.model.TransactionType
 import java.time.YearMonth
 
 @Composable
@@ -354,6 +355,15 @@ fun NavGraph(
                 },
                 onNavigateToEdit = { accountId ->
                     navController.navigate(Screen.EditAccount.createRoute(accountId))
+                },
+                onRecordPayment = { account ->
+                    navController.navigate(
+                        Screen.AddTransaction.createRoute(
+                            prefillCurrency = account.currency,
+                            prefillType = TransactionType.TRANSFER.name,
+                            prefillTarget = account.name,
+                        ),
+                    )
                 },
                 viewModel = accountDetailViewModel,
             )

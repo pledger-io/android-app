@@ -17,6 +17,9 @@ data class AccountEntity(
     val bic: String? = null,
     val openingBalance: Double = 0.0,
     val lastActivity: String? = null,
+    val accountNumber: String? = null,
+    val interest: Double? = null,
+    val interestPeriodicity: String? = null,
     val lastSynced: Long = System.currentTimeMillis(),
 ) {
     fun toDomain(): Account = Account(
@@ -31,6 +34,9 @@ data class AccountEntity(
         bic = bic,
         openingBalance = openingBalance,
         lastActivity = lastActivity,
+        accountNumber = accountNumber,
+        interest = interest,
+        interestPeriodicity = interestPeriodicity,
     )
 
     companion object {
@@ -46,6 +52,9 @@ data class AccountEntity(
             bic = account.bic,
             openingBalance = account.openingBalance,
             lastActivity = account.lastActivity,
+            accountNumber = account.accountNumber,
+            interest = account.interest,
+            interestPeriodicity = account.interestPeriodicity,
         )
     }
 }

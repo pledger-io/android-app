@@ -159,12 +159,26 @@ data class TransactionFormUiState(
         get() = isValid &&
             splitValidationIssue() == null &&
             when {
-                sourceInputKind == AccountInputKind.OWNED_DROPDOWN && ownedAccounts.isEmpty() -> false
-                targetInputKind == AccountInputKind.OWNED_DROPDOWN && ownedAccounts.isEmpty() -> false
+                sourceInputKind == AccountInputKind.OWNED_DROPDOWN && sourceOwnedAccounts.isEmpty() -> false
+                targetInputKind == AccountInputKind.OWNED_DROPDOWN && targetOwnedAccounts.isEmpty() -> false
                 else -> true
             }
 
+    /** Own accounts selectable as source: liabilities are never paid from. */
+    val sourceOwnedAccounts: List<Account>
+        get() = sourceOwnedAccountsFor(ownedAccounts)
+
+    /** Own accounts selectable as destination: liabilities only receive transfers (repayments). */
+    val targetOwnedAccounts: List<Account>
+        get() = targetOwnedAccountsFor(type, ownedAccounts)
+
     companion object {
+        fun sourceOwnedAccountsFor(accounts: List<Account>): List<Account> =
+            accounts.filterNot { it.isLiability }
+
+        fun targetOwnedAccountsFor(type: TransactionType, accounts: List<Account>): List<Account> =
+            if (type == TransactionType.TRANSFER) accounts else accounts.filterNot { it.isLiability }
+
         fun inputKindForSource(type: TransactionType): AccountInputKind = when (type) {
             TransactionType.DEBIT -> AccountInputKind.DEBTOR_AUTOCOMPLETE
             TransactionType.CREDIT, TransactionType.TRANSFER -> AccountInputKind.OWNED_DROPDOWN
@@ -374,7 +388,7 @@ class TransactionFormViewModel @Inject constructor(
                 accountId = current.sourceAccountId,
                 selected = current.sourceSelected,
                 query = current.sourceQuery,
-                ownedAccounts = current.ownedAccounts,
+                ownedAccounts = TransactionFormUiState.sourceOwnedAccountsFor(current.ownedAccounts),
                 oldKind = oldSourceKind,
                 newKind = newSourceKind,
             )
@@ -382,7 +396,7 @@ class TransactionFormViewModel @Inject constructor(
                 accountId = current.targetAccountId,
                 selected = current.targetSelected,
                 query = current.targetQuery,
-                ownedAccounts = current.ownedAccounts,
+                ownedAccounts = TransactionFormUiState.targetOwnedAccountsFor(type, current.ownedAccounts),
                 oldKind = oldTargetKind,
                 newKind = newTargetKind,
             )
@@ -630,11 +644,12 @@ class TransactionFormViewModel @Inject constructor(
             _uiState.update { state ->
                 val sourceId = template.sourceAccountId?.takeIf { id ->
                     sourceKind == AccountInputKind.OWNED_DROPDOWN &&
-                        state.ownedAccounts.any { it.id == id }
+                        TransactionFormUiState.sourceOwnedAccountsFor(state.ownedAccounts).any { it.id == id }
                 }
                 val targetId = template.targetAccountId?.takeIf { id ->
                     targetKind == AccountInputKind.OWNED_DROPDOWN &&
-                        state.ownedAccounts.any { it.id == id }
+                        TransactionFormUiState.targetOwnedAccountsFor(type, state.ownedAccounts)
+                            .any { it.id == id }
                 }
                 state.copy(
                     type = type,
@@ -1188,6 +1203,12 @@ class TransactionFormViewModel @Inject constructor(
         val prefill = prefillDraft ?: return
         _uiState.update { state ->
             val type = prefill.type ?: state.type
+            val prefilledSource = prefill.sourceName
+                ?.takeIf { TransactionFormUiState.inputKindForSource(type) == AccountInputKind.OWNED_DROPDOWN }
+                ?.let { TransactionFormUiState.sourceOwnedAccountsFor(state.ownedAccounts).findByName(it) }
+            val prefilledTarget = prefill.targetName
+                ?.takeIf { TransactionFormUiState.inputKindForTarget(type) == AccountInputKind.OWNED_DROPDOWN }
+                ?.let { TransactionFormUiState.targetOwnedAccountsFor(type, state.ownedAccounts).findByName(it) }
             state.copy(
                 type = type,
                 description = prefill.description ?: state.description,
@@ -1196,11 +1217,11 @@ class TransactionFormViewModel @Inject constructor(
                     ?.takeIf { state.currencies.contains(it) }
                     ?: state.currency,
                 date = prefill.date ?: state.date,
-                sourceAccountId = null,
+                sourceAccountId = prefilledSource?.id,
                 sourceSelected = null,
                 sourceQuery = prefill.sourceName.orEmpty(),
                 sourceSuggestions = emptyList(),
-                targetAccountId = null,
+                targetAccountId = prefilledTarget?.id,
                 targetSelected = null,
                 targetQuery = prefill.targetName.orEmpty(),
                 targetSuggestions = emptyList(),
@@ -1284,6 +1305,12 @@ internal fun List<TransactionSplitLineUi>.toDomainSplits(): List<TransactionSpli
         TransactionSplit(description = description, amount = amountValue)
     }
 }
+
+/** Exact (case-insensitive) name match; liabilities win so "Record payment" targets the liability. */
+private fun List<Account>.findByName(name: String): Account? =
+    filter { it.name.equals(name.trim(), ignoreCase = true) }
+        .sortedByDescending { it.isLiability }
+        .firstOrNull()
 
 internal fun String.finiteDoubleOrNull(): Double? =
     toDoubleOrNull()?.takeIf { it.isFinite() }

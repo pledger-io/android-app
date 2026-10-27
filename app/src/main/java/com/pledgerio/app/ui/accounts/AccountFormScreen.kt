@@ -14,7 +14,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.ui.text.input.KeyboardType
+import com.pledgerio.app.domain.model.AccountTypeGroup
+import com.pledgerio.app.ui.util.datePickerMillisToLocalDate
+import com.pledgerio.app.ui.util.toDatePickerMillis
+import com.pledgerio.app.util.formatDisplay
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -125,6 +136,7 @@ fun AccountFormScreen(
                     AccountTypeDropdown(
                         selectedCode = uiState.typeCode,
                         ownedPickerEntries = uiState.ownedPickerEntries,
+                        liabilityTypes = uiState.liabilityAccountTypes,
                         counterpartyTypes = uiState.counterpartyAccountTypes,
                         onSelected = viewModel::onTypeChanged,
                     )
@@ -183,6 +195,10 @@ fun AccountFormScreen(
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                         )
+                    }
+
+                    if (uiState.isLiability) {
+                        LiabilityFields(uiState = uiState, viewModel = viewModel)
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -246,6 +262,7 @@ private fun AccountOwnershipSelector(
 private fun AccountTypeDropdown(
     selectedCode: String,
     ownedPickerEntries: List<AccountTypePickerEntry>,
+    liabilityTypes: List<AccountTypeOption>,
     counterpartyTypes: List<AccountTypeOption>,
     onSelected: (String) -> Unit,
 ) {
@@ -254,7 +271,7 @@ private fun AccountTypeDropdown(
         entry.soloTypeCode.equals(selectedCode, ignoreCase = true) ||
             entry.jointTypeCode?.equals(selectedCode, ignoreCase = true) == true
     }?.label?.resolve()
-        ?: counterpartyTypes.firstOrNull { it.code == selectedCode }?.let { option ->
+        ?: (liabilityTypes + counterpartyTypes).firstOrNull { it.code == selectedCode }?.let { option ->
             AccountTypeCatalog.metadataFor(option.code).localizedDisplayName()
         }
         ?: selectedCode.replace("_", " ").replaceFirstChar { it.uppercase() }
@@ -315,41 +332,22 @@ private fun AccountTypeDropdown(
                     )
                 }
             }
-            if (counterpartyTypes.isNotEmpty()) {
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            stringResource(R.string.accounts_counterparties_title),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    },
-                    onClick = {},
-                    enabled = false,
-                )
-                counterpartyTypes.forEach { option ->
-                    val meta = AccountTypeCatalog.metadataFor(option.code)
-                    DropdownMenuItem(
-                        text = {
-                            Column {
-                                Text(meta.localizedDisplayName())
-                                val description = option.description.ifBlank { meta.localizedDescription() }
-                                if (description.isNotBlank()) {
-                                    Text(
-                                        text = description,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            }
-                        },
-                        onClick = {
-                            onSelected(option.code)
-                            expanded = false
-                        },
-                    )
-                }
-            }
+            TypeOptionItems(
+                title = AccountTypeGroup.LIABILITIES.localizedTitle(),
+                options = liabilityTypes,
+                onSelected = {
+                    onSelected(it)
+                    expanded = false
+                },
+            )
+            TypeOptionItems(
+                title = stringResource(R.string.accounts_counterparties_title),
+                options = counterpartyTypes,
+                onSelected = {
+                    onSelected(it)
+                    expanded = false
+                },
+            )
         }
     }
 }
@@ -398,6 +396,150 @@ private fun CurrencyDropdown(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun TypeOptionItems(
+    title: String,
+    options: List<AccountTypeOption>,
+    onSelected: (String) -> Unit,
+) {
+    if (options.isEmpty()) return
+    DropdownMenuItem(
+        text = {
+            Text(
+                title,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        onClick = {},
+        enabled = false,
+    )
+    options.forEach { option ->
+        val meta = AccountTypeCatalog.metadataFor(option.code)
+        DropdownMenuItem(
+            text = {
+                Column {
+                    Text(meta.localizedDisplayName())
+                    val description = meta.localizedDescription()
+                    if (description.isNotBlank()) {
+                        Text(
+                            text = description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            },
+            onClick = { onSelected(option.code) },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LiabilityFields(
+    uiState: AccountFormUiState,
+    viewModel: AccountFormViewModel,
+) {
+    OutlinedTextField(
+        value = uiState.interestPercent,
+        onValueChange = viewModel::onInterestChanged,
+        label = { Text(stringResource(R.string.account_interest_label)) },
+        singleLine = true,
+        isError = uiState.interestError,
+        supportingText = if (uiState.interestError) {
+            { Text(stringResource(R.string.account_error_invalid_number)) }
+        } else {
+            null
+        },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        modifier = Modifier.fillMaxWidth(),
+    )
+
+    Text(
+        text = stringResource(R.string.account_interest_periodicity_label),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilterChip(
+            selected = uiState.interestPeriodicity == INTEREST_PERIODICITY_MONTHS,
+            onClick = { viewModel.onInterestPeriodicityChanged(INTEREST_PERIODICITY_MONTHS) },
+            label = { Text(stringResource(R.string.account_interest_periodicity_months)) },
+        )
+        FilterChip(
+            selected = uiState.interestPeriodicity == INTEREST_PERIODICITY_YEARS,
+            onClick = { viewModel.onInterestPeriodicityChanged(INTEREST_PERIODICITY_YEARS) },
+            label = { Text(stringResource(R.string.account_interest_periodicity_years)) },
+        )
+    }
+
+    OutlinedTextField(
+        value = uiState.accountNumber,
+        onValueChange = viewModel::onAccountNumberChanged,
+        label = { Text(stringResource(R.string.account_number_label)) },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+
+    if (uiState.showOpeningAmount) {
+        OutlinedTextField(
+            value = uiState.openingAmount,
+            onValueChange = viewModel::onOpeningAmountChanged,
+            label = { Text(stringResource(R.string.account_opening_amount_label)) },
+            singleLine = true,
+            isError = uiState.openingAmountError,
+            supportingText = if (uiState.openingAmountError) {
+                { Text(stringResource(R.string.account_error_invalid_number)) }
+            } else {
+                null
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        if (uiState.openingAmount.isNotBlank()) {
+            OutlinedButton(
+                onClick = viewModel::showOpeningDatePicker,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    stringResource(
+                        R.string.account_opening_date_label,
+                        uiState.openingDate.formatDisplay(),
+                    ),
+                )
+            }
+        }
+    }
+
+    if (uiState.showOpeningDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = uiState.openingDate.toDatePickerMillis(),
+        )
+        DatePickerDialog(
+            onDismissRequest = viewModel::dismissOpeningDatePicker,
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            viewModel.onOpeningDateChanged(datePickerMillisToLocalDate(millis))
+                        } ?: viewModel.dismissOpeningDatePicker()
+                    },
+                ) {
+                    Text(stringResource(R.string.action_ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissOpeningDatePicker) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        ) {
+            DatePicker(state = datePickerState)
         }
     }
 }

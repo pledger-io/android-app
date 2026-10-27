@@ -9,7 +9,7 @@ This describes the checked-in implementation. Server-backed features depend on t
 | Transactions | Month navigation, paging, filters, detail, create/edit/delete | `ui/transactions`, `TransactionRepository` |
 | Transaction entry | Income/expense/transfer, category, expense group, contract, tags, templates, splits, classification suggestions | `TransactionFormViewModel`, `ui/transactions/form` |
 | Invoice scan | Camera or image picker, local OCR, backend text interpretation, review/edit prefilled form before saving | `ui/transactions/scan`, `ProcessInvoiceScanUseCase` |
-| Accounts | All/Owned/Parties filters, counterparty search, balances, history, add/edit/delete, authenticated logos | `ui/accounts`, `AccountRepository` |
+| Accounts | All/Owned/Parties filters, counterparty search, balances, history, add/edit/delete, authenticated logos; loans/mortgages/debts with interest, starting amount and record payment | `ui/accounts`, `AccountRepository` |
 | Budgets | Month selection, initial setup, expense-group spending, add/edit groups | `ui/budgets`, budget use cases |
 | Reports | Monthly overview; income/expense, categories, budget performance, net worth, account balances; month-over-month comparisons, spending insights, refresh and linked category/account/budget drill-downs | `ui/reports`, `ReportRepository`, `ReportsOverviewStore` |
 | Search | Dashboard entry to transaction, account, counterparty, and category search | `ui/search` |

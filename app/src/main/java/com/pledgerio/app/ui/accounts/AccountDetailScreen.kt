@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.R
+import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.AccountTypeCatalog
 import com.pledgerio.app.ui.components.AccountIcon
 import com.pledgerio.app.ui.components.ErrorScreen
@@ -53,6 +55,8 @@ import com.pledgerio.app.ui.dashboard.TransactionItem
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.IncomeGreen
 import com.pledgerio.app.util.formatCurrency
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,6 +64,7 @@ fun AccountDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToTransaction: (Long) -> Unit,
     onNavigateToEdit: (Long) -> Unit,
+    onRecordPayment: (Account) -> Unit = {},
     viewModel: AccountDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -221,6 +226,40 @@ fun AccountDetailScreen(
                                     account.openingBalance.formatCurrency(account.currency),
                                 )
                             }
+                            if (account.isLiability) {
+                                account.accountNumber?.let {
+                                    DetailInfoRow(stringResource(R.string.account_number_label), it)
+                                }
+                                account.interest?.let { interest ->
+                                    DetailInfoRow(
+                                        stringResource(R.string.account_detail_interest),
+                                        interest.formatInterestRate(),
+                                    )
+                                }
+                                account.interestPeriodicity?.let { periodicity ->
+                                    DetailInfoRow(
+                                        stringResource(R.string.account_interest_periodicity_label),
+                                        stringResource(
+                                            if (periodicity == INTEREST_PERIODICITY_YEARS) {
+                                                R.string.account_interest_periodicity_years
+                                            } else {
+                                                R.string.account_interest_periodicity_months
+                                            },
+                                        ),
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (account.isLiability) {
+                        item {
+                            Button(
+                                onClick = { onRecordPayment(account) },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                Text(stringResource(R.string.account_detail_record_payment))
+                            }
                         }
                     }
 
@@ -317,3 +356,11 @@ private fun DetailInfoRow(label: String, value: String) {
         )
     }
 }
+
+private fun Double.formatInterestRate(): String =
+    NumberFormat.getPercentInstance(Locale.getDefault())
+        .apply {
+            minimumFractionDigits = 2
+            maximumFractionDigits = 3
+        }
+        .format(this)

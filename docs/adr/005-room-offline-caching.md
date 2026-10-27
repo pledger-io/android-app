@@ -17,7 +17,7 @@ Options considered:
 
 Use **Room** as the local database for offline caching of accounts, transactions, budgets, categories, and currencies.
 
-Current schema (**version 7**): `AccountEntity` (includes `iconFileCode`), `TransactionEntity`, `BudgetEntity`, `CategoryEntity`, `CurrencyEntity`, `ContractEntity`, `ExpenseGroupEntity`, `AccountTypeEntity`, `SyncMetadataEntity`, `TransactionOutboxEntity` (create-only write outbox).
+Current schema (**version 8**): `AccountEntity` (includes `iconFileCode` and liability `accountNumber`/`interest`/`interestPeriodicity`), `TransactionEntity`, `BudgetEntity`, `CategoryEntity`, `CurrencyEntity`, `ContractEntity`, `ExpenseGroupEntity`, `AccountTypeEntity`, `SyncMetadataEntity`, `TransactionOutboxEntity` (create-only write outbox).
 
 Design choices:
 - Entities are separate from domain models — they contain `toDomain()` / `fromDomain()` mapping functions

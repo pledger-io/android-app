@@ -474,6 +474,17 @@
     <string name="account_description_label">Beschrijving</string>
     <string name="account_iban_label">IBAN</string>
     <string name="account_bic_label">BIC</string>
+    <string name="account_number_label">Rekeningnummer</string>
+    <string name="account_interest_label">Rente (%)</string>
+    <string name="account_interest_periodicity_label">Renteperiode</string>
+    <string name="account_interest_periodicity_months">Per maand</string>
+    <string name="account_interest_periodicity_years">Per jaar</string>
+    <string name="account_opening_amount_label">Startbedrag schuld (optioneel)</string>
+    <string name="account_opening_date_label">Startdatum: %1$s</string>
+    <string name="account_error_invalid_number">Voer een geldig getal in</string>
+    <string name="account_error_opening_balance_failed">De schuld is aangemaakt, maar het startbedrag kon niet worden vastgelegd: %1$s</string>
+    <string name="account_detail_interest">Rente</string>
+    <string name="account_detail_record_payment">Betaling vastleggen</string>
     <string name="account_type_label">Rekeningtype *</string>
     <string name="account_currency_label">Valuta *</string>
 
