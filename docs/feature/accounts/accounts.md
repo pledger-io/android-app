@@ -20,7 +20,20 @@ Pledger.io separates **your accounts** (assets you own and track balances for) f
 | `credit_card` | Credit card | Revolving credit; balance often negative |
 | `cash` | Cash | Physical cash on hand |
 
-Additional types may appear per server configuration (e.g. `loan`, `mortgage`, `investment`).
+Additional types may appear per server configuration (e.g. `investment`).
+
+## Liability types (loans, mortgages, debts)
+
+| Type code | Display name | Role |
+|-----------|--------------|------|
+| `loan` | Loan | A loan you repay over time |
+| `mortgage` | Mortgage | Property financing |
+| `debt` | Debt | Any other debt you are paying down |
+
+- The backend keeps these types **hidden** from `GET /v2/api/account-types`, so the app always adds them to the owned type list itself (`AccountTypeCodes.liabilityTypeCodes`). They are owned accounts: listed under **Loans & liabilities**, included in dashboard net worth, search and the Account balances report. The server balance is shown as-is (negative = still owed).
+- Liabilities carry an **interest rate** and **periodicity** (`MONTHS`/`YEARS`) and an optional account number, shown on the detail and editable in the form. The API stores the rate as a fraction (`0.035`); the form shows a percentage (`3.5`).
+- **Starting amount owed** (create only): recorded like the web UI — a transaction from the liability to the server's `reconcile` account with description `Opening balance`. If that call fails the account still exists and the form stays open in edit mode.
+- **Record payment** on the detail opens a transfer with the liability as destination. Liabilities are offered only as a **transfer destination**, never as a source or in income/expense own-account pickers; the backend then books the payment as an expense from the paying account.
 
 ## Counterparty types (fixed)
 
@@ -38,6 +51,7 @@ Additional types may appear per server configuration (e.g. `loan`, `mortgage`, `
 | **Expense** (CREDIT) | Owned account | Creditor (or owned for internal) |
 | **Income** (DEBIT) | Debtor | Owned account |
 | **Transfer** | Owned account | Owned account |
+| **Liability payment** (Transfer in the form) | Owned asset account | Loan / mortgage / debt |
 
 ## Managing accounts in the app
 

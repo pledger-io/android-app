@@ -5,6 +5,7 @@ import com.pledgerio.app.domain.model.AccountTypeOption
 import com.pledgerio.app.domain.model.PagedAccounts
 import com.pledgerio.app.domain.common.Resource
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
 
 interface AccountRepository {
     /** Owned (asset) accounts only — used for dashboard, sync, and the Owned filter. */
@@ -41,4 +42,7 @@ interface AccountRepository {
     suspend fun createAccount(account: Account): Resource<Account>
     suspend fun updateAccount(account: Account): Resource<Account>
     suspend fun deleteAccount(id: Long): Resource<Unit>
+
+    /** Records a liability's starting amount owed the way the web UI does (transfer to reconcile). */
+    suspend fun recordOpeningBalance(account: Account, amount: Double, date: LocalDate): Resource<Unit>
 }

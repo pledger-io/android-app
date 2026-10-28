@@ -87,7 +87,7 @@ flowchart TB
 
 Compose screens render ViewModel `StateFlow` and send user events. ViewModels use repository contracts directly for simple operations and use cases for orchestration. Models and interfaces live under `domain`; Retrofit DTOs and Room entities are mapped in `data`. A compatibility bridge remains between `util.Resource` and `domain/common/Resource`; package boundaries are a design intent rather than a claim of perfect isolation.
 
-Repositories choose caching by operation. Reference catalogs use Room observation with TTL metadata and stale-while-revalidate refresh (`CacheRefresher`). Paged transactions/counterparties use network requests and bounded cached fallback. Reports use domain store contracts backed by in-memory caches. Successful transaction changes invalidate derived budget/report data through `TransactionMutationInvalidator`.
+Repositories choose caching by operation. Reference catalogs use Room observation with TTL metadata and stale-while-revalidate refresh (`CacheRefresher`). Paged transactions/counterparties use network requests and bounded cached fallback. Reports use domain store contracts backed by in-memory caches. Successful transaction changes invalidate derived budget/report data and owned-account balances through `TransactionMutationInvalidator`.
 
 ### Authentication and session flow
 

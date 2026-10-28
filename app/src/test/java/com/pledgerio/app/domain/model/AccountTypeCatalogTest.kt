@@ -78,4 +78,16 @@ class AccountTypeCatalogTest {
     assertFalse(meta.showOpeningBalance)
     assertFalse(meta.showBankDetails)
   }
+
+  @Test
+  fun `liability types are recognised and grouped as liabilities`() {
+    listOf("loan", "MORTGAGE", "debt").forEach { code ->
+      assertTrue(AccountTypeCatalog.isLiability(code))
+      assertFalse(AccountTypeCatalog.isCounterparty(code))
+      assertEquals(AccountTypeGroup.LIABILITIES, AccountTypeCatalog.metadataFor(code).group)
+      assertFalse(AccountTypeCatalog.metadataFor(code).showBankDetails)
+    }
+    assertFalse(AccountTypeCatalog.isLiability("default"))
+    assertFalse(AccountTypeCatalog.isLiability("creditor"))
+  }
 }

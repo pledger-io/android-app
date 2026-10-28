@@ -60,6 +60,18 @@ class AccountDetailViewModel @Inject constructor(
         loadTransactionsPage(offset = state.transactions.size)
     }
 
+    private var hasResumed = false
+
+    /** Re-fetches after returning from e.g. a payment; the first resume is covered by init. */
+    fun onScreenResumed() {
+        if (!hasResumed) {
+            hasResumed = true
+            return
+        }
+        loadAccount()
+        loadTransactionsPage(offset = 0)
+    }
+
     fun reload() {
         transactionsJob?.cancel()
         loadingOffset = null

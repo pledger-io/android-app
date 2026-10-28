@@ -9,6 +9,7 @@ import com.pledgerio.app.data.local.entity.AccountEntity
 import com.pledgerio.app.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.BalanceRequest
 import com.pledgerio.app.data.remote.dto.CreateAccountRequest
+import com.pledgerio.app.data.remote.dto.CreateTransactionRequest
 import com.pledgerio.app.data.remote.dto.DateRangeDto
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.AccountTypeCatalog
@@ -252,7 +253,8 @@ class AccountRepositoryImpl @Inject constructor(
         val fromCache = accountDao.getAll().first()
             .map { it.type.lowercase() }
             .filter { it !in AccountTypeCodes.counterpartyTypeCodes }
-        return (fromApi + fromCache).distinct()
+        // Liability types are hidden from `account-types` by the backend but are owned accounts.
+        return (fromApi + fromCache + AccountTypeCodes.liabilityTypeCodes).distinct()
     }
 
     private suspend fun fetchAccountDtosPaged(types: List<String>?): AccountDtoPage {
@@ -540,19 +542,22 @@ class AccountRepositoryImpl @Inject constructor(
         ) { refreshAccountTypesUnlocked() }
         if (cached.isNotEmpty()) {
             val ownedCodes = cached.filter { it !in AccountTypeCodes.counterpartyTypeCodes }
-            return Resource.Success(AccountTypeCatalog.toOptions(ownedCodes))
+            return Resource.Success(AccountTypeCatalog.toOptions(withLiabilityTypes(ownedCodes)))
         }
         // No cache yet — block on a single network call so the picker isn't empty.
         return when (val refreshed = refreshAccountTypes()) {
             is Resource.Success -> {
                 val ownedCodes = refreshed.data.filter { it !in AccountTypeCodes.counterpartyTypeCodes }
-                Resource.Success(AccountTypeCatalog.toOptions(ownedCodes))
+                Resource.Success(AccountTypeCatalog.toOptions(withLiabilityTypes(ownedCodes)))
             }
             // Fail-soft: callers (AccountsViewModel / AccountFormViewModel) already render
             // the static counterparty options when the owned list is empty.
-            else -> Resource.Success(AccountTypeCatalog.toOptions(emptyList()))
+            else -> Resource.Success(AccountTypeCatalog.toOptions(withLiabilityTypes(emptyList())))
         }
     }
+
+    private fun withLiabilityTypes(ownedCodes: List<String>): List<String> =
+        (ownedCodes + AccountTypeCodes.liabilityTypeCodes).distinct()
 
     override suspend fun refreshAccountTypes(): Resource<List<String>> {
         return cacheRefresher.refreshNow(SyncKeys.ACCOUNT_TYPES) {
@@ -586,6 +591,9 @@ class AccountRepositoryImpl @Inject constructor(
                 type = account.typeCode,
                 iban = account.iban,
                 bic = account.bic,
+                number = account.accountNumber,
+                interest = account.interest.takeIf { account.interestPeriodicity != null },
+                interestPeriodicity = account.interestPeriodicity.takeIf { account.interest != null },
             )
             val response = apiService.createAccount(request)
             if (response.isSuccessful) {
@@ -610,6 +618,9 @@ class AccountRepositoryImpl @Inject constructor(
                 type = account.typeCode,
                 iban = account.iban,
                 bic = account.bic,
+                number = account.accountNumber,
+                interest = account.interest.takeIf { account.interestPeriodicity != null },
+                interestPeriodicity = account.interestPeriodicity.takeIf { account.interest != null },
             )
             val response = apiService.updateAccount(account.id, request)
             if (response.isSuccessful) {
@@ -619,6 +630,45 @@ class AccountRepositoryImpl @Inject constructor(
             } else {
                 Resource.Error("Failed to update account: ${response.code()}")
             }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Network error")
+        }
+    }
+
+    override suspend fun recordOpeningBalance(
+        account: Account,
+        amount: Double,
+        date: LocalDate,
+    ): Resource<Unit> {
+        return try {
+            val reconcileResponse = apiService.getAccounts(
+                type = listOf(AccountTypeCodes.RECONCILE),
+                offset = 0,
+                numberOfResults = 1,
+            )
+            val reconcile = reconcileResponse.body()?.content?.firstOrNull()
+            if (!reconcileResponse.isSuccessful || reconcile == null) {
+                return Resource.Error("Reconcile account not found")
+            }
+            val response = apiService.createTransaction(
+                CreateTransactionRequest(
+                    date = date.toString(),
+                    currency = account.currency,
+                    // Literal on purpose: the web UI locates the opening entry by this text.
+                    description = OPENING_BALANCE_DESCRIPTION,
+                    amount = amount,
+                    source = account.id,
+                    target = reconcile.id,
+                ),
+            )
+            if (response.isSuccessful) {
+                invalidateOnMutation(account.typeCode)
+                Resource.Success(Unit)
+            } else {
+                Resource.Error("Failed to record opening balance: ${response.code()}")
+            }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Resource.Error(e.message ?: "Network error")
         }
@@ -663,6 +713,13 @@ class AccountRepositoryImpl @Inject constructor(
             iban = account?.iban,
             bic = account?.bic,
             lastActivity = history?.lastTransaction,
+            accountNumber = account?.number,
+            interest = interest?.takeIf { it.periodicity != null }?.interest,
+            interestPeriodicity = interest?.periodicity,
         )
+    }
+
+    private companion object {
+        const val OPENING_BALANCE_DESCRIPTION = "Opening balance"
     }
 }

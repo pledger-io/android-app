@@ -134,7 +134,7 @@ fun TransactionFormScreen(
         OwnedAccountPickerSide.SOURCE -> {
             OwnedAccountPickerSheet(
                 title = sourceLabel,
-                accounts = uiState.ownedAccounts,
+                accounts = uiState.sourceOwnedAccounts,
                 selectedId = uiState.sourceAccountId,
                 onDismiss = viewModel::dismissOwnedAccountPicker,
                 onAccountSelected = viewModel::onSourceDropdownSelected,
@@ -143,7 +143,7 @@ fun TransactionFormScreen(
         OwnedAccountPickerSide.TARGET -> {
             OwnedAccountPickerSheet(
                 title = targetLabel,
-                accounts = uiState.ownedAccounts,
+                accounts = uiState.targetOwnedAccounts,
                 selectedId = uiState.targetAccountId,
                 onDismiss = viewModel::dismissOwnedAccountPicker,
                 onAccountSelected = viewModel::onTargetDropdownSelected,
@@ -252,7 +252,8 @@ fun TransactionFormScreen(
                             targetQuery = uiState.targetQuery,
                             targetSuggestions = uiState.targetSuggestions,
                             isSearchingTarget = uiState.isSearchingTarget,
-                            ownedAccounts = uiState.ownedAccounts,
+                            sourceOwnedAccounts = uiState.sourceOwnedAccounts,
+                            targetOwnedAccounts = uiState.targetOwnedAccounts,
                             sourceError = fieldErrors.source,
                             targetError = fieldErrors.target,
                             onSourceQueryChange = viewModel::onSourceQueryChanged,

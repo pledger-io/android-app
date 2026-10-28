@@ -474,6 +474,17 @@
     <string name="account_description_label">Beschreibung</string>
     <string name="account_iban_label">IBAN</string>
     <string name="account_bic_label">BIC</string>
+    <string name="account_number_label">Kontonummer</string>
+    <string name="account_interest_label">Zinssatz (%)</string>
+    <string name="account_interest_periodicity_label">Zinsperiode</string>
+    <string name="account_interest_periodicity_months">Monatlich</string>
+    <string name="account_interest_periodicity_years">Jährlich</string>
+    <string name="account_opening_amount_label">Anfänglicher Schuldbetrag (optional)</string>
+    <string name="account_opening_date_label">Startdatum: %1$s</string>
+    <string name="account_error_invalid_number">Gib eine gültige Zahl ein</string>
+    <string name="account_error_opening_balance_failed">Die Verbindlichkeit wurde angelegt, aber der Anfangsbetrag konnte nicht erfasst werden: %1$s</string>
+    <string name="account_detail_interest">Zinsen</string>
+    <string name="account_detail_record_payment">Zahlung erfassen</string>
     <string name="account_type_label">Kontotyp *</string>
     <string name="account_currency_label">Währung *</string>
 

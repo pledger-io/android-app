@@ -12,7 +12,13 @@ data class Account(
     val bic: String? = null,
     val openingBalance: Double = 0.0,
     val lastActivity: String? = null,
+    val accountNumber: String? = null,
+    /** Interest rate as a fraction (0.035 = 3.5 %); only used by liabilities. */
+    val interest: Double? = null,
+    /** `MONTHS` or `YEARS`; only used by liabilities. */
+    val interestPeriodicity: String? = null,
 ) {
+    val isLiability: Boolean get() = AccountTypeCatalog.isLiability(typeCode)
     val type: AccountType get() = AccountType.fromApiLabel(typeCode)
 
     val typeDisplayName: String get() = typeCode.toAccountTypeDisplayName()
