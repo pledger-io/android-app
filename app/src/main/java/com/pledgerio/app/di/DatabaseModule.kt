@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.pledgerio.app.data.local.PledgerDatabase
 import com.pledgerio.app.data.local.PledgerDatabaseMigrations
-import com.pledgerio.app.data.local.dao.AccountDao
+import com.pledgerio.app.accounts.data.dao.AccountDao
 import com.pledgerio.app.catalog.data.dao.AccountTypeDao
 import com.pledgerio.app.data.local.dao.BudgetDao
 import com.pledgerio.app.catalog.data.dao.CategoryDao

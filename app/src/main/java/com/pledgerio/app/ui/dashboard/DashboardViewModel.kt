@@ -3,7 +3,7 @@ package com.pledgerio.app.ui.dashboard
 import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pledgerio.app.domain.model.Account
+import com.pledgerio.app.accounts.domain.model.Account
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.SpendingInsight
 import com.pledgerio.app.domain.model.Transaction

@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.transactions.scan
 
+import com.pledgerio.app.accounts.ui.icon
 import android.Manifest
 import android.content.Context
 import android.content.Intent

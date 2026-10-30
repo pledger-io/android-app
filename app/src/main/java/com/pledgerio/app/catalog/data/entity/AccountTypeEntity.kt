@@ -1,6 +1,7 @@
 package com.pledgerio.app.catalog.data.entity
 
-import com.pledgerio.app.catalog.domain.model.AccountTypeCatalog
+import com.pledgerio.app.accounts.ui.icon
+import com.pledgerio.app.accounts.domain.model.AccountTypeCatalog
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 

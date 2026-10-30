@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.dashboard
 
+import com.pledgerio.app.accounts.ui.icon
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween

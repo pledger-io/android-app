@@ -1,9 +1,9 @@
 package com.pledgerio.app.domain.usecase
 
 import com.pledgerio.app.shared.Resource
-import com.pledgerio.app.domain.model.Account
+import com.pledgerio.app.accounts.domain.model.Account
 import com.pledgerio.app.domain.model.Transaction
-import com.pledgerio.app.domain.repository.AccountRepository
+import com.pledgerio.app.accounts.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine

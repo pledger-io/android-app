@@ -10,7 +10,7 @@ import com.pledgerio.app.catalog.data.entity.CategoryEntity
 import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.catalog.data.dto.CategoryDto
 import com.pledgerio.app.catalog.data.dto.CategoryPagedResponse
-import com.pledgerio.app.data.remote.dto.PageInfo
+import com.pledgerio.app.shared.data.dto.PageInfo
 import com.pledgerio.app.catalog.domain.model.Category
 import com.pledgerio.app.util.FakeSyncMetadataDao
 import io.mockk.Runs

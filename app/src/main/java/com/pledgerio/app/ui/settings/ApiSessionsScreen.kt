@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.settings
 
+import com.pledgerio.app.accounts.ui.icon
 import android.content.ClipData
 import android.content.ClipboardManager
 import androidx.compose.foundation.layout.Arrangement

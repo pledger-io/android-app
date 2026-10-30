@@ -6,7 +6,7 @@ import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.model.Budget
 import com.pledgerio.app.domain.model.BudgetListState
 import com.pledgerio.app.domain.model.FlushResult
-import com.pledgerio.app.domain.repository.AccountRepository
+import com.pledgerio.app.accounts.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import com.pledgerio.app.catalog.domain.repository.ContractRepository

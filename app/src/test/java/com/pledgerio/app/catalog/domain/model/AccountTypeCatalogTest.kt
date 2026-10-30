@@ -1,10 +1,10 @@
 package com.pledgerio.app.catalog.domain.model
 
-import com.pledgerio.app.catalog.domain.model.AccountListFilter
-import com.pledgerio.app.catalog.domain.model.AccountTypeCatalog
-import com.pledgerio.app.domain.model.Account
-import com.pledgerio.app.domain.model.AccountType
-import com.pledgerio.app.catalog.domain.model.AccountTypeGroup
+import com.pledgerio.app.accounts.domain.model.AccountListFilter
+import com.pledgerio.app.accounts.domain.model.AccountTypeCatalog
+import com.pledgerio.app.accounts.domain.model.Account
+import com.pledgerio.app.accounts.domain.model.AccountType
+import com.pledgerio.app.accounts.domain.model.AccountTypeGroup
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

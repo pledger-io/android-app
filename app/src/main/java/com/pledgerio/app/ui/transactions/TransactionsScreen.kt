@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.transactions
 
+import com.pledgerio.app.accounts.ui.icon
 import com.pledgerio.app.catalog.domain.model.Contract
 import com.pledgerio.app.catalog.domain.model.Category
 import androidx.compose.animation.AnimatedVisibility
