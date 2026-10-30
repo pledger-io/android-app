@@ -1,7 +1,7 @@
 package com.pledgerio.app.ui.accounts
 
-import com.pledgerio.app.domain.model.AccountTypeCatalog
-import com.pledgerio.app.domain.model.AccountTypeOption
+import com.pledgerio.app.catalog.domain.model.AccountTypeCatalog
+import com.pledgerio.app.catalog.domain.model.AccountTypeOption
 
 enum class AccountTypeFamily {
     CHECKING,

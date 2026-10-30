@@ -9,10 +9,10 @@ import com.pledgerio.app.data.remote.dto.BalancePartitionedDto
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.Budget
 import com.pledgerio.app.domain.model.BudgetListState
-import com.pledgerio.app.domain.model.Category
+import com.pledgerio.app.catalog.domain.model.Category
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
-import com.pledgerio.app.domain.repository.CategoryRepository
+import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

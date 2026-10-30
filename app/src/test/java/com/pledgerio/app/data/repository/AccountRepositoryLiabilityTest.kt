@@ -3,7 +3,7 @@ package com.pledgerio.app.data.repository
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.shared.data.cache.CacheRefresher
 import com.pledgerio.app.data.local.dao.AccountDao
-import com.pledgerio.app.data.local.dao.AccountTypeDao
+import com.pledgerio.app.catalog.data.dao.AccountTypeDao
 import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.AccountDto
 import com.pledgerio.app.data.remote.dto.AccountIdentificationDto

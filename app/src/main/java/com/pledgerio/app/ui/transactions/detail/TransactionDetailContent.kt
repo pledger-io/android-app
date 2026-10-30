@@ -1,5 +1,7 @@
 package com.pledgerio.app.ui.transactions.detail
 
+import com.pledgerio.app.catalog.domain.model.Contract
+import com.pledgerio.app.catalog.domain.model.Category
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

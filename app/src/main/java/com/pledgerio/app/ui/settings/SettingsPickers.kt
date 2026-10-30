@@ -21,7 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.AppLocale
-import com.pledgerio.app.domain.model.Currency
+import com.pledgerio.app.catalog.domain.model.Currency
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.ThemeMode
 import com.pledgerio.app.ui.theme.ExpenseRed

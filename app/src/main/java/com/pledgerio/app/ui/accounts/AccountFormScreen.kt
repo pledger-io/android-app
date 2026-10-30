@@ -22,7 +22,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.ui.text.input.KeyboardType
-import com.pledgerio.app.domain.model.AccountTypeGroup
+import com.pledgerio.app.catalog.domain.model.AccountTypeGroup
 import com.pledgerio.app.ui.util.datePickerMillisToLocalDate
 import com.pledgerio.app.ui.util.toDatePickerMillis
 import com.pledgerio.app.shared.formatDisplay
@@ -52,8 +52,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.Account
-import com.pledgerio.app.domain.model.AccountTypeCatalog
-import com.pledgerio.app.domain.model.AccountTypeOption
+import com.pledgerio.app.catalog.domain.model.AccountTypeCatalog
+import com.pledgerio.app.catalog.domain.model.AccountTypeOption
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar

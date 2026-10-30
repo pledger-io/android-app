@@ -13,7 +13,7 @@ import coil.ImageLoader
 import coil.Coil
 import com.pledgerio.app.shared.AppLog
 import com.pledgerio.app.identity.session.AuthenticatedSessionCoordinator
-import com.pledgerio.app.util.CurrencyProvider
+import com.pledgerio.app.catalog.CurrencyProvider
 import com.pledgerio.app.shared.DebugLogcatNoiseFilter
 import com.pledgerio.app.util.OutboxFlushOnReconnect
 import com.pledgerio.app.di.ApplicationScope

@@ -1,5 +1,6 @@
 package com.pledgerio.app.domain.model
 
+import com.pledgerio.app.catalog.domain.model.Category
 import kotlin.math.abs
 
 data class IncomeExpenseSummary(

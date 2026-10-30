@@ -2,8 +2,8 @@ package com.pledgerio.app.ui.transactions
 
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.repository.BudgetRepository
-import com.pledgerio.app.domain.repository.CategoryRepository
-import com.pledgerio.app.domain.repository.ContractRepository
+import com.pledgerio.app.catalog.domain.repository.CategoryRepository
+import com.pledgerio.app.catalog.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.PagedResult
 import com.pledgerio.app.domain.repository.TransactionRepository
 import androidx.lifecycle.SavedStateHandle

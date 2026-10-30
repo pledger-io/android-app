@@ -2,12 +2,12 @@ package com.pledgerio.app.ui.search
 
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.model.Account
-import com.pledgerio.app.domain.model.Category
+import com.pledgerio.app.catalog.domain.model.Category
 import com.pledgerio.app.domain.model.PagedAccounts
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.AccountRepository
-import com.pledgerio.app.domain.repository.CategoryRepository
+import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.PagedResult
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.shared.MainDispatcherRule

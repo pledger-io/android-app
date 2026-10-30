@@ -3,7 +3,7 @@ package com.pledgerio.app.identity.ui.onboarding
 import com.pledgerio.app.identity.ui.onboarding.Verify2FactorViewModel
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.identity.domain.repository.AuthRepository
-import com.pledgerio.app.domain.repository.CurrencyRepository
+import com.pledgerio.app.catalog.domain.repository.CurrencyRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

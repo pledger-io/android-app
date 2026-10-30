@@ -4,11 +4,11 @@ import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.AppLocale
-import com.pledgerio.app.domain.model.Currency
+import com.pledgerio.app.catalog.domain.model.Currency
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.ThemeMode
 import com.pledgerio.app.identity.domain.repository.AuthRepository
-import com.pledgerio.app.domain.repository.CurrencyRepository
+import com.pledgerio.app.catalog.domain.repository.CurrencyRepository
 import com.pledgerio.app.identity.domain.repository.UserSessionRepository
 import com.pledgerio.app.identity.session.BiometricAuthenticator
 import com.pledgerio.app.identity.session.BiometricAvailability

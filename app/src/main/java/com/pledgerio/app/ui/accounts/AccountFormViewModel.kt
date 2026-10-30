@@ -5,11 +5,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Account
-import com.pledgerio.app.domain.model.AccountTypeCatalog
-import com.pledgerio.app.domain.model.AccountTypeOption
-import com.pledgerio.app.domain.model.Currency
+import com.pledgerio.app.catalog.domain.model.AccountTypeCatalog
+import com.pledgerio.app.catalog.domain.model.AccountTypeOption
+import com.pledgerio.app.catalog.domain.model.Currency
 import com.pledgerio.app.domain.repository.AccountRepository
-import com.pledgerio.app.domain.repository.CurrencyRepository
+import com.pledgerio.app.catalog.domain.repository.CurrencyRepository
 import android.content.Context
 import com.pledgerio.app.R
 import com.pledgerio.app.ui.transactions.finiteDoubleOrNull

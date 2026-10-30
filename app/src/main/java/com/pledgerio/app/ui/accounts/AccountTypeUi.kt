@@ -13,8 +13,8 @@ import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.AccountType
-import com.pledgerio.app.domain.model.AccountTypeCatalog
-import com.pledgerio.app.domain.model.AccountTypeGroup
+import com.pledgerio.app.catalog.domain.model.AccountTypeCatalog
+import com.pledgerio.app.catalog.domain.model.AccountTypeGroup
 
 fun accountTypeIcon(typeCode: String): ImageVector {
     return when (AccountType.fromApiLabel(typeCode)) {

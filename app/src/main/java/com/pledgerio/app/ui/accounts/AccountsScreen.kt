@@ -49,9 +49,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.Account
-import com.pledgerio.app.domain.model.AccountListFilter
-import com.pledgerio.app.domain.model.AccountSection
-import com.pledgerio.app.domain.model.AccountTypeCatalog
+import com.pledgerio.app.catalog.domain.model.AccountListFilter
+import com.pledgerio.app.catalog.domain.model.AccountSection
+import com.pledgerio.app.catalog.domain.model.AccountTypeCatalog
 import com.pledgerio.app.ui.components.AccountIcon
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.ui.components.EmptyScreen

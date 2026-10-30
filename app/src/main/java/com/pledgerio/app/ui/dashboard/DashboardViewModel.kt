@@ -7,7 +7,7 @@ import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.SpendingInsight
 import com.pledgerio.app.domain.model.Transaction
-import com.pledgerio.app.domain.repository.CurrencyRepository
+import com.pledgerio.app.catalog.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.repository.SpendingInsightRepository
 import com.pledgerio.app.domain.usecase.GetDashboardDataUseCase
 import com.pledgerio.app.util.UserPreferences

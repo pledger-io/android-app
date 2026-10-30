@@ -5,12 +5,12 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.Account
-import com.pledgerio.app.domain.model.AccountTypeGroup
-import com.pledgerio.app.domain.model.AccountTypeOption
+import com.pledgerio.app.catalog.domain.model.AccountTypeGroup
+import com.pledgerio.app.catalog.domain.model.AccountTypeOption
 import io.mockk.slot
 import java.time.LocalDate
 import com.pledgerio.app.domain.repository.AccountRepository
-import com.pledgerio.app.domain.repository.CurrencyRepository
+import com.pledgerio.app.catalog.domain.repository.CurrencyRepository
 import com.pledgerio.app.shared.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.coVerify
