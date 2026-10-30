@@ -1,5 +1,7 @@
-package com.pledgerio.app.util
+package com.pledgerio.app.sync.work
 
+import com.pledgerio.app.sync.work.SyncRunOutcome
+import com.pledgerio.app.sync.work.SyncWorker
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals

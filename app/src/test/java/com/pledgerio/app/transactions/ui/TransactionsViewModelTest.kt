@@ -36,7 +36,7 @@ class TransactionsViewModelTest {
 
     private val transactionRepository = mockk<TransactionRepository>()
     private val getTransactionsUseCase = mockk<GetTransactionsUseCase>()
-    private val outboxRepository = mockk<com.pledgerio.app.domain.repository.TransactionOutboxRepository>()
+    private val outboxRepository = mockk<com.pledgerio.app.sync.domain.repository.TransactionOutboxRepository>()
     private val categoryRepository = mockk<CategoryRepository>(relaxed = true)
     private val budgetRepository = mockk<BudgetRepository>(relaxed = true)
     private val contractRepository = mockk<ContractRepository>(relaxed = true)

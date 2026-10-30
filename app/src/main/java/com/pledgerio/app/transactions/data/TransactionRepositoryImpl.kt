@@ -17,10 +17,10 @@ import com.pledgerio.app.transactions.domain.model.TransactionExtractionDraft
 import com.pledgerio.app.transactions.domain.model.TransactionFilters
 import com.pledgerio.app.transactions.domain.model.TransactionType
 import com.pledgerio.app.transactions.domain.repository.PagedResult
-import com.pledgerio.app.domain.repository.TransactionOutboxRepository
+import com.pledgerio.app.sync.domain.repository.TransactionOutboxRepository
 import com.pledgerio.app.transactions.domain.repository.TransactionRepository
 import com.pledgerio.app.shared.NetworkMonitor
-import com.pledgerio.app.util.OutboxFlushScheduler
+import com.pledgerio.app.sync.work.OutboxFlushScheduler
 import com.pledgerio.app.identity.session.SessionManager
 import com.pledgerio.app.shared.formatApi
 import kotlinx.coroutines.CancellationException

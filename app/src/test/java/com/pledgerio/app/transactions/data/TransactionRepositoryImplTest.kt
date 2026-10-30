@@ -30,9 +30,9 @@ class TransactionRepositoryImplTest {
     private val apiService = mockk<PledgerApiService>()
     private val transactionDao = mockk<TransactionDao>(relaxed = true)
     private val mutationInvalidator = mockk<TransactionMutationInvalidator>(relaxed = true)
-    private val outboxRepository = mockk<com.pledgerio.app.domain.repository.TransactionOutboxRepository>()
+    private val outboxRepository = mockk<com.pledgerio.app.sync.domain.repository.TransactionOutboxRepository>()
     private val networkMonitor = mockk<com.pledgerio.app.shared.NetworkMonitor>()
-    private val outboxFlushScheduler = mockk<com.pledgerio.app.util.OutboxFlushScheduler>(relaxed = true)
+    private val outboxFlushScheduler = mockk<com.pledgerio.app.sync.work.OutboxFlushScheduler>(relaxed = true)
     private val sessionManager = mockk<com.pledgerio.app.identity.session.SessionManager>(relaxed = true)
     private val repository = TransactionRepositoryImpl(
         apiService,

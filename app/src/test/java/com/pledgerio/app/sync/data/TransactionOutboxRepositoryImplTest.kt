@@ -1,10 +1,11 @@
-package com.pledgerio.app.data.repository
+package com.pledgerio.app.sync.data
 
+import com.pledgerio.app.sync.data.TransactionOutboxRepositoryImpl
 import com.pledgerio.app.transactions.data.TransactionMutationInvalidator
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.transactions.data.dao.TransactionDao
-import com.pledgerio.app.data.local.dao.TransactionOutboxDao
-import com.pledgerio.app.data.local.entity.TransactionOutboxEntity
+import com.pledgerio.app.sync.data.local.dao.TransactionOutboxDao
+import com.pledgerio.app.sync.data.local.entity.TransactionOutboxEntity
 import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.transactions.data.dto.AccountLinkDto
 import com.pledgerio.app.shared.data.dto.PageInfo
@@ -17,7 +18,7 @@ import com.pledgerio.app.transactions.domain.model.Transaction
 import com.pledgerio.app.transactions.domain.model.TransactionType
 import com.pledgerio.app.identity.session.SessionDataBarrier
 import com.pledgerio.app.identity.session.SessionManager
-import com.pledgerio.app.util.SyncSessionGuard
+import com.pledgerio.app.sync.work.SyncSessionGuard
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

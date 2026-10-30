@@ -1,4 +1,4 @@
-package com.pledgerio.app.data.local.entity
+package com.pledgerio.app.sync.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

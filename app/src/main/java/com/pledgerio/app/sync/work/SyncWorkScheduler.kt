@@ -1,4 +1,4 @@
-package com.pledgerio.app.util
+package com.pledgerio.app.sync.work
 
 import android.content.Context
 import androidx.work.Constraints

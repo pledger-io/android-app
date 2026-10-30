@@ -1,8 +1,8 @@
 package com.pledgerio.app.shared.data.cache
 
 import com.pledgerio.app.shared.Resource
-import com.pledgerio.app.data.local.dao.SyncMetadataDao
-import com.pledgerio.app.data.local.entity.SyncMetadataEntity
+import com.pledgerio.app.sync.data.local.dao.SyncMetadataDao
+import com.pledgerio.app.sync.data.local.entity.SyncMetadataEntity
 import com.pledgerio.app.di.ApplicationScope
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope

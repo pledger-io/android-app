@@ -1,4 +1,4 @@
-package com.pledgerio.app.util
+package com.pledgerio.app.sync.work
 
 import com.pledgerio.app.identity.session.SessionDataBarrier
 import com.pledgerio.app.identity.session.SessionManager
@@ -12,7 +12,7 @@ import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import com.pledgerio.app.catalog.domain.repository.ContractRepository
 import com.pledgerio.app.catalog.domain.repository.CurrencyRepository
 import com.pledgerio.app.catalog.domain.repository.TagRepository
-import com.pledgerio.app.domain.repository.TransactionOutboxRepository
+import com.pledgerio.app.sync.domain.repository.TransactionOutboxRepository
 import java.io.IOException
 import java.time.YearMonth
 import javax.inject.Inject

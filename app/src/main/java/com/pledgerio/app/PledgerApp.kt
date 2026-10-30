@@ -15,7 +15,7 @@ import com.pledgerio.app.shared.AppLog
 import com.pledgerio.app.identity.session.AuthenticatedSessionCoordinator
 import com.pledgerio.app.catalog.CurrencyProvider
 import com.pledgerio.app.shared.DebugLogcatNoiseFilter
-import com.pledgerio.app.util.OutboxFlushOnReconnect
+import com.pledgerio.app.sync.work.OutboxFlushOnReconnect
 import com.pledgerio.app.di.ApplicationScope
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject

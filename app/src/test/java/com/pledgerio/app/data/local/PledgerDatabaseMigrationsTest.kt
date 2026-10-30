@@ -1,5 +1,6 @@
 package com.pledgerio.app.data.local
 
+import com.pledgerio.app.shared.data.local.PledgerDatabaseMigrations
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

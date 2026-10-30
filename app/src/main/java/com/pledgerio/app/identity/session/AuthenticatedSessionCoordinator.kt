@@ -2,7 +2,7 @@ package com.pledgerio.app.identity.session
 
 import com.pledgerio.app.shared.AppLog
 import com.pledgerio.app.shared.data.LocalDataCleaner
-import com.pledgerio.app.util.SyncWorkScheduler
+import com.pledgerio.app.sync.work.SyncWorkScheduler
 import com.pledgerio.app.di.ApplicationScope
 import com.pledgerio.app.di.IoDispatcher
 import javax.inject.Inject

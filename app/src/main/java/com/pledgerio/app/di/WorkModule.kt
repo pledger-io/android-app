@@ -1,9 +1,9 @@
 package com.pledgerio.app.di
 
-import com.pledgerio.app.util.OutboxFlushScheduler
-import com.pledgerio.app.util.SyncWorkScheduler
-import com.pledgerio.app.util.WorkManagerOutboxFlushScheduler
-import com.pledgerio.app.util.WorkManagerSyncWorkScheduler
+import com.pledgerio.app.sync.work.OutboxFlushScheduler
+import com.pledgerio.app.sync.work.SyncWorkScheduler
+import com.pledgerio.app.sync.work.WorkManagerOutboxFlushScheduler
+import com.pledgerio.app.sync.work.WorkManagerSyncWorkScheduler
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

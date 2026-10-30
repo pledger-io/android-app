@@ -1,5 +1,6 @@
 package com.pledgerio.app.budgets.data
 
+import com.pledgerio.app.sync.work.FakeSyncMetadataDao
 import com.pledgerio.app.budgets.data.BudgetRepositoryImpl
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.shared.data.cache.CacheRefresher
@@ -15,7 +16,6 @@ import com.pledgerio.app.budgets.data.dto.ExpenseComputedDto
 import com.pledgerio.app.budgets.data.dto.ExpenseDto
 import com.pledgerio.app.budgets.data.dto.ExpenseRequest
 import com.pledgerio.app.budgets.domain.model.BudgetListState
-import com.pledgerio.app.util.FakeSyncMetadataDao
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

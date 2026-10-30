@@ -1,4 +1,4 @@
-package com.pledgerio.app.data.local
+package com.pledgerio.app.shared.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
@@ -10,10 +10,10 @@ import com.pledgerio.app.catalog.data.dao.CategoryDao
 import com.pledgerio.app.catalog.data.dao.ContractDao
 import com.pledgerio.app.catalog.data.dao.CurrencyDao
 import com.pledgerio.app.budgets.data.dao.ExpenseGroupDao
-import com.pledgerio.app.data.local.dao.SyncMetadataDao
+import com.pledgerio.app.sync.data.local.dao.SyncMetadataDao
 import com.pledgerio.app.catalog.data.dao.TagDao
 import com.pledgerio.app.transactions.data.dao.TransactionDao
-import com.pledgerio.app.data.local.dao.TransactionOutboxDao
+import com.pledgerio.app.sync.data.local.dao.TransactionOutboxDao
 import com.pledgerio.app.accounts.data.entity.AccountEntity
 import com.pledgerio.app.catalog.data.entity.AccountTypeEntity
 import com.pledgerio.app.budgets.data.entity.BudgetEntity
@@ -21,10 +21,10 @@ import com.pledgerio.app.catalog.data.entity.CategoryEntity
 import com.pledgerio.app.catalog.data.entity.ContractEntity
 import com.pledgerio.app.catalog.data.entity.CurrencyEntity
 import com.pledgerio.app.budgets.data.entity.ExpenseGroupEntity
-import com.pledgerio.app.data.local.entity.SyncMetadataEntity
+import com.pledgerio.app.sync.data.local.entity.SyncMetadataEntity
 import com.pledgerio.app.catalog.data.entity.TagEntity
 import com.pledgerio.app.transactions.data.entity.TransactionEntity
-import com.pledgerio.app.data.local.entity.TransactionOutboxEntity
+import com.pledgerio.app.sync.data.local.entity.TransactionOutboxEntity
 
 @Database(
     entities = [

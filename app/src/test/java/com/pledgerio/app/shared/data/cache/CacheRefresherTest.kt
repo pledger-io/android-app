@@ -1,8 +1,8 @@
 package com.pledgerio.app.shared.data.cache
 
+import com.pledgerio.app.sync.work.FakeSyncMetadataDao
 import com.pledgerio.app.shared.data.cache.CacheRefresher
 import com.pledgerio.app.shared.Resource
-import com.pledgerio.app.util.FakeSyncMetadataDao
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async

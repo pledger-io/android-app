@@ -1,4 +1,4 @@
-package com.pledgerio.app.domain.repository
+package com.pledgerio.app.sync.domain.repository
 
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.transactions.domain.model.FlushResult
