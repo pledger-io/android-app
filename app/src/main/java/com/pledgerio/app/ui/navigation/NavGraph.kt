@@ -24,18 +24,18 @@ import com.pledgerio.app.identity.ui.onboarding.LoginScreen
 import com.pledgerio.app.identity.ui.onboarding.ServerSetupScreen
 import com.pledgerio.app.identity.ui.onboarding.Verify2FactorScreen
 import com.pledgerio.app.ui.reports.ReportsScreen
-import com.pledgerio.app.ui.search.SearchScreen
-import com.pledgerio.app.ui.search.SearchViewModel
+import com.pledgerio.app.transactions.ui.search.SearchScreen
+import com.pledgerio.app.transactions.ui.search.SearchViewModel
 import com.pledgerio.app.ui.settings.ApiSessionsScreen
 import com.pledgerio.app.ui.settings.MfaSetupScreen
 import com.pledgerio.app.ui.settings.SettingsScreen
-import com.pledgerio.app.ui.transactions.TransactionDetailScreen
-import com.pledgerio.app.ui.transactions.TransactionFormScreen
-import com.pledgerio.app.ui.transactions.TransactionsScreen
-import com.pledgerio.app.ui.transactions.TransactionsViewModel
-import com.pledgerio.app.ui.transactions.scan.InvoiceScanScreen
+import com.pledgerio.app.transactions.ui.TransactionDetailScreen
+import com.pledgerio.app.transactions.ui.TransactionFormScreen
+import com.pledgerio.app.transactions.ui.TransactionsScreen
+import com.pledgerio.app.transactions.ui.TransactionsViewModel
+import com.pledgerio.app.transactions.ui.scan.InvoiceScanScreen
 import com.pledgerio.app.accounts.ui.AccountDetailViewModel
-import com.pledgerio.app.domain.model.TransactionType
+import com.pledgerio.app.transactions.domain.model.TransactionType
 import java.time.YearMonth
 
 @Composable

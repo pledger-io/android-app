@@ -2,9 +2,9 @@ package com.pledgerio.app.domain.usecase
 
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.accounts.domain.model.Account
-import com.pledgerio.app.domain.model.Transaction
+import com.pledgerio.app.transactions.domain.model.Transaction
 import com.pledgerio.app.accounts.domain.repository.AccountRepository
-import com.pledgerio.app.domain.repository.TransactionRepository
+import com.pledgerio.app.transactions.domain.repository.TransactionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
@@ -39,10 +39,10 @@ class GetDashboardDataUseCase @Inject constructor(
                             recentTransactions = transactions,
                             netWorth = accounts.sumOf { it.balance },
                             monthlyIncome = transactions
-                                .filter { it.type == com.pledgerio.app.domain.model.TransactionType.DEBIT }
+                                .filter { it.type == com.pledgerio.app.transactions.domain.model.TransactionType.DEBIT }
                                 .sumOf { it.amount },
                             monthlyExpense = transactions
-                                .filter { it.type == com.pledgerio.app.domain.model.TransactionType.CREDIT }
+                                .filter { it.type == com.pledgerio.app.transactions.domain.model.TransactionType.CREDIT }
                                 .sumOf { it.amount },
                         )
                     )

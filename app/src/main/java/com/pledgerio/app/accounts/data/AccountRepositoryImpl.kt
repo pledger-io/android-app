@@ -10,8 +10,8 @@ import com.pledgerio.app.accounts.data.entity.AccountEntity
 import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.BalanceRequest
 import com.pledgerio.app.accounts.data.dto.CreateAccountRequest
-import com.pledgerio.app.data.remote.dto.CreateTransactionRequest
-import com.pledgerio.app.data.remote.dto.DateRangeDto
+import com.pledgerio.app.transactions.data.dto.CreateTransactionRequest
+import com.pledgerio.app.shared.data.dto.DateRangeDto
 import com.pledgerio.app.accounts.domain.model.Account
 import com.pledgerio.app.accounts.domain.model.AccountTypeCatalog
 import com.pledgerio.app.accounts.domain.model.AccountTypeCodes

@@ -2,7 +2,7 @@ package com.pledgerio.app.identity.data.dto
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.pledgerio.app.data.remote.dto.DateRangeDto
+import com.pledgerio.app.shared.data.dto.DateRangeDto
 
 @JsonClass(generateAdapter = true)
 data class LoginRequest(

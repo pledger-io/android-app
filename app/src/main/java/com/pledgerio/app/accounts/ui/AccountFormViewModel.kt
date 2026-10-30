@@ -12,8 +12,8 @@ import com.pledgerio.app.accounts.domain.repository.AccountRepository
 import com.pledgerio.app.catalog.domain.repository.CurrencyRepository
 import android.content.Context
 import com.pledgerio.app.R
-import com.pledgerio.app.ui.transactions.finiteDoubleOrNull
-import com.pledgerio.app.ui.transactions.positiveMoneyOrNull
+import com.pledgerio.app.transactions.ui.finiteDoubleOrNull
+import com.pledgerio.app.transactions.ui.positiveMoneyOrNull
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow

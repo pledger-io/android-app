@@ -5,7 +5,7 @@ import com.pledgerio.app.identity.session.SessionManager
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.model.Budget
 import com.pledgerio.app.domain.model.BudgetListState
-import com.pledgerio.app.domain.model.FlushResult
+import com.pledgerio.app.transactions.domain.model.FlushResult
 import com.pledgerio.app.accounts.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.catalog.domain.repository.CategoryRepository
@@ -77,7 +77,7 @@ class SyncWorkRunnerTest {
                 accountRepository.refreshCounterpartyAccounts()
             } returns Resource.Success(emptyList())
             coEvery { outboxRepository.flushPending("active") } returns
-                com.pledgerio.app.domain.model.FlushResult.Completed
+                com.pledgerio.app.transactions.domain.model.FlushResult.Completed
             every {
                 budgetRepository.getBudgets(any(), any())
             } returns flowOf(
@@ -149,7 +149,7 @@ class SyncWorkRunnerTest {
             accountRepository.refreshCounterpartyAccounts()
         } returns Resource.Success(emptyList())
         coEvery { outboxRepository.flushPending("active") } returns
-            com.pledgerio.app.domain.model.FlushResult.Completed
+            com.pledgerio.app.transactions.domain.model.FlushResult.Completed
         every {
             budgetRepository.getBudgets(any(), any())
         } returns flowOf(

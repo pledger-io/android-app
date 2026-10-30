@@ -11,7 +11,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.pledgerio.app.domain.model.AppLocale
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.ThemeMode
-import com.pledgerio.app.domain.model.TransactionType
+import com.pledgerio.app.transactions.domain.model.TransactionType
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

@@ -1,0 +1,59 @@
+package com.pledgerio.app.transactions.domain.repository
+
+import com.pledgerio.app.shared.Resource
+import com.pledgerio.app.transactions.domain.model.CreateOutcome
+import com.pledgerio.app.transactions.domain.model.Transaction
+import com.pledgerio.app.transactions.domain.model.TransactionClassificationSuggestion
+import com.pledgerio.app.transactions.domain.model.TransactionExtractionDraft
+import com.pledgerio.app.transactions.domain.model.TransactionFilters
+import com.pledgerio.app.transactions.domain.model.TransactionSplit
+import com.pledgerio.app.transactions.domain.model.TransactionType
+import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
+
+data class PagedResult<T>(
+    val items: List<T>,
+    val totalRecords: Long,
+    val totalPages: Int,
+    val pageSize: Int,
+) {
+    val hasMore: Boolean get() = items.size.toLong() < totalRecords
+}
+
+interface TransactionRepository {
+    /**
+     * Returns transactions in the inclusive date range [startDate] through [endDate].
+     *
+     * Implementations are responsible for adapting this contract when a remote API uses an
+     * exclusive upper bound.
+     */
+    suspend fun getTransactionsPage(
+        startDate: LocalDate,
+        endDate: LocalDate,
+        accountId: Long? = null,
+        type: TransactionType? = null,
+        filters: TransactionFilters = TransactionFilters(),
+        page: Int = 0,
+        pageSize: Int = 25,
+        /** When set, used instead of [page] * [pageSize] (record skip count for the API). */
+        offset: Int? = null,
+    ): Resource<PagedResult<Transaction>>
+
+    suspend fun getTransaction(id: Long): Resource<Transaction>
+    suspend fun createTransaction(transaction: Transaction): Resource<Transaction>
+    suspend fun createTransactionOrEnqueue(transaction: Transaction): Resource<CreateOutcome>
+    suspend fun updateTransaction(transaction: Transaction): Resource<Transaction>
+    suspend fun patchTransactionSplits(id: Long, splits: List<TransactionSplit>): Resource<Transaction>
+    suspend fun deleteTransaction(
+        id: Long,
+        transactionDate: LocalDate? = null,
+    ): Resource<Unit>
+    suspend fun suggestClassifications(
+        amount: Double? = null,
+        description: String? = null,
+        source: String? = null,
+        destination: String? = null,
+    ): Resource<TransactionClassificationSuggestion>
+    suspend fun extractTransactionFromText(text: String): Resource<TransactionExtractionDraft>
+    fun getRecentTransactions(limit: Int = 5): Flow<Resource<List<Transaction>>>
+}
