@@ -1,5 +1,11 @@
 package com.pledgerio.app.shared.data.remote.api
 
+import com.pledgerio.app.transactions.data.dto.TransactionExtract
+import com.pledgerio.app.transactions.data.dto.CreateTransactionRequest
+import com.pledgerio.app.transactions.data.dto.TransactionClassificationSuggestionDto
+import com.pledgerio.app.transactions.data.dto.TransactionDto
+import com.pledgerio.app.transactions.data.dto.TransactionPagedResponse
+import com.pledgerio.app.transactions.data.dto.TransactionSplitDto
 import com.pledgerio.app.accounts.data.dto.AccountDto
 import com.pledgerio.app.accounts.data.dto.AccountPagedResponse
 import com.pledgerio.app.accounts.data.dto.CreateAccountRequest

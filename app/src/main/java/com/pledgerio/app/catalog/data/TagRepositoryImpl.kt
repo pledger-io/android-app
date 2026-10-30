@@ -5,7 +5,7 @@ import com.pledgerio.app.shared.data.cache.CachePolicy
 import com.pledgerio.app.shared.data.cache.CacheRefresher
 import com.pledgerio.app.shared.data.cache.SyncKeys
 import com.pledgerio.app.catalog.data.dao.TagDao
-import com.pledgerio.app.data.local.dao.TransactionDao
+import com.pledgerio.app.transactions.data.dao.TransactionDao
 import com.pledgerio.app.catalog.data.entity.TagEntity
 import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.catalog.data.dto.CreateTagRequest

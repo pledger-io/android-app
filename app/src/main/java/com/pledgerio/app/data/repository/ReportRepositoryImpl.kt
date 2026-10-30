@@ -3,12 +3,12 @@ package com.pledgerio.app.data.repository
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.BalanceRequest
-import com.pledgerio.app.data.remote.dto.DateRangeDto
+import com.pledgerio.app.shared.data.dto.DateRangeDto
 import com.pledgerio.app.domain.model.BudgetPerformanceItem
 import com.pledgerio.app.domain.model.DatedAmount
 import com.pledgerio.app.domain.model.IncomeExpenseSummary
 import com.pledgerio.app.domain.model.PartitionAmount
-import com.pledgerio.app.domain.model.TransactionType
+import com.pledgerio.app.transactions.domain.model.TransactionType
 import com.pledgerio.app.accounts.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.catalog.domain.repository.CategoryRepository

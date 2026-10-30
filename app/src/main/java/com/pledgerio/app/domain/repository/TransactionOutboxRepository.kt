@@ -1,9 +1,9 @@
 package com.pledgerio.app.domain.repository
 
 import com.pledgerio.app.shared.Resource
-import com.pledgerio.app.domain.model.FlushResult
-import com.pledgerio.app.domain.model.PendingTransactionCreate
-import com.pledgerio.app.domain.model.Transaction
+import com.pledgerio.app.transactions.domain.model.FlushResult
+import com.pledgerio.app.transactions.domain.model.PendingTransactionCreate
+import com.pledgerio.app.transactions.domain.model.Transaction
 import kotlinx.coroutines.flow.Flow
 
 interface TransactionOutboxRepository {

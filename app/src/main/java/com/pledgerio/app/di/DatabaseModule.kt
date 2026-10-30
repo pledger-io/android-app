@@ -13,7 +13,7 @@ import com.pledgerio.app.catalog.data.dao.CurrencyDao
 import com.pledgerio.app.data.local.dao.ExpenseGroupDao
 import com.pledgerio.app.data.local.dao.SyncMetadataDao
 import com.pledgerio.app.catalog.data.dao.TagDao
-import com.pledgerio.app.data.local.dao.TransactionDao
+import com.pledgerio.app.transactions.data.dao.TransactionDao
 import com.pledgerio.app.data.local.dao.TransactionOutboxDao
 import dagger.Module
 import dagger.Provides

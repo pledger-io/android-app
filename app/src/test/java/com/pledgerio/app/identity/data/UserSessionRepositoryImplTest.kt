@@ -3,7 +3,7 @@ package com.pledgerio.app.identity.data
 import com.pledgerio.app.identity.data.UserSessionRepositoryImpl
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.shared.data.remote.api.PledgerApiService
-import com.pledgerio.app.data.remote.dto.DateRangeDto
+import com.pledgerio.app.shared.data.dto.DateRangeDto
 import com.pledgerio.app.identity.data.dto.SessionRequest
 import com.pledgerio.app.identity.data.dto.SessionResponse
 import com.pledgerio.app.identity.data.dto.UserProfileResponse

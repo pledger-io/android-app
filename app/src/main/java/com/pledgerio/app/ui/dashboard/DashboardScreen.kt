@@ -60,8 +60,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.ui.components.EmptyScreen
-import com.pledgerio.app.domain.model.Transaction
-import com.pledgerio.app.domain.model.TransactionType
+import com.pledgerio.app.transactions.domain.model.Transaction
+import com.pledgerio.app.transactions.domain.model.TransactionType
 import com.pledgerio.app.ui.components.LastUpdatedIndicator
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen

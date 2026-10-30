@@ -8,7 +8,7 @@ import com.pledgerio.app.data.cache.ReportsOverviewCache
 import com.pledgerio.app.data.local.PledgerDatabase
 import com.pledgerio.app.data.cache.SpendingInsightsCache
 import com.pledgerio.app.catalog.CurrencyProvider
-import com.pledgerio.app.util.TransactionTemplateStore
+import com.pledgerio.app.transactions.TransactionTemplateStore
 import com.pledgerio.app.util.UserPreferences
 import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext

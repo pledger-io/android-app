@@ -9,7 +9,7 @@ import com.pledgerio.app.data.local.entity.BudgetEntity
 import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.BudgetDto
 import com.pledgerio.app.data.remote.dto.CreateBudgetRequest
-import com.pledgerio.app.data.remote.dto.DateRangeDto
+import com.pledgerio.app.shared.data.dto.DateRangeDto
 import com.pledgerio.app.data.remote.dto.ExpenseComputedDto
 import com.pledgerio.app.data.remote.dto.ExpenseDto
 import com.pledgerio.app.data.remote.dto.ExpenseRequest

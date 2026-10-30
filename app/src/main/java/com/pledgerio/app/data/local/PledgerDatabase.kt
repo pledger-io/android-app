@@ -12,7 +12,7 @@ import com.pledgerio.app.catalog.data.dao.CurrencyDao
 import com.pledgerio.app.data.local.dao.ExpenseGroupDao
 import com.pledgerio.app.data.local.dao.SyncMetadataDao
 import com.pledgerio.app.catalog.data.dao.TagDao
-import com.pledgerio.app.data.local.dao.TransactionDao
+import com.pledgerio.app.transactions.data.dao.TransactionDao
 import com.pledgerio.app.data.local.dao.TransactionOutboxDao
 import com.pledgerio.app.accounts.data.entity.AccountEntity
 import com.pledgerio.app.catalog.data.entity.AccountTypeEntity
@@ -23,7 +23,7 @@ import com.pledgerio.app.catalog.data.entity.CurrencyEntity
 import com.pledgerio.app.data.local.entity.ExpenseGroupEntity
 import com.pledgerio.app.data.local.entity.SyncMetadataEntity
 import com.pledgerio.app.catalog.data.entity.TagEntity
-import com.pledgerio.app.data.local.entity.TransactionEntity
+import com.pledgerio.app.transactions.data.entity.TransactionEntity
 import com.pledgerio.app.data.local.entity.TransactionOutboxEntity
 
 @Database(
