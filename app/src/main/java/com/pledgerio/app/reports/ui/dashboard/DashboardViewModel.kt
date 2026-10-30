@@ -4,13 +4,13 @@ import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.accounts.domain.model.Account
-import com.pledgerio.app.domain.model.FinanceExperienceMode
+import com.pledgerio.app.settings.domain.model.FinanceExperienceMode
 import com.pledgerio.app.reports.domain.model.SpendingInsight
 import com.pledgerio.app.transactions.domain.model.Transaction
 import com.pledgerio.app.catalog.domain.repository.CurrencyRepository
 import com.pledgerio.app.reports.domain.repository.SpendingInsightRepository
 import com.pledgerio.app.reports.domain.usecase.GetDashboardDataUseCase
-import com.pledgerio.app.util.UserPreferences
+import com.pledgerio.app.settings.data.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow

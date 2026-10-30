@@ -53,7 +53,7 @@ import com.pledgerio.app.R
 import com.pledgerio.app.transactions.domain.model.OutboxStatus
 import com.pledgerio.app.transactions.domain.model.PendingTransactionCreate
 import com.pledgerio.app.transactions.domain.model.TransactionType
-import com.pledgerio.app.domain.model.FinanceExperienceMode
+import com.pledgerio.app.settings.domain.model.FinanceExperienceMode
 import com.pledgerio.app.ui.components.EmptyScreen
 import com.pledgerio.app.ui.components.LastUpdatedIndicator
 import com.pledgerio.app.ui.components.LazyListPaginationEffect

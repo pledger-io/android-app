@@ -8,10 +8,10 @@ import com.pledgerio.app.catalog.domain.repository.ContractRepository
 import com.pledgerio.app.transactions.domain.repository.PagedResult
 import com.pledgerio.app.transactions.domain.repository.TransactionRepository
 import androidx.lifecycle.SavedStateHandle
-import com.pledgerio.app.domain.model.FinanceExperienceMode
+import com.pledgerio.app.settings.domain.model.FinanceExperienceMode
 import com.pledgerio.app.transactions.domain.usecase.GetTransactionsUseCase
 import com.pledgerio.app.shared.MainDispatcherRule
-import com.pledgerio.app.util.UserPreferences
+import com.pledgerio.app.settings.data.UserPreferences
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

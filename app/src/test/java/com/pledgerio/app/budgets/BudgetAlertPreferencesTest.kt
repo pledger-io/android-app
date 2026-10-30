@@ -1,5 +1,6 @@
 package com.pledgerio.app.budgets
 
+import com.pledgerio.app.settings.ui.SettingsViewModel
 import com.pledgerio.app.budgets.BudgetAlertLogic
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

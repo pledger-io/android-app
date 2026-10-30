@@ -9,7 +9,7 @@ import com.pledgerio.app.shared.data.local.PledgerDatabase
 import com.pledgerio.app.reports.data.cache.SpendingInsightsCache
 import com.pledgerio.app.catalog.CurrencyProvider
 import com.pledgerio.app.transactions.TransactionTemplateStore
-import com.pledgerio.app.util.UserPreferences
+import com.pledgerio.app.settings.data.UserPreferences
 import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers

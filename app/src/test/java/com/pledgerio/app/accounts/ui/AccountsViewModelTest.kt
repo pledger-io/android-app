@@ -7,9 +7,9 @@ import com.pledgerio.app.accounts.domain.model.AccountListFilter
 import com.pledgerio.app.accounts.domain.model.AccountTypeOption
 import com.pledgerio.app.accounts.domain.model.PagedAccounts
 import com.pledgerio.app.accounts.domain.repository.AccountRepository
-import com.pledgerio.app.domain.model.FinanceExperienceMode
+import com.pledgerio.app.settings.domain.model.FinanceExperienceMode
 import com.pledgerio.app.shared.MainDispatcherRule
-import com.pledgerio.app.util.UserPreferences
+import com.pledgerio.app.settings.data.UserPreferences
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk

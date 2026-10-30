@@ -42,9 +42,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.R
-import com.pledgerio.app.domain.model.FinanceExperienceMode
-import com.pledgerio.app.ui.util.formBannerHint
-import com.pledgerio.app.ui.util.formBannerTitle
+import com.pledgerio.app.settings.domain.model.FinanceExperienceMode
+import com.pledgerio.app.shared.ui.util.formBannerHint
+import com.pledgerio.app.shared.ui.util.formBannerTitle
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar
@@ -63,8 +63,8 @@ import com.pledgerio.app.transactions.ui.form.localizedValidationSummary
 import com.pledgerio.app.transactions.ui.form.screenTitleLocalized
 import com.pledgerio.app.transactions.ui.form.submitLabelLocalized
 import com.pledgerio.app.transactions.ui.form.TransactionTypeSelector
-import com.pledgerio.app.ui.util.datePickerMillisToLocalDate
-import com.pledgerio.app.ui.util.toDatePickerMillis
+import com.pledgerio.app.shared.ui.util.datePickerMillisToLocalDate
+import com.pledgerio.app.shared.ui.util.toDatePickerMillis
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)

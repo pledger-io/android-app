@@ -7,20 +7,9 @@
         errorLine1="            val formatted = String.format(&quot;%,.2f&quot;, amount)"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/util/CurrencyProvider.kt"
+            file="src/main/java/com/pledgerio/app/catalog/CurrencyProvider.kt"
             line="42"
             column="29"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
-        errorLine1="    val formatted = String.format(&quot;%,.2f&quot;, this)"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/pledgerio/app/util/Extensions.kt"
-            line="12"
-            column="21"/>
     </issue>
 
     <issue
@@ -29,9 +18,31 @@
         errorLine1="        URLEncoder.encode(value, StandardCharsets.UTF_8).replace(&quot;+&quot;, &quot;%20&quot;)"
         errorLine2="                   ~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/util/IssueReportUrlBuilder.kt"
-            line="55"
+            file="src/main/java/com/pledgerio/app/settings/IssueReportUrlBuilder.kt"
+            line="59"
             column="20"/>
+    </issue>
+
+    <issue
+        id="OldTargetApi"
+        message="Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the `android.os.Build.VERSION_CODES` javadoc for details."
+        errorLine1="        targetSdk = libs.versions.targetSdk.get().toInt()"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="44"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="OldTargetApi"
+        message="Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the `android.os.Build.VERSION_CODES` javadoc for details."
+        errorLine1="targetSdk = &quot;36&quot;"
+        errorLine2="            ~~~~">
+        <location
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
+            line="3"
+            column="13"/>
     </issue>
 
     <issue
@@ -40,7 +51,7 @@
         errorLine1="        configuration.setLocale(Locale.forLanguageTag(tag))"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/util/LocaleManager.kt"
+            file="src/main/java/com/pledgerio/app/settings/LocaleManager.kt"
             line="26"
             column="9"/>
     </issue>
@@ -51,95 +62,95 @@
         errorLine1="    if (cameraIntent.resolveActivity(context.packageManager) == null) {"
         errorLine2="                     ~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/ui/transactions/scan/InvoiceScanScreen.kt"
-            line="389"
+            file="src/main/java/com/pledgerio/app/transactions/ui/scan/InvoiceScanScreen.kt"
+            line="390"
             column="22"/>
     </issue>
 
     <issue
-        id="RememberInComposition"
-        message="Calling a @RememberInComposition annotated declaration inside composition without using `remember`"
-        errorLine1="                        interactionSource = MutableInteractionSource(),"
-        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        id="AndroidGradlePluginVersion"
+        message="A newer version of Gradle than 8.13 is available: 8.14.6"
+        errorLine1="distributionUrl=https\://services.gradle.org/distributions/gradle-8.13-bin.zip"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/ui/accounts/AccountAddFabMenu.kt"
-            line="76"
-            column="45"/>
+            file="$HOME/repos/android-app/gradle/wrapper/gradle-wrapper.properties"
+            line="3"
+            column="17"/>
     </issue>
 
     <issue
         id="AndroidGradlePluginVersion"
-        message="A newer version of com.android.application than 8.13.0 is available: 9.2.1. (There is also a newer version of 8.13.𝑥 available, if upgrading to 9.2.1 is difficult: 8.13.2)"
+        message="A newer version of com.android.application than 8.13.0 is available: 9.5.0. (There is also a newer version of 8.13.𝑥 available, if upgrading to 9.5.0 is difficult: 8.13.2)"
         errorLine1="agp = &quot;8.13.0&quot;"
         errorLine2="      ~~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="6"
             column="7"/>
     </issue>
 
     <issue
         id="AndroidGradlePluginVersion"
-        message="A newer version of com.android.library than 8.13.0 is available: 9.2.1. (There is also a newer version of 8.13.𝑥 available, if upgrading to 9.2.1 is difficult: 8.13.2)"
+        message="A newer version of com.android.library than 8.13.0 is available: 9.5.0. (There is also a newer version of 8.13.𝑥 available, if upgrading to 9.5.0 is difficult: 8.13.2)"
         errorLine1="agp = &quot;8.13.0&quot;"
         errorLine2="      ~~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="6"
             column="7"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.compose:compose-bom than 2026.04.01 is available: 2026.05.01"
+        message="A newer version of androidx.compose:compose-bom than 2026.04.01 is available: 2026.09.00"
         errorLine1="composeBom = &quot;2026.04.01&quot;"
         errorLine2="             ~~~~~~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="13"
             column="14"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.appcompat:appcompat than 1.7.0 is available: 1.7.1"
+        message="A newer version of androidx.appcompat:appcompat than 1.7.0 is available: 1.8.0"
         errorLine1="appcompat = &quot;1.7.0&quot;"
         errorLine2="            ~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="15"
             column="13"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.core:core-ktx than 1.16.0 is available: 1.18.0"
+        message="A newer version of androidx.core:core-ktx than 1.16.0 is available: 1.19.1"
         errorLine1="coreKtx = &quot;1.16.0&quot;"
         errorLine2="          ~~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="16"
             column="11"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.lifecycle:lifecycle-process than 2.9.0 is available: 2.10.0"
+        message="A newer version of androidx.lifecycle:lifecycle-process than 2.9.0 is available: 2.11.0"
         errorLine1="lifecycle = &quot;2.9.0&quot;"
         errorLine2="            ~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="17"
             column="13"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.lifecycle:lifecycle-runtime-ktx than 2.9.0 is available: 2.10.0"
+        message="A newer version of androidx.lifecycle:lifecycle-runtime-ktx than 2.9.0 is available: 2.11.0"
         errorLine1="lifecycle = &quot;2.9.0&quot;"
         errorLine2="            ~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="17"
             column="13"/>
     </issue>
@@ -150,95 +161,95 @@
         errorLine1="activityCompose = &quot;1.10.1&quot;"
         errorLine2="                  ~~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="18"
             column="19"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.navigation:navigation-compose than 2.9.0 is available: 2.9.8"
+        message="A newer version of androidx.navigation:navigation-compose than 2.9.0 is available: 2.10.2"
         errorLine1="navigation = &quot;2.9.0&quot;"
         errorLine2="             ~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="19"
             column="14"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.hilt:hilt-navigation-compose than 1.2.0 is available: 1.3.0"
+        message="A newer version of androidx.hilt:hilt-navigation-compose than 1.2.0 is available: 1.4.0"
         errorLine1="hiltNavigation = &quot;1.2.0&quot;"
         errorLine2="                 ~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="20"
             column="18"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.hilt:hilt-compiler than 1.2.0 is available: 1.3.0"
+        message="A newer version of androidx.hilt:hilt-compiler than 1.2.0 is available: 1.4.0"
         errorLine1="hiltWork = &quot;1.2.0&quot;"
         errorLine2="           ~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="21"
             column="12"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.hilt:hilt-work than 1.2.0 is available: 1.3.0"
+        message="A newer version of androidx.hilt:hilt-work than 1.2.0 is available: 1.4.0"
         errorLine1="hiltWork = &quot;1.2.0&quot;"
         errorLine2="           ~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="21"
             column="12"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.room:room-compiler than 2.7.1 is available: 2.8.4"
+        message="A newer version of androidx.room:room-compiler than 2.7.1 is available: 2.8.5"
         errorLine1="room = &quot;2.7.1&quot;"
         errorLine2="       ~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="27"
             column="8"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.room:room-ktx than 2.7.1 is available: 2.8.4"
+        message="A newer version of androidx.room:room-ktx than 2.7.1 is available: 2.8.5"
         errorLine1="room = &quot;2.7.1&quot;"
         errorLine2="       ~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="27"
             column="8"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.room:room-runtime than 2.7.1 is available: 2.8.4"
+        message="A newer version of androidx.room:room-runtime than 2.7.1 is available: 2.8.5"
         errorLine1="room = &quot;2.7.1&quot;"
         errorLine2="       ~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="27"
             column="8"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.datastore:datastore-preferences than 1.1.7 is available: 1.2.1"
+        message="A newer version of androidx.datastore:datastore-preferences than 1.1.7 is available: 1.3.0"
         errorLine1="datastore = &quot;1.1.7&quot;"
         errorLine2="            ~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="28"
             column="13"/>
     </issue>
@@ -249,40 +260,40 @@
         errorLine1="securityCrypto = &quot;1.1.0-alpha06&quot;"
         errorLine2="                 ~~~~~~~~~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="29"
             column="18"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.work:work-runtime-ktx than 2.10.2 is available: 2.11.2"
+        message="A newer version of androidx.work:work-runtime-ktx than 2.10.2 is available: 2.12.0"
         errorLine1="work = &quot;2.10.2&quot;"
         errorLine2="       ~~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="31"
             column="8"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.paging:paging-compose than 3.3.6 is available: 3.5.0"
+        message="A newer version of androidx.paging:paging-compose than 3.3.6 is available: 3.5.3"
         errorLine1="paging = &quot;3.3.6&quot;"
         errorLine2="         ~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="32"
             column="10"/>
     </issue>
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.paging:paging-runtime-ktx than 3.3.6 is available: 3.5.0"
+        message="A newer version of androidx.paging:paging-runtime-ktx than 3.3.6 is available: 3.5.3"
         errorLine1="paging = &quot;3.3.6&quot;"
         errorLine2="         ~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="32"
             column="10"/>
     </issue>
@@ -293,7 +304,7 @@
         errorLine1="splashscreen = &quot;1.0.1&quot;"
         errorLine2="               ~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="36"
             column="16"/>
     </issue>
@@ -304,7 +315,7 @@
         errorLine1="androidxJunit = &quot;1.2.1&quot;"
         errorLine2="                ~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="44"
             column="17"/>
     </issue>
@@ -315,64 +326,31 @@
         errorLine1="espresso = &quot;3.6.1&quot;"
         errorLine2="           ~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="45"
             column="12"/>
     </issue>
 
     <issue
         id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlin.android than 2.1.21 is available: 2.3.21"
+        message="A newer version of org.jetbrains.kotlin.android than 2.1.21 is available: 2.4.21"
         errorLine1="kotlin = &quot;2.1.21&quot;"
         errorLine2="         ~~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="7"
             column="10"/>
     </issue>
 
     <issue
         id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlin.plugin.compose than 2.1.21 is available: 2.3.21"
+        message="A newer version of org.jetbrains.kotlin.plugin.compose than 2.1.21 is available: 2.4.21"
         errorLine1="kotlin = &quot;2.1.21&quot;"
         errorLine2="         ~~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="7"
             column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.google.dagger.hilt.android than 2.56 is available: 2.59.2"
-        errorLine1="hilt = &quot;2.56&quot;"
-        errorLine2="       ~~~~~~">
-        <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
-            line="9"
-            column="8"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.google.dagger:hilt-android than 2.56 is available: 2.59.2"
-        errorLine1="hilt = &quot;2.56&quot;"
-        errorLine2="       ~~~~~~">
-        <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
-            line="9"
-            column="8"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.google.dagger:hilt-android-compiler than 2.56 is available: 2.59.2"
-        errorLine1="hilt = &quot;2.56&quot;"
-        errorLine2="       ~~~~~~">
-        <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
-            line="9"
-            column="8"/>
     </issue>
 
     <issue
@@ -381,108 +359,9 @@
         errorLine1="foojay = &quot;0.10.0&quot;"
         errorLine2="         ~~~~~~~~">
         <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
+            file="$HOME/repos/android-app/gradle/libs.versions.toml"
             line="11"
             column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.squareup.retrofit2:converter-moshi than 2.11.0 is available: 3.0.0"
-        errorLine1="retrofit = &quot;2.11.0&quot;"
-        errorLine2="           ~~~~~~~~">
-        <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
-            line="23"
-            column="12"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.squareup.retrofit2:retrofit than 2.11.0 is available: 3.0.0"
-        errorLine1="retrofit = &quot;2.11.0&quot;"
-        errorLine2="           ~~~~~~~~">
-        <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
-            line="23"
-            column="12"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.squareup.okhttp3:logging-interceptor than 4.12.0 is available: 5.3.2"
-        errorLine1="okhttp = &quot;4.12.0&quot;"
-        errorLine2="         ~~~~~~~~">
-        <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
-            line="24"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.squareup.okhttp3:mockwebserver than 4.12.0 is available: 5.3.2"
-        errorLine1="okhttp = &quot;4.12.0&quot;"
-        errorLine2="         ~~~~~~~~">
-        <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
-            line="24"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.squareup.okhttp3:okhttp than 4.12.0 is available: 5.3.2"
-        errorLine1="okhttp = &quot;4.12.0&quot;"
-        errorLine2="         ~~~~~~~~">
-        <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
-            line="24"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.patrykandpatrick.vico:compose-m3 than 2.0.1 is available: 3.1.0"
-        errorLine1="vico = &quot;2.0.1&quot;"
-        errorLine2="       ~~~~~~~">
-        <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
-            line="34"
-            column="8"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlinx:kotlinx-coroutines-test than 1.10.2 is available: 1.11.0"
-        errorLine1="coroutinesTest = &quot;1.10.2&quot;"
-        errorLine2="                 ~~~~~~~~">
-        <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
-            line="40"
-            column="18"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of io.mockk:mockk than 1.14.2 is available: 1.14.9"
-        errorLine1="mockk = &quot;1.14.2&quot;"
-        errorLine2="        ~~~~~~~~">
-        <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
-            line="41"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of app.cash.turbine:turbine than 1.2.0 is available: 1.2.1"
-        errorLine1="turbine = &quot;1.2.0&quot;"
-        errorLine2="          ~~~~~~~">
-        <location
-            file="$HOME/projects/oss/pledger-io/android-app/gradle/libs.versions.toml"
-            line="42"
-            column="11"/>
     </issue>
 
     <issue
@@ -492,63 +371,19 @@
         errorLine2="                                      ~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/pledgerio/app/ui/navigation/NavGraph.kt"
-            line="379"
+            line="547"
             column="39"/>
     </issue>
 
     <issue
         id="LocalContextGetResourceValueCall"
         message="Querying resource values using LocalContext.current"
-        errorLine1="                context.getString(R.string.report_issue_open_github_with_clipboard)"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="            context.getString(R.string.report_issue_open_github),"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/ui/settings/SettingsScreen.kt"
-            line="95"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                context.getString(R.string.report_issue_open_github)"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/pledgerio/app/ui/settings/SettingsScreen.kt"
-            line="97"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                                enableTitle = context.getString(R.string.settings_biometric_enable_title),"
-        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/pledgerio/app/ui/settings/SettingsScreen.kt"
-            line="218"
-            column="47"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                                enableSubtitle = context.getString(R.string.settings_biometric_enable_subtitle),"
-        errorLine2="                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/pledgerio/app/ui/settings/SettingsScreen.kt"
-            line="219"
-            column="50"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                                cancelLabel = context.getString(R.string.cancel),"
-        errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/pledgerio/app/ui/settings/SettingsScreen.kt"
-            line="220"
-            column="47"/>
+            file="src/main/java/com/pledgerio/app/settings/ui/SettingsScreen.kt"
+            line="141"
+            column="13"/>
     </issue>
 
     <issue
@@ -558,7 +393,7 @@
         errorLine2="    ~~~~~~~~">
         <location
             file="src/main/java/com/pledgerio/app/ui/components/EmptyState.kt"
-            line="28"
+            line="29"
             column="5"/>
     </issue>
 
@@ -579,7 +414,7 @@
         errorLine1="    modifier: Modifier = Modifier,"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/ui/transactions/FilterAutocompleteField.kt"
+            file="src/main/java/com/pledgerio/app/transactions/ui/FilterAutocompleteField.kt"
             line="49"
             column="5"/>
     </issue>
@@ -590,7 +425,7 @@
         errorLine1="    modifier: Modifier = Modifier,"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/ui/transactions/form/TransactionAccountSlot.kt"
+            file="src/main/java/com/pledgerio/app/transactions/ui/form/TransactionAccountSlot.kt"
             line="54"
             column="5"/>
     </issue>
@@ -601,8 +436,8 @@
         errorLine1="    modifier: Modifier = Modifier,"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/ui/transactions/form/TransactionFlowCard.kt"
-            line="54"
+            file="src/main/java/com/pledgerio/app/transactions/ui/form/TransactionFlowCard.kt"
+            line="55"
             column="5"/>
     </issue>
 
@@ -612,7 +447,7 @@
         errorLine1="    modifier: Modifier = Modifier,"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/ui/transactions/form/TransactionFormMoreOptions.kt"
+            file="src/main/java/com/pledgerio/app/transactions/ui/form/TransactionFormMoreOptions.kt"
             line="72"
             column="5"/>
     </issue>
@@ -623,7 +458,7 @@
         errorLine1="    modifier: Modifier = Modifier,"
         errorLine2="    ~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/ui/transactions/form/TransactionTagsField.kt"
+            file="src/main/java/com/pledgerio/app/transactions/ui/form/TransactionTagsField.kt"
             line="59"
             column="5"/>
     </issue>
@@ -635,7 +470,7 @@
         errorLine2="                                                       ~~~~~">
         <location
             file="src/main/java/com/pledgerio/app/ui/navigation/NavGraph.kt"
-            line="379"
+            line="547"
             column="56"/>
     </issue>
 
@@ -646,7 +481,7 @@
         errorLine2="                              ~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/pledgerio/app/ui/navigation/NavGraph.kt"
-            line="320"
+            line="438"
             column="31"/>
     </issue>
 
@@ -657,7 +492,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="346"
+            line="471"
             column="13"/>
     </issue>
 
@@ -668,7 +503,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="347"
+            line="472"
             column="13"/>
     </issue>
 
@@ -679,7 +514,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="348"
+            line="473"
             column="13"/>
     </issue>
 
@@ -690,7 +525,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="349"
+            line="474"
             column="13"/>
     </issue>
 
@@ -701,7 +536,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="350"
+            line="475"
             column="13"/>
     </issue>
 
@@ -712,7 +547,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="351"
+            line="476"
             column="13"/>
     </issue>
 
@@ -723,7 +558,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="352"
+            line="477"
             column="13"/>
     </issue>
 
@@ -734,7 +569,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="353"
+            line="478"
             column="13"/>
     </issue>
 
@@ -745,7 +580,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="354"
+            line="479"
             column="13"/>
     </issue>
 
@@ -756,7 +591,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="355"
+            line="480"
             column="13"/>
     </issue>
 
@@ -767,7 +602,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="356"
+            line="481"
             column="13"/>
     </issue>
 
@@ -778,7 +613,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="357"
+            line="482"
             column="13"/>
     </issue>
 
@@ -789,7 +624,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="358"
+            line="483"
             column="13"/>
     </issue>
 
@@ -800,7 +635,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="359"
+            line="484"
             column="13"/>
     </issue>
 
@@ -811,7 +646,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="480"
+            line="623"
             column="13"/>
     </issue>
 
@@ -822,7 +657,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="481"
+            line="624"
             column="13"/>
     </issue>
 
@@ -833,7 +668,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="482"
+            line="625"
             column="13"/>
     </issue>
 
@@ -1218,7 +1053,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="148"
+            line="169"
             column="5"/>
     </issue>
 
@@ -1229,7 +1064,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="152"
+            line="173"
             column="5"/>
     </issue>
 
@@ -1240,7 +1075,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="153"
+            line="174"
             column="5"/>
     </issue>
 
@@ -1251,7 +1086,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="212"
+            line="289"
             column="5"/>
     </issue>
 
@@ -1262,7 +1097,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="213"
+            line="290"
             column="5"/>
     </issue>
 
@@ -1273,7 +1108,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="216"
+            line="293"
             column="5"/>
     </issue>
 
@@ -1284,7 +1119,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="222"
+            line="299"
             column="5"/>
     </issue>
 
@@ -1295,7 +1130,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="225"
+            line="302"
             column="5"/>
     </issue>
 
@@ -1306,7 +1141,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="227"
+            line="304"
             column="5"/>
     </issue>
 
@@ -1317,7 +1152,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="357"
+            line="482"
             column="5"/>
     </issue>
 
@@ -1360,8 +1195,8 @@
         errorLine1="        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/util/SyncWorker.kt"
-            line="78"
+            file="src/main/java/com/pledgerio/app/budgets/BudgetAlertNotifier.kt"
+            line="33"
             column="13"/>
     </issue>
 
@@ -1401,7 +1236,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="34"
+            line="42"
             column="13"/>
     </issue>
 
@@ -1412,7 +1247,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="35"
+            line="43"
             column="13"/>
     </issue>
 
@@ -1423,7 +1258,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="72"
+            line="93"
             column="13"/>
     </issue>
 
@@ -1434,7 +1269,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="120"
+            line="141"
             column="13"/>
     </issue>
 
@@ -1445,7 +1280,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="121"
+            line="142"
             column="13"/>
     </issue>
 
@@ -1456,7 +1291,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="134"
+            line="155"
             column="13"/>
     </issue>
 
@@ -1467,7 +1302,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="135"
+            line="156"
             column="13"/>
     </issue>
 
@@ -1478,7 +1313,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="136"
+            line="157"
             column="13"/>
     </issue>
 
@@ -1489,7 +1324,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="137"
+            line="158"
             column="13"/>
     </issue>
 
@@ -1500,7 +1335,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="138"
+            line="159"
             column="13"/>
     </issue>
 
@@ -1511,7 +1346,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="162"
+            line="192"
             column="13"/>
     </issue>
 
@@ -1522,7 +1357,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="196"
+            line="273"
             column="13"/>
     </issue>
 
@@ -1533,29 +1368,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="299"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.budget_spent` appears to be unused"
-        errorLine1="    &lt;string name=&quot;budget_spent&quot;>Spent&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="300"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.budget_budgeted` appears to be unused"
-        errorLine1="    &lt;string name=&quot;budget_budgeted&quot;>Budgeted&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="301"
+            line="376"
             column="13"/>
     </issue>
 
@@ -1566,7 +1379,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="304"
+            line="381"
             column="13"/>
     </issue>
 
@@ -1577,7 +1390,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="305"
+            line="382"
             column="13"/>
     </issue>
 
@@ -1588,7 +1401,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="306"
+            line="383"
             column="13"/>
     </issue>
 
@@ -1599,7 +1412,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="307"
+            line="384"
             column="13"/>
     </issue>
 
@@ -1610,7 +1423,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="308"
+            line="385"
             column="13"/>
     </issue>
 
@@ -1621,18 +1434,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="309"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.server_setup_url_label` appears to be unused"
-        errorLine1="    &lt;string name=&quot;server_setup_url_label&quot;>Server URL&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="310"
+            line="386"
             column="13"/>
     </issue>
 
@@ -1643,7 +1445,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="311"
+            line="388"
             column="13"/>
     </issue>
 
@@ -1654,18 +1456,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="312"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.action_edit` appears to be unused"
-        errorLine1="    &lt;string name=&quot;action_edit&quot;>Edit&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="317"
+            line="389"
             column="13"/>
     </issue>
 
@@ -1676,7 +1467,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="319"
+            line="396"
             column="13"/>
     </issue>
 
@@ -1687,7 +1478,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="320"
+            line="397"
             column="13"/>
     </issue>
 
@@ -1698,7 +1489,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="321"
+            line="398"
             column="13"/>
     </issue>
 
@@ -1709,7 +1500,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="360"
+            line="485"
             column="13"/>
     </issue>
 
@@ -1720,7 +1511,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="361"
+            line="486"
             column="13"/>
     </issue>
 
@@ -1731,7 +1522,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="362"
+            line="487"
             column="13"/>
     </issue>
 
@@ -1742,7 +1533,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="363"
+            line="488"
             column="13"/>
     </issue>
 
@@ -1753,7 +1544,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="364"
+            line="489"
             column="13"/>
     </issue>
 
@@ -1764,7 +1555,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="366"
+            line="491"
             column="13"/>
     </issue>
 
@@ -1775,7 +1566,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="463"
+            line="606"
             column="13"/>
     </issue>
 
@@ -1890,10 +1681,25 @@
     </issue>
 
     <issue
-        id="IconExtension"
-        message="Misleading file extension; named `.png` but the file format is `JPEG`">
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="        val deepLink = Uri.parse(BudgetAlertLogic.budgetsDeepLinkUri(yearMonth))"
+        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/res/drawable-nodpi/ic_pledger_brand.png"/>
+            file="src/main/java/com/pledgerio/app/budgets/BudgetAlertNotifier.kt"
+            line="54"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="            val uri = Uri.parse(imageUri)"
+        errorLine2="                      ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pledgerio/app/transactions/data/ocr/InvoiceTextExtractor.kt"
+            line="26"
+            column="23"/>
     </issue>
 
     <issue
@@ -1902,8 +1708,8 @@
         errorLine1="        prefs.edit().putString(KEY_TOKEN, token).apply()"
         errorLine2="        ~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/util/SessionManager.kt"
-            line="40"
+            file="src/main/java/com/pledgerio/app/identity/session/SessionManager.kt"
+            line="87"
             column="9"/>
     </issue>
 
@@ -1913,8 +1719,8 @@
         errorLine1="        prefs.edit().putLong(KEY_TOKEN_EXPIRES_AT, expiresAt).apply()"
         errorLine2="        ~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/util/SessionManager.kt"
-            line="47"
+            file="src/main/java/com/pledgerio/app/identity/session/SessionManager.kt"
+            line="100"
             column="9"/>
     </issue>
 
@@ -1924,8 +1730,8 @@
         errorLine1="        prefs.edit().putString(KEY_REFRESH_TOKEN, token).apply()"
         errorLine2="        ~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/util/SessionManager.kt"
-            line="63"
+            file="src/main/java/com/pledgerio/app/identity/session/SessionManager.kt"
+            line="118"
             column="9"/>
     </issue>
 
@@ -1935,8 +1741,8 @@
         errorLine1="        prefs.edit().putString(KEY_BASE_URL, url).apply()"
         errorLine2="        ~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/util/SessionManager.kt"
-            line="69"
+            file="src/main/java/com/pledgerio/app/identity/session/SessionManager.kt"
+            line="130"
             column="9"/>
     </issue>
 
@@ -1946,9 +1752,42 @@
         errorLine1="        prefs.edit().putString(KEY_USERNAME, username).apply()"
         errorLine2="        ~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/util/SessionManager.kt"
-            line="75"
+            file="src/main/java/com/pledgerio/app/identity/session/SessionManager.kt"
+            line="138"
             column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        val editor = prefs.edit()"
+        errorLine2="                     ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pledgerio/app/identity/session/SessionManager.kt"
+            line="161"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        check(prefs.edit().putString(KEY_SYNC_GENERATION, generation).commit()) {"
+        errorLine2="              ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pledgerio/app/identity/session/SessionManager.kt"
+            line="278"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        check(prefs.edit().remove(KEY_SYNC_GENERATION).commit()) {"
+        errorLine2="              ~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pledgerio/app/identity/session/SessionManager.kt"
+            line="300"
+            column="15"/>
     </issue>
 
     <issue
@@ -1957,20 +1796,20 @@
         errorLine1="        prefs.edit().putBoolean(KEY_BIOMETRIC_ENABLED, enabled).apply()"
         errorLine2="        ~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/util/SessionManager.kt"
-            line="81"
+            file="src/main/java/com/pledgerio/app/identity/session/SessionManager.kt"
+            line="321"
             column="9"/>
     </issue>
 
     <issue
         id="UseKtx"
         message="Use the KTX extension function `SharedPreferences.edit` instead?"
-        errorLine1="        prefs.edit()"
-        errorLine2="        ~~~~~~~~~~~~">
+        errorLine1="            prefs.edit().putBoolean(KEY_LOGOUT_TOMBSTONE, true).apply()"
+        errorLine2="            ~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/util/SessionManager.kt"
-            line="90"
-            column="9"/>
+            file="src/main/java/com/pledgerio/app/identity/session/SessionManager.kt"
+            line="345"
+            column="13"/>
     </issue>
 
     <issue
@@ -1979,8 +1818,8 @@
         errorLine1="        prefs.edit().clear().apply()"
         errorLine2="        ~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/util/SessionManager.kt"
-            line="99"
+            file="src/main/java/com/pledgerio/app/identity/session/SessionManager.kt"
+            line="392"
             column="9"/>
     </issue>
 
@@ -1990,8 +1829,8 @@
         errorLine1="        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(report.issueUrl)))"
         errorLine2="                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/ui/settings/SettingsScreen.kt"
-            line="92"
+            file="src/main/java/com/pledgerio/app/settings/ui/SettingsScreen.kt"
+            line="139"
             column="58"/>
     </issue>
 
@@ -2001,8 +1840,8 @@
         errorLine1="private val BUDGET_MONTH_FORMATTER = DateTimeFormatter.ofPattern(&quot;MMMM yyyy&quot;, Locale.getDefault())"
         errorLine2="                                                                              ~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/ui/budgets/BudgetsViewModel.kt"
-            line="25"
+            file="src/main/java/com/pledgerio/app/budgets/ui/BudgetsViewModel.kt"
+            line="26"
             column="79"/>
     </issue>
 
@@ -2012,8 +1851,8 @@
         errorLine1="private val MONTH_FORMATTER = DateTimeFormatter.ofPattern(&quot;MMMM yyyy&quot;, Locale.getDefault())"
         errorLine2="                                                                       ~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/ui/reports/ReportsViewModel.kt"
-            line="27"
+            file="src/main/java/com/pledgerio/app/reports/ui/ReportsViewModel.kt"
+            line="29"
             column="72"/>
     </issue>
 
@@ -2023,8 +1862,8 @@
         errorLine1="private val MONTH_NAV_FORMATTER = DateTimeFormatter.ofPattern(&quot;MMMM yyyy&quot;, Locale.getDefault())"
         errorLine2="                                                                           ~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/pledgerio/app/ui/transactions/TransactionsViewModel.kt"
-            line="38"
+            file="src/main/java/com/pledgerio/app/transactions/ui/TransactionsViewModel.kt"
+            line="41"
             column="76"/>
     </issue>
 

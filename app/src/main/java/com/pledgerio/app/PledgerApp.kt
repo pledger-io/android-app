@@ -5,8 +5,8 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Configuration
 import com.pledgerio.app.identity.session.BiometricLockManager
-import com.pledgerio.app.util.LocaleManager
-import com.pledgerio.app.util.UserPreferences
+import com.pledgerio.app.settings.LocaleManager
+import com.pledgerio.app.settings.data.UserPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import coil.ImageLoader

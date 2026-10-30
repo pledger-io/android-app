@@ -33,7 +33,7 @@ import com.pledgerio.app.ui.components.LastUpdatedIndicator
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.MonthNavigator
 import com.pledgerio.app.ui.components.PledgerTopBar
-import com.pledgerio.app.ui.util.localizedTitle
+import com.pledgerio.app.shared.ui.util.localizedTitle
 import java.time.YearMonth
 
 enum class ReportType {

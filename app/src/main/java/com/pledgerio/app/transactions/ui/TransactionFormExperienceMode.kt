@@ -1,6 +1,6 @@
 package com.pledgerio.app.transactions.ui
 
-import com.pledgerio.app.domain.model.FinanceExperienceMode
+import com.pledgerio.app.settings.domain.model.FinanceExperienceMode
 
 internal fun resolveMoreOptionsExpansion(
     previous: TransactionFormUiState,
