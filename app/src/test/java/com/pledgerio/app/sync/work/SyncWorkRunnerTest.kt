@@ -1,5 +1,9 @@
-package com.pledgerio.app.util
+package com.pledgerio.app.sync.work
 
+import com.pledgerio.app.sync.work.SyncRunOutcome
+import com.pledgerio.app.sync.work.SyncSessionGuard
+import com.pledgerio.app.sync.work.SyncWorkRunner
+import com.pledgerio.app.sync.work.SyncWorker
 import com.pledgerio.app.identity.session.SessionDataBarrier
 import com.pledgerio.app.identity.session.SessionManager
 import com.pledgerio.app.shared.Resource
@@ -12,7 +16,7 @@ import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import com.pledgerio.app.catalog.domain.repository.ContractRepository
 import com.pledgerio.app.catalog.domain.repository.CurrencyRepository
 import com.pledgerio.app.catalog.domain.repository.TagRepository
-import com.pledgerio.app.domain.repository.TransactionOutboxRepository
+import com.pledgerio.app.sync.domain.repository.TransactionOutboxRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

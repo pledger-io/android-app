@@ -5,7 +5,7 @@ import androidx.room.withTransaction
 import coil.Coil
 import coil.annotation.ExperimentalCoilApi
 import com.pledgerio.app.reports.data.cache.ReportsOverviewCache
-import com.pledgerio.app.data.local.PledgerDatabase
+import com.pledgerio.app.shared.data.local.PledgerDatabase
 import com.pledgerio.app.reports.data.cache.SpendingInsightsCache
 import com.pledgerio.app.catalog.CurrencyProvider
 import com.pledgerio.app.transactions.TransactionTemplateStore

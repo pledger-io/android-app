@@ -1,5 +1,6 @@
 package com.pledgerio.app.catalog.data
 
+import com.pledgerio.app.sync.work.FakeSyncMetadataDao
 import com.pledgerio.app.catalog.data.TagRepositoryImpl
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.shared.data.cache.CacheRefresher
@@ -10,7 +11,6 @@ import com.pledgerio.app.catalog.data.entity.TagEntity
 import com.pledgerio.app.transactions.data.entity.TransactionEntity
 import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.catalog.data.dto.CreateTagRequest
-import com.pledgerio.app.util.FakeSyncMetadataDao
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify

@@ -1,5 +1,6 @@
 package com.pledgerio.app.accounts.data
 
+import com.pledgerio.app.sync.work.FakeSyncMetadataDao
 import com.pledgerio.app.accounts.data.AccountRepositoryImpl
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.shared.data.cache.CacheRefresher
@@ -14,7 +15,6 @@ import com.pledgerio.app.reports.data.dto.BalancePartitionedDto
 import com.pledgerio.app.reports.data.dto.BalanceRequest
 import com.pledgerio.app.shared.data.dto.PageInfo
 import com.pledgerio.app.accounts.domain.model.AccountTypeCodes
-import com.pledgerio.app.util.FakeSyncMetadataDao
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

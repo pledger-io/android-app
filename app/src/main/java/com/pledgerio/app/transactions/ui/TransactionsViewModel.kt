@@ -13,7 +13,7 @@ import com.pledgerio.app.transactions.domain.model.TransactionType
 import com.pledgerio.app.budgets.domain.repository.BudgetRepository
 import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import com.pledgerio.app.catalog.domain.repository.ContractRepository
-import com.pledgerio.app.domain.repository.TransactionOutboxRepository
+import com.pledgerio.app.sync.domain.repository.TransactionOutboxRepository
 import com.pledgerio.app.transactions.domain.repository.TransactionRepository
 import com.pledgerio.app.transactions.domain.usecase.GetTransactionsUseCase
 import com.pledgerio.app.shared.SearchDefaults

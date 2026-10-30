@@ -1,9 +1,9 @@
 package com.pledgerio.app.identity.session
 
-import com.pledgerio.app.util.SyncSessionGuard
-import com.pledgerio.app.util.SyncRunOutcome
-import com.pledgerio.app.util.SyncWorkRunner
-import com.pledgerio.app.util.SyncWorkScheduler
+import com.pledgerio.app.sync.work.SyncSessionGuard
+import com.pledgerio.app.sync.work.SyncRunOutcome
+import com.pledgerio.app.sync.work.SyncWorkRunner
+import com.pledgerio.app.sync.work.SyncWorkScheduler
 import com.pledgerio.app.identity.session.AuthenticatedSessionScope
 import com.pledgerio.app.identity.session.AuthenticatedSessionCoordinator
 import com.pledgerio.app.identity.session.SessionDataBarrier

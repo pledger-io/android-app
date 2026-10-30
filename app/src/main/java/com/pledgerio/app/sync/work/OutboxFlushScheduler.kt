@@ -1,4 +1,4 @@
-package com.pledgerio.app.util
+package com.pledgerio.app.sync.work
 
 import com.pledgerio.app.identity.session.SessionDataBarrier
 import android.content.Context
@@ -13,7 +13,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.await
 import com.pledgerio.app.transactions.domain.model.FlushResult
-import com.pledgerio.app.domain.repository.TransactionOutboxRepository
+import com.pledgerio.app.sync.domain.repository.TransactionOutboxRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.qualifiers.ApplicationContext

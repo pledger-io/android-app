@@ -1,6 +1,6 @@
 package com.pledgerio.app.shared.data
 
-import com.pledgerio.app.data.local.PledgerDatabaseMigrations
+import com.pledgerio.app.shared.data.local.PledgerDatabaseMigrations
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -10,7 +10,7 @@ class LocalDataCleanerOutboxTest {
 
     @Test
     fun `schema export v7 includes transaction_outbox for clearAllTables wipe`() {
-        val schema = File("schemas/com.pledgerio.app.data.local.PledgerDatabase/7.json")
+        val schema = File("schemas/com.pledgerio.app.shared.data.local.PledgerDatabase/7.json")
         assertTrue("Room schema v7 must be exported", schema.exists())
         val text = schema.readText()
         assertTrue(text.contains("\"version\": 7") || text.contains("\"version\":7"))

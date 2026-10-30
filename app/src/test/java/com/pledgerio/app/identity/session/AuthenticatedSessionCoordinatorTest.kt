@@ -1,6 +1,6 @@
 package com.pledgerio.app.identity.session
 
-import com.pledgerio.app.util.SyncWorkScheduler
+import com.pledgerio.app.sync.work.SyncWorkScheduler
 import com.pledgerio.app.identity.session.LogoutCredential
 import com.pledgerio.app.identity.session.DurableLogoutException
 import com.pledgerio.app.identity.session.AuthenticatedSessionScope

@@ -10,7 +10,7 @@ import com.pledgerio.app.data.repository.IssueReportRepositoryImpl
 import com.pledgerio.app.reports.data.ReportRepositoryImpl
 import com.pledgerio.app.reports.data.SpendingInsightRepositoryImpl
 import com.pledgerio.app.catalog.data.TagRepositoryImpl
-import com.pledgerio.app.data.repository.TransactionOutboxRepositoryImpl
+import com.pledgerio.app.sync.data.TransactionOutboxRepositoryImpl
 import com.pledgerio.app.transactions.data.TransactionRepositoryImpl
 import com.pledgerio.app.identity.data.UserSessionRepositoryImpl
 import com.pledgerio.app.reports.data.cache.ReportsOverviewCache
@@ -27,7 +27,7 @@ import com.pledgerio.app.reports.domain.repository.ReportRepository
 import com.pledgerio.app.reports.domain.repository.ReportsOverviewStore
 import com.pledgerio.app.reports.domain.repository.SpendingInsightRepository
 import com.pledgerio.app.catalog.domain.repository.TagRepository
-import com.pledgerio.app.domain.repository.TransactionOutboxRepository
+import com.pledgerio.app.sync.domain.repository.TransactionOutboxRepository
 import com.pledgerio.app.transactions.domain.repository.TransactionRepository
 import com.pledgerio.app.identity.domain.repository.UserSessionRepository
 import dagger.Binds

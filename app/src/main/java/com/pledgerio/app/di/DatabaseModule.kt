@@ -2,8 +2,8 @@ package com.pledgerio.app.di
 
 import android.content.Context
 import androidx.room.Room
-import com.pledgerio.app.data.local.PledgerDatabase
-import com.pledgerio.app.data.local.PledgerDatabaseMigrations
+import com.pledgerio.app.shared.data.local.PledgerDatabase
+import com.pledgerio.app.shared.data.local.PledgerDatabaseMigrations
 import com.pledgerio.app.accounts.data.dao.AccountDao
 import com.pledgerio.app.catalog.data.dao.AccountTypeDao
 import com.pledgerio.app.budgets.data.dao.BudgetDao
@@ -11,10 +11,10 @@ import com.pledgerio.app.catalog.data.dao.CategoryDao
 import com.pledgerio.app.catalog.data.dao.ContractDao
 import com.pledgerio.app.catalog.data.dao.CurrencyDao
 import com.pledgerio.app.budgets.data.dao.ExpenseGroupDao
-import com.pledgerio.app.data.local.dao.SyncMetadataDao
+import com.pledgerio.app.sync.data.local.dao.SyncMetadataDao
 import com.pledgerio.app.catalog.data.dao.TagDao
 import com.pledgerio.app.transactions.data.dao.TransactionDao
-import com.pledgerio.app.data.local.dao.TransactionOutboxDao
+import com.pledgerio.app.sync.data.local.dao.TransactionOutboxDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

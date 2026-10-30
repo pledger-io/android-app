@@ -1,4 +1,4 @@
-package com.pledgerio.app.data.local
+package com.pledgerio.app.shared.data.local
 
 import androidx.room.TypeConverter
 import java.time.LocalDate

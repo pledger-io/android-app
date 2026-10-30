@@ -1,7 +1,7 @@
-package com.pledgerio.app.util
+package com.pledgerio.app.sync.work
 
-import com.pledgerio.app.data.local.dao.SyncMetadataDao
-import com.pledgerio.app.data.local.entity.SyncMetadataEntity
+import com.pledgerio.app.sync.data.local.dao.SyncMetadataDao
+import com.pledgerio.app.sync.data.local.entity.SyncMetadataEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 

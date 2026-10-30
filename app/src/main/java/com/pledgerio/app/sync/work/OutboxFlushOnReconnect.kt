@@ -1,4 +1,4 @@
-package com.pledgerio.app.util
+package com.pledgerio.app.sync.work
 
 import com.pledgerio.app.identity.session.SessionManager
 import com.pledgerio.app.shared.NetworkMonitor

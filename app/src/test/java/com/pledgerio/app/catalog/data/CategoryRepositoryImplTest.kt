@@ -1,5 +1,6 @@
 package com.pledgerio.app.catalog.data
 
+import com.pledgerio.app.sync.work.FakeSyncMetadataDao
 import com.pledgerio.app.catalog.data.CategoryRepositoryImpl
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.shared.data.cache.CachePolicy
@@ -12,7 +13,6 @@ import com.pledgerio.app.catalog.data.dto.CategoryDto
 import com.pledgerio.app.catalog.data.dto.CategoryPagedResponse
 import com.pledgerio.app.shared.data.dto.PageInfo
 import com.pledgerio.app.catalog.domain.model.Category
-import com.pledgerio.app.util.FakeSyncMetadataDao
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify

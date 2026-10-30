@@ -1,10 +1,10 @@
-package com.pledgerio.app.data.local.dao
+package com.pledgerio.app.sync.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
-import com.pledgerio.app.data.local.entity.SyncMetadataEntity
+import com.pledgerio.app.sync.data.local.entity.SyncMetadataEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
