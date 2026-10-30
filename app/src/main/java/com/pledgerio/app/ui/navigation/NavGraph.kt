@@ -13,9 +13,9 @@ import com.pledgerio.app.accounts.ui.AccountDetailScreen
 import com.pledgerio.app.accounts.ui.AccountFormScreen
 import com.pledgerio.app.accounts.ui.AccountsScreen
 import com.pledgerio.app.accounts.ui.AccountsViewModel
-import com.pledgerio.app.ui.budgets.BudgetDetailScreen
-import com.pledgerio.app.ui.budgets.BudgetsScreen
-import com.pledgerio.app.ui.budgets.BudgetsViewModel
+import com.pledgerio.app.budgets.ui.BudgetDetailScreen
+import com.pledgerio.app.budgets.ui.BudgetsScreen
+import com.pledgerio.app.budgets.ui.BudgetsViewModel
 import com.pledgerio.app.catalog.ui.categories.CategoriesScreen
 import com.pledgerio.app.catalog.ui.tags.TagsScreen
 import com.pledgerio.app.ui.dashboard.DashboardScreen

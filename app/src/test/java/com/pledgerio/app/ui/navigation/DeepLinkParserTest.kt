@@ -1,6 +1,6 @@
 package com.pledgerio.app.ui.navigation
 
-import com.pledgerio.app.util.BudgetAlertLogic
+import com.pledgerio.app.budgets.BudgetAlertLogic
 import java.time.YearMonth
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull

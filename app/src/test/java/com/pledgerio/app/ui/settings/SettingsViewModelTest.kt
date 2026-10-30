@@ -11,7 +11,7 @@ import com.pledgerio.app.identity.domain.repository.UserSessionRepository
 import com.pledgerio.app.identity.session.BiometricAuthenticator
 import com.pledgerio.app.identity.session.BiometricAvailability
 import com.pledgerio.app.identity.session.BiometricLockManager
-import com.pledgerio.app.util.BudgetAlertLogic
+import com.pledgerio.app.budgets.BudgetAlertLogic
 import com.pledgerio.app.identity.session.DurableLogoutException
 import com.pledgerio.app.identity.session.SessionManager
 import com.pledgerio.app.util.UserPreferences

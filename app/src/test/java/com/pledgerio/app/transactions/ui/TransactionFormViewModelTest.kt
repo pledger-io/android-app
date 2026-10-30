@@ -6,7 +6,7 @@ import com.pledgerio.app.transactions.ui.TransactionFormViewModel
 import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.SavedStateHandle
 import com.pledgerio.app.accounts.domain.model.Account
-import com.pledgerio.app.domain.model.BudgetExpense
+import com.pledgerio.app.budgets.domain.model.BudgetExpense
 import com.pledgerio.app.catalog.domain.model.Category
 import com.pledgerio.app.transactions.domain.model.CreateOutcome
 import com.pledgerio.app.domain.model.FinanceExperienceMode
@@ -17,7 +17,7 @@ import com.pledgerio.app.transactions.domain.model.Transaction
 import com.pledgerio.app.transactions.domain.model.TransactionClassificationSuggestion
 import com.pledgerio.app.transactions.domain.model.TransactionType
 import com.pledgerio.app.accounts.domain.repository.AccountRepository
-import com.pledgerio.app.domain.repository.BudgetRepository
+import com.pledgerio.app.budgets.domain.repository.BudgetRepository
 import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import com.pledgerio.app.catalog.domain.repository.ContractRepository
 import com.pledgerio.app.catalog.domain.repository.CurrencyRepository

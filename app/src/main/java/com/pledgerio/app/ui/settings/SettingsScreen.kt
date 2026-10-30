@@ -74,7 +74,7 @@ import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.util.localizedDescription
 import com.pledgerio.app.ui.util.localizedName
 import com.pledgerio.app.identity.session.BiometricAvailability
-import com.pledgerio.app.util.BudgetAlertLogic
+import com.pledgerio.app.budgets.BudgetAlertLogic
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)

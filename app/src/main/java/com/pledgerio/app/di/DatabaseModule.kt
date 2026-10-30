@@ -6,11 +6,11 @@ import com.pledgerio.app.data.local.PledgerDatabase
 import com.pledgerio.app.data.local.PledgerDatabaseMigrations
 import com.pledgerio.app.accounts.data.dao.AccountDao
 import com.pledgerio.app.catalog.data.dao.AccountTypeDao
-import com.pledgerio.app.data.local.dao.BudgetDao
+import com.pledgerio.app.budgets.data.dao.BudgetDao
 import com.pledgerio.app.catalog.data.dao.CategoryDao
 import com.pledgerio.app.catalog.data.dao.ContractDao
 import com.pledgerio.app.catalog.data.dao.CurrencyDao
-import com.pledgerio.app.data.local.dao.ExpenseGroupDao
+import com.pledgerio.app.budgets.data.dao.ExpenseGroupDao
 import com.pledgerio.app.data.local.dao.SyncMetadataDao
 import com.pledgerio.app.catalog.data.dao.TagDao
 import com.pledgerio.app.transactions.data.dao.TransactionDao
