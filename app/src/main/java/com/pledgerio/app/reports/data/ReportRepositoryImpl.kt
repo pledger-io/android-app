@@ -1,0 +1,205 @@
+package com.pledgerio.app.reports.data
+
+import com.pledgerio.app.budgets.domain.model.Budget
+import com.pledgerio.app.shared.Resource
+import com.pledgerio.app.shared.data.remote.api.PledgerApiService
+import com.pledgerio.app.reports.data.dto.BalanceRequest
+import com.pledgerio.app.shared.data.dto.DateRangeDto
+import com.pledgerio.app.reports.domain.model.BudgetPerformanceItem
+import com.pledgerio.app.reports.domain.model.DatedAmount
+import com.pledgerio.app.reports.domain.model.IncomeExpenseSummary
+import com.pledgerio.app.reports.domain.model.PartitionAmount
+import com.pledgerio.app.transactions.domain.model.TransactionType
+import com.pledgerio.app.accounts.domain.repository.AccountRepository
+import com.pledgerio.app.budgets.domain.repository.BudgetRepository
+import com.pledgerio.app.catalog.domain.repository.CategoryRepository
+import com.pledgerio.app.reports.domain.repository.ReportRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
+import java.time.YearMonth
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class ReportRepositoryImpl @Inject constructor(
+    private val apiService: PledgerApiService,
+    private val accountRepository: AccountRepository,
+    private val budgetRepository: BudgetRepository,
+    private val categoryRepository: CategoryRepository,
+) : ReportRepository {
+
+    override suspend fun getIncomeExpenseSummary(month: YearMonth): Resource<IncomeExpenseSummary> {
+        return try {
+            var income = 0.0
+            var expense = 0.0
+            var offset = 0
+            val pageSize = 100
+            val range = monthRange(month)
+            while (true) {
+                val response = apiService.getTransactions(
+                    startDate = range.startDate,
+                    endDate = range.endDate ?: month.atEndOfMonth().plusDays(1).toString(),
+                    offset = offset,
+                    numberOfResults = pageSize,
+                )
+                if (!response.isSuccessful) {
+                    return Resource.Error("Failed to load transactions: HTTP ${response.code()}")
+                }
+                val body = response.body() ?: break
+                body.content.forEach { dto ->
+                    when (TransactionType.fromString(dto.type)) {
+                        TransactionType.DEBIT -> income += dto.amount
+                        TransactionType.CREDIT -> expense += dto.amount
+                        TransactionType.TRANSFER -> Unit
+                    }
+                }
+                val loaded = offset + body.content.size
+                if (body.content.isEmpty() || loaded >= body.info.records) break
+                offset = loaded
+            }
+            Resource.Success(IncomeExpenseSummary(income = income, expense = expense))
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Could not load income and expenses")
+        }
+    }
+
+    override suspend fun getCategoryBreakdown(month: YearMonth): Resource<List<PartitionAmount>> {
+        return when (val partitions = loadPartitioned("category", month)) {
+            is Resource.Success -> Resource.Success(resolveCategoryIds(partitions.data))
+            is Resource.Error -> partitions
+            is Resource.Loading -> partitions
+        }
+    }
+
+    override suspend fun getAccountBalances(month: YearMonth): Resource<List<PartitionAmount>> {
+        return try {
+            when (val owned = accountRepository.refreshOwnedAccounts()) {
+                is Resource.Success -> {
+                    val accounts = owned.data
+                    if (accounts.isEmpty()) {
+                        return Resource.Success(emptyList())
+                    }
+                    val range = monthRange(month)
+                    val responses = coroutineScope {
+                        accounts.map { account ->
+                            async {
+                                apiService.getBalance(
+                                    BalanceRequest(range = range, accounts = listOf(account.id)),
+                                )
+                            }
+                        }.awaitAll()
+                    }
+                    responses.firstOrNull { !it.isSuccessful }?.let { failed ->
+                        return Resource.Error("Failed to load report: HTTP ${failed.code()}")
+                    }
+                    val partitions = accounts.zip(responses)
+                        .map { (account, response) ->
+                            PartitionAmount(
+                                label = account.name,
+                                amount = signedBalance(account, response.body()?.balance ?: 0.0),
+                                id = account.id,
+                            )
+                        }
+                        .sortedByDescending { it.amount }
+                    Resource.Success(partitions)
+                }
+                is Resource.Error -> Resource.Error(owned.message)
+                is Resource.Loading -> Resource.Error("Account data unavailable")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Could not load report data")
+        }
+    }
+
+    override suspend fun getBudgetPerformance(month: YearMonth): Resource<List<BudgetPerformanceItem>> {
+        return try {
+            when (val result = budgetRepository.getBudgets(month.year, month.monthValue).first { it !is Resource.Loading }) {
+                is Resource.Success -> {
+                    val items = result.data.budgets.map { budget ->
+                        BudgetPerformanceItem(
+                            name = budget.name,
+                            spent = budget.spent,
+                            budgeted = budget.amount,
+                            expenseId = budget.id,
+                        )
+                    }
+                    Resource.Success(items)
+                }
+                is Resource.Error -> Resource.Error(result.message)
+                is Resource.Loading -> Resource.Error("Budget data unavailable")
+            }
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Could not load budget performance")
+        }
+    }
+
+    override suspend fun getNetWorthTrend(month: YearMonth): Resource<List<DatedAmount>> {
+        return try {
+            val dateRange = DateRangeDto(startDate = "1970-01-01", endDate = month.plusMonths(1).atDay(1).toString())
+            val response = apiService.getDatedBalance(
+                type = "daily",
+                request = BalanceRequest(range = dateRange),
+            )
+            if (!response.isSuccessful) {
+                return Resource.Error("Failed to load net worth trend: HTTP ${response.code()}")
+            }
+            val items = response.body().orEmpty().map { DatedAmount(date = it.date, amount = it.balance) }
+            Resource.Success(items)
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Could not load net worth trend")
+        }
+    }
+
+    private suspend fun resolveCategoryIds(partitions: List<PartitionAmount>): List<PartitionAmount> {
+        if (partitions.isEmpty()) return partitions
+        val categories = loadCategoriesForLookup()
+        if (categories.isEmpty()) return partitions
+        val byName = categories.associateBy { it.name }
+        return partitions.map { partition ->
+            partition.copy(id = byName[partition.label]?.id)
+        }
+    }
+
+    private suspend fun loadCategoriesForLookup(): List<com.pledgerio.app.catalog.domain.model.Category> {
+        val cached = runCatching { categoryRepository.observeCategories().first() }.getOrDefault(emptyList())
+        if (cached.isNotEmpty()) return cached
+        return when (val refreshed = categoryRepository.refreshCategories()) {
+            is Resource.Success -> refreshed.data
+            else -> emptyList()
+        }
+    }
+
+    private suspend fun loadPartitioned(
+        partition: String,
+        month: YearMonth,
+    ): Resource<List<PartitionAmount>> {
+        return try {
+            val response = apiService.getPartitionedBalance(
+                partition = partition,
+                request = BalanceRequest(range = monthRange(month)),
+            )
+            if (!response.isSuccessful) {
+                return Resource.Error("Failed to load report: HTTP ${response.code()}")
+            }
+            val items = response.body().orEmpty()
+                .map { PartitionAmount(label = it.partition, amount = kotlin.math.abs(it.balance)) }
+                .filter { it.amount > 0.0 }
+                .sortedByDescending { it.amount }
+            Resource.Success(items)
+        } catch (e: Exception) {
+            Resource.Error(e.message ?: "Could not load report data")
+        }
+    }
+
+    /** Assets count positive, liabilities negative (amount owed), whatever the range sign. */
+    private fun signedBalance(account: com.pledgerio.app.accounts.domain.model.Account, balance: Double): Double =
+        if (account.isLiability) -kotlin.math.abs(balance) else kotlin.math.abs(balance)
+
+    private fun monthRange(month: YearMonth): DateRangeDto {
+        val start = month.atDay(1).toString()
+        val end = month.plusMonths(1).atDay(1).toString()
+        return DateRangeDto(startDate = start, endDate = end)
+    }
+}

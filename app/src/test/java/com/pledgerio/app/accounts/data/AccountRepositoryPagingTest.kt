@@ -9,9 +9,9 @@ import com.pledgerio.app.accounts.data.entity.AccountEntity
 import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.accounts.data.dto.AccountDto
 import com.pledgerio.app.accounts.data.dto.AccountPagedResponse
-import com.pledgerio.app.data.remote.dto.BalanceDto
-import com.pledgerio.app.data.remote.dto.BalancePartitionedDto
-import com.pledgerio.app.data.remote.dto.BalanceRequest
+import com.pledgerio.app.reports.data.dto.BalanceDto
+import com.pledgerio.app.reports.data.dto.BalancePartitionedDto
+import com.pledgerio.app.reports.data.dto.BalanceRequest
 import com.pledgerio.app.shared.data.dto.PageInfo
 import com.pledgerio.app.accounts.domain.model.AccountTypeCodes
 import com.pledgerio.app.util.FakeSyncMetadataDao

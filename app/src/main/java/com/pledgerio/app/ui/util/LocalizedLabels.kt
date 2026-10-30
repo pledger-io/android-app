@@ -6,7 +6,7 @@ import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.AppLocale
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.ThemeMode
-import com.pledgerio.app.ui.reports.ReportType
+import com.pledgerio.app.reports.ui.ReportType
 
 @Composable
 fun FinanceExperienceMode.formBannerTitle(): String = stringResource(

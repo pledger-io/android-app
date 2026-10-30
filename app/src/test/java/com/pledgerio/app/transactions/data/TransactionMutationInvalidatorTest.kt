@@ -3,7 +3,7 @@ package com.pledgerio.app.transactions.data
 import com.pledgerio.app.transactions.data.TransactionMutationInvalidator
 import com.pledgerio.app.shared.data.cache.CacheRefresher
 import com.pledgerio.app.shared.data.cache.SyncKeys
-import com.pledgerio.app.domain.repository.ReportsOverviewStore
+import com.pledgerio.app.reports.domain.repository.ReportsOverviewStore
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
 import io.mockk.mockk

@@ -18,12 +18,12 @@ import com.pledgerio.app.budgets.ui.BudgetsScreen
 import com.pledgerio.app.budgets.ui.BudgetsViewModel
 import com.pledgerio.app.catalog.ui.categories.CategoriesScreen
 import com.pledgerio.app.catalog.ui.tags.TagsScreen
-import com.pledgerio.app.ui.dashboard.DashboardScreen
-import com.pledgerio.app.ui.dashboard.DashboardViewModel
+import com.pledgerio.app.reports.ui.dashboard.DashboardScreen
+import com.pledgerio.app.reports.ui.dashboard.DashboardViewModel
 import com.pledgerio.app.identity.ui.onboarding.LoginScreen
 import com.pledgerio.app.identity.ui.onboarding.ServerSetupScreen
 import com.pledgerio.app.identity.ui.onboarding.Verify2FactorScreen
-import com.pledgerio.app.ui.reports.ReportsScreen
+import com.pledgerio.app.reports.ui.ReportsScreen
 import com.pledgerio.app.transactions.ui.search.SearchScreen
 import com.pledgerio.app.transactions.ui.search.SearchViewModel
 import com.pledgerio.app.ui.settings.ApiSessionsScreen

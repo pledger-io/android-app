@@ -10,7 +10,7 @@ import com.pledgerio.app.accounts.data.dto.AccountDto
 import com.pledgerio.app.accounts.data.dto.AccountIdentificationDto
 import com.pledgerio.app.accounts.data.dto.AccountInterestDto
 import com.pledgerio.app.accounts.data.dto.AccountPagedResponse
-import com.pledgerio.app.data.remote.dto.BalanceDto
+import com.pledgerio.app.reports.data.dto.BalanceDto
 import com.pledgerio.app.accounts.data.dto.CreateAccountRequest
 import com.pledgerio.app.transactions.data.dto.CreateTransactionRequest
 import com.pledgerio.app.shared.data.dto.PageInfo
