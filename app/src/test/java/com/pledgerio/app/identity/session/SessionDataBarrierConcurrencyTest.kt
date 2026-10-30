@@ -11,10 +11,10 @@ import com.pledgerio.app.identity.session.SessionManager
 import com.pledgerio.app.shared.data.LocalDataCleaner
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
-import com.pledgerio.app.domain.repository.CategoryRepository
-import com.pledgerio.app.domain.repository.ContractRepository
-import com.pledgerio.app.domain.repository.CurrencyRepository
-import com.pledgerio.app.domain.repository.TagRepository
+import com.pledgerio.app.catalog.domain.repository.CategoryRepository
+import com.pledgerio.app.catalog.domain.repository.ContractRepository
+import com.pledgerio.app.catalog.domain.repository.CurrencyRepository
+import com.pledgerio.app.catalog.domain.repository.TagRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

@@ -4,7 +4,7 @@ import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.SavedStateHandle
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.BudgetExpense
-import com.pledgerio.app.domain.model.Category
+import com.pledgerio.app.catalog.domain.model.Category
 import com.pledgerio.app.domain.model.CreateOutcome
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.FilterOption
@@ -15,12 +15,12 @@ import com.pledgerio.app.domain.model.TransactionClassificationSuggestion
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
-import com.pledgerio.app.domain.repository.CategoryRepository
-import com.pledgerio.app.domain.repository.ContractRepository
-import com.pledgerio.app.domain.repository.CurrencyRepository
-import com.pledgerio.app.domain.repository.TagRepository
+import com.pledgerio.app.catalog.domain.repository.CategoryRepository
+import com.pledgerio.app.catalog.domain.repository.ContractRepository
+import com.pledgerio.app.catalog.domain.repository.CurrencyRepository
+import com.pledgerio.app.catalog.domain.repository.TagRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
-import com.pledgerio.app.domain.model.Tag
+import com.pledgerio.app.catalog.domain.model.Tag
 import com.pledgerio.app.ui.transactions.form.AutoClassifyStatus
 import com.pledgerio.app.shared.MainDispatcherRule
 import com.pledgerio.app.domain.model.TransactionTemplate

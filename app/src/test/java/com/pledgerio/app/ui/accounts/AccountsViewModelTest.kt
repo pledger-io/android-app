@@ -2,8 +2,8 @@ package com.pledgerio.app.ui.accounts
 
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.model.Account
-import com.pledgerio.app.domain.model.AccountListFilter
-import com.pledgerio.app.domain.model.AccountTypeOption
+import com.pledgerio.app.catalog.domain.model.AccountListFilter
+import com.pledgerio.app.catalog.domain.model.AccountTypeOption
 import com.pledgerio.app.domain.model.PagedAccounts
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.model.FinanceExperienceMode

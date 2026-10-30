@@ -5,7 +5,7 @@ import com.pledgerio.app.shared.data.cache.CachePolicy
 import com.pledgerio.app.shared.data.cache.CacheRefresher
 import com.pledgerio.app.shared.data.cache.SyncKeys
 import com.pledgerio.app.data.local.dao.AccountDao
-import com.pledgerio.app.data.local.dao.AccountTypeDao
+import com.pledgerio.app.catalog.data.dao.AccountTypeDao
 import com.pledgerio.app.data.local.entity.AccountEntity
 import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.BalanceRequest
@@ -13,9 +13,9 @@ import com.pledgerio.app.data.remote.dto.CreateAccountRequest
 import com.pledgerio.app.data.remote.dto.CreateTransactionRequest
 import com.pledgerio.app.data.remote.dto.DateRangeDto
 import com.pledgerio.app.domain.model.Account
-import com.pledgerio.app.domain.model.AccountTypeCatalog
-import com.pledgerio.app.domain.model.AccountTypeCodes
-import com.pledgerio.app.domain.model.AccountTypeOption
+import com.pledgerio.app.catalog.domain.model.AccountTypeCatalog
+import com.pledgerio.app.catalog.domain.model.AccountTypeCodes
+import com.pledgerio.app.catalog.domain.model.AccountTypeOption
 import com.pledgerio.app.domain.model.PagedAccounts
 import com.pledgerio.app.domain.repository.AccountRepository
 import kotlinx.coroutines.CancellationException

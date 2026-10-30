@@ -4,8 +4,8 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.pledgerio.app.R
-import com.pledgerio.app.domain.model.AccountTypeGroup
-import com.pledgerio.app.domain.model.AccountTypeMetadata
+import com.pledgerio.app.catalog.domain.model.AccountTypeGroup
+import com.pledgerio.app.catalog.domain.model.AccountTypeMetadata
 
 sealed interface AccountPickerLabel {
     data object Checking : AccountPickerLabel

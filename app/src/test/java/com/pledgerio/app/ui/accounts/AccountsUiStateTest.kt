@@ -1,7 +1,7 @@
 package com.pledgerio.app.ui.accounts
 
 import com.pledgerio.app.domain.model.Account
-import com.pledgerio.app.domain.model.AccountListFilter
+import com.pledgerio.app.catalog.domain.model.AccountListFilter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

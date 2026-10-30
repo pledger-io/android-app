@@ -11,8 +11,8 @@ import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionFilters
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.BudgetRepository
-import com.pledgerio.app.domain.repository.CategoryRepository
-import com.pledgerio.app.domain.repository.ContractRepository
+import com.pledgerio.app.catalog.domain.repository.CategoryRepository
+import com.pledgerio.app.catalog.domain.repository.ContractRepository
 import com.pledgerio.app.domain.repository.TransactionOutboxRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.domain.usecase.GetTransactionsUseCase

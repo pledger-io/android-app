@@ -2,7 +2,7 @@ package com.pledgerio.app.domain.repository
 
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.model.Account
-import com.pledgerio.app.domain.model.AccountTypeOption
+import com.pledgerio.app.catalog.domain.model.AccountTypeOption
 import com.pledgerio.app.domain.model.PagedAccounts
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate

@@ -43,9 +43,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pledgerio.app.R
-import com.pledgerio.app.domain.model.AccountTypeCatalog
-import com.pledgerio.app.domain.model.AccountTypeGroup
-import com.pledgerio.app.domain.model.AccountTypeOption
+import com.pledgerio.app.catalog.domain.model.AccountTypeCatalog
+import com.pledgerio.app.catalog.domain.model.AccountTypeGroup
+import com.pledgerio.app.catalog.domain.model.AccountTypeOption
 import com.pledgerio.app.ui.theme.PledgerThemeExt
 
 @Composable
@@ -248,7 +248,7 @@ private fun AddTypeRow(
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            val meta = com.pledgerio.app.domain.model.AccountTypeCatalog.metadataFor(option.code)
+            val meta = com.pledgerio.app.catalog.domain.model.AccountTypeCatalog.metadataFor(option.code)
             Text(
                 text = meta.localizedDisplayName(),
                 style = MaterialTheme.typography.titleSmall,

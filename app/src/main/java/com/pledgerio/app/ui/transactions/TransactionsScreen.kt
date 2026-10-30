@@ -1,5 +1,7 @@
 package com.pledgerio.app.ui.transactions
 
+import com.pledgerio.app.catalog.domain.model.Contract
+import com.pledgerio.app.catalog.domain.model.Category
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically

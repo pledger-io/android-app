@@ -1,4 +1,6 @@
 package com.pledgerio.app.domain.model
+import com.pledgerio.app.catalog.domain.model.AccountTypeCatalog
+import com.pledgerio.app.catalog.domain.model.toAccountTypeDisplayName
 
 data class Account(
     val id: Long,

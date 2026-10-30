@@ -5,14 +5,14 @@ import com.pledgerio.app.data.cache.SpendingInsightsCache
 import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.DetectedInsightDto
 import com.pledgerio.app.data.remote.dto.DetectedPatternDto
-import com.pledgerio.app.domain.model.Category
+import com.pledgerio.app.catalog.domain.model.Category
 import com.pledgerio.app.domain.model.InsightSeverity
 import com.pledgerio.app.domain.model.InsightType
 import com.pledgerio.app.domain.model.PatternType
 import com.pledgerio.app.domain.model.SpendingInsight
 import com.pledgerio.app.domain.model.SpendingInsights
 import com.pledgerio.app.domain.model.SpendingPattern
-import com.pledgerio.app.domain.repository.CategoryRepository
+import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.SpendingInsightRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first

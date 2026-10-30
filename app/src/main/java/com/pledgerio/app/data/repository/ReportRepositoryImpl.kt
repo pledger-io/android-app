@@ -11,7 +11,7 @@ import com.pledgerio.app.domain.model.PartitionAmount
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
-import com.pledgerio.app.domain.repository.CategoryRepository
+import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ReportRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -161,7 +161,7 @@ class ReportRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun loadCategoriesForLookup(): List<com.pledgerio.app.domain.model.Category> {
+    private suspend fun loadCategoriesForLookup(): List<com.pledgerio.app.catalog.domain.model.Category> {
         val cached = runCatching { categoryRepository.observeCategories().first() }.getOrDefault(emptyList())
         if (cached.isNotEmpty()) return cached
         return when (val refreshed = categoryRepository.refreshCategories()) {

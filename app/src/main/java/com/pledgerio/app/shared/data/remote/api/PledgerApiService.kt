@@ -1,5 +1,11 @@
 package com.pledgerio.app.shared.data.remote.api
 
+import com.pledgerio.app.catalog.data.dto.ContractDto
+import com.pledgerio.app.catalog.data.dto.CurrencyDto
+import com.pledgerio.app.catalog.data.dto.CreateTagRequest
+import com.pledgerio.app.catalog.data.dto.CategoryDto
+import com.pledgerio.app.catalog.data.dto.CategoryPagedResponse
+import com.pledgerio.app.catalog.data.dto.CategoryUpsertRequest
 import com.pledgerio.app.data.remote.dto.*
 import com.pledgerio.app.identity.data.dto.*
 import okhttp3.ResponseBody
