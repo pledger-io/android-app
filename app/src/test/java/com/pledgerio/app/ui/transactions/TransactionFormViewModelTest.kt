@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.transactions
 
+import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.SavedStateHandle
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.BudgetExpense
@@ -21,9 +22,8 @@ import com.pledgerio.app.domain.repository.TagRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.domain.model.Tag
 import com.pledgerio.app.ui.transactions.form.AutoClassifyStatus
-import com.pledgerio.app.util.MainDispatcherRule
+import com.pledgerio.app.shared.MainDispatcherRule
 import com.pledgerio.app.domain.model.TransactionTemplate
-import com.pledgerio.app.util.Resource
 import com.pledgerio.app.util.TransactionTemplateStore
 import com.pledgerio.app.util.UserPreferences
 import io.mockk.coEvery

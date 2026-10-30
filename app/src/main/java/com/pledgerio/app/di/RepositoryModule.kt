@@ -1,7 +1,7 @@
 package com.pledgerio.app.di
 
 import com.pledgerio.app.data.repository.AccountRepositoryImpl
-import com.pledgerio.app.data.repository.AuthRepositoryImpl
+import com.pledgerio.app.identity.data.AuthRepositoryImpl
 import com.pledgerio.app.data.repository.BudgetRepositoryImpl
 import com.pledgerio.app.data.repository.CategoryRepositoryImpl
 import com.pledgerio.app.data.repository.ContractRepositoryImpl
@@ -12,11 +12,11 @@ import com.pledgerio.app.data.repository.SpendingInsightRepositoryImpl
 import com.pledgerio.app.data.repository.TagRepositoryImpl
 import com.pledgerio.app.data.repository.TransactionOutboxRepositoryImpl
 import com.pledgerio.app.data.repository.TransactionRepositoryImpl
-import com.pledgerio.app.data.repository.UserSessionRepositoryImpl
+import com.pledgerio.app.identity.data.UserSessionRepositoryImpl
 import com.pledgerio.app.data.cache.ReportsOverviewCache
 import com.pledgerio.app.data.ocr.InvoiceTextExtractor
 import com.pledgerio.app.domain.repository.AccountRepository
-import com.pledgerio.app.domain.repository.AuthRepository
+import com.pledgerio.app.identity.domain.repository.AuthRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ContractRepository
@@ -29,7 +29,7 @@ import com.pledgerio.app.domain.repository.SpendingInsightRepository
 import com.pledgerio.app.domain.repository.TagRepository
 import com.pledgerio.app.domain.repository.TransactionOutboxRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
-import com.pledgerio.app.domain.repository.UserSessionRepository
+import com.pledgerio.app.identity.domain.repository.UserSessionRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

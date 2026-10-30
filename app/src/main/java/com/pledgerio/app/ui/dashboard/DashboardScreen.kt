@@ -70,7 +70,7 @@ import com.pledgerio.app.ui.theme.PledgerThemeExt
 import com.pledgerio.app.ui.reports.InsightRow
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.IncomeGreen
-import com.pledgerio.app.util.formatCurrency
+import com.pledgerio.app.shared.formatCurrency
 import java.time.YearMonth
 
 @OptIn(ExperimentalMaterial3Api::class)

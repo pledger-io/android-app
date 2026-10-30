@@ -1,17 +1,17 @@
 package com.pledgerio.app.data.repository
 
-import com.pledgerio.app.data.cache.CachePolicy
-import com.pledgerio.app.data.cache.CacheRefresher
-import com.pledgerio.app.data.cache.SyncKeys
+import com.pledgerio.app.shared.Resource
+import com.pledgerio.app.shared.data.cache.CachePolicy
+import com.pledgerio.app.shared.data.cache.CacheRefresher
+import com.pledgerio.app.shared.data.cache.SyncKeys
 import com.pledgerio.app.data.local.dao.CategoryDao
 import com.pledgerio.app.data.local.entity.CategoryEntity
-import com.pledgerio.app.data.remote.api.PledgerApiService
+import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.CategoryDto
 import com.pledgerio.app.data.remote.dto.CategoryPagedResponse
 import com.pledgerio.app.data.remote.dto.PageInfo
 import com.pledgerio.app.domain.model.Category
 import com.pledgerio.app.util.FakeSyncMetadataDao
-import com.pledgerio.app.util.Resource
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify

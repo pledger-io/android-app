@@ -1,11 +1,11 @@
 package com.pledgerio.app.domain.usecase
 
+import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
-import com.pledgerio.app.util.Resource
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first

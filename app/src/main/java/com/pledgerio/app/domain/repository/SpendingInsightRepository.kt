@@ -1,7 +1,7 @@
 package com.pledgerio.app.domain.repository
 
+import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.model.SpendingInsights
-import com.pledgerio.app.util.Resource
 import java.time.YearMonth
 
 interface SpendingInsightRepository {

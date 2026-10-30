@@ -1,11 +1,11 @@
 package com.pledgerio.app.data.repository
 
+import com.pledgerio.app.shared.Resource
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import com.pledgerio.app.util.AppLog
-import com.pledgerio.app.util.Resource
-import com.pledgerio.app.util.SessionManager
+import com.pledgerio.app.shared.AppLog
+import com.pledgerio.app.identity.session.SessionManager
 import io.mockk.every
 import io.mockk.mockk
 import java.net.URLDecoder

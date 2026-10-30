@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.transactions
 
+import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ContractRepository
@@ -8,8 +9,7 @@ import com.pledgerio.app.domain.repository.TransactionRepository
 import androidx.lifecycle.SavedStateHandle
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.usecase.GetTransactionsUseCase
-import com.pledgerio.app.util.MainDispatcherRule
-import com.pledgerio.app.util.Resource
+import com.pledgerio.app.shared.MainDispatcherRule
 import com.pledgerio.app.util.UserPreferences
 import io.mockk.coEvery
 import io.mockk.coVerify

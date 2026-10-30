@@ -29,7 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import com.pledgerio.app.R
-import com.pledgerio.app.util.BiometricAuthenticator
+import com.pledgerio.app.identity.session.BiometricAuthenticator
 
 @Composable
 fun BiometricLockScreen(

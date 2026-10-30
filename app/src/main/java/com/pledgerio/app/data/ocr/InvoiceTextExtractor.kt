@@ -1,5 +1,6 @@
 package com.pledgerio.app.data.ocr
 
+import com.pledgerio.app.shared.Resource
 import android.content.Context
 import android.net.Uri
 import com.google.mlkit.vision.text.Text
@@ -9,7 +10,6 @@ import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.repository.InvoiceTextReader
-import com.pledgerio.app.util.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton

@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.reports
 
+import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.model.IncomeExpenseSummary
 import com.pledgerio.app.domain.model.PartitionAmount
 import com.pledgerio.app.domain.model.InsightSeverity
@@ -10,8 +11,7 @@ import com.pledgerio.app.domain.model.SpendingInsights
 import com.pledgerio.app.domain.repository.ReportRepository
 import com.pledgerio.app.domain.repository.ReportsOverviewStore
 import com.pledgerio.app.domain.repository.SpendingInsightRepository
-import com.pledgerio.app.util.MainDispatcherRule
-import com.pledgerio.app.util.Resource
+import com.pledgerio.app.shared.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

@@ -1,6 +1,7 @@
 package com.pledgerio.app.data.repository
 
-import com.pledgerio.app.data.remote.api.PledgerApiService
+import com.pledgerio.app.shared.Resource
+import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.BalanceRequest
 import com.pledgerio.app.data.remote.dto.DateRangeDto
 import com.pledgerio.app.domain.model.BudgetPerformanceItem
@@ -12,7 +13,6 @@ import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ReportRepository
-import com.pledgerio.app.util.Resource
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope

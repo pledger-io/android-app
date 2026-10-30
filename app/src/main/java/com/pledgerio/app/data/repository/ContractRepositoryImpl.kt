@@ -1,14 +1,14 @@
 package com.pledgerio.app.data.repository
 
-import com.pledgerio.app.data.cache.CachePolicy
-import com.pledgerio.app.data.cache.CacheRefresher
-import com.pledgerio.app.data.cache.SyncKeys
+import com.pledgerio.app.shared.Resource
+import com.pledgerio.app.shared.data.cache.CachePolicy
+import com.pledgerio.app.shared.data.cache.CacheRefresher
+import com.pledgerio.app.shared.data.cache.SyncKeys
 import com.pledgerio.app.data.local.dao.ContractDao
 import com.pledgerio.app.data.local.entity.ContractEntity
-import com.pledgerio.app.data.remote.api.PledgerApiService
+import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.domain.model.Contract
 import com.pledgerio.app.domain.repository.ContractRepository
-import com.pledgerio.app.util.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map

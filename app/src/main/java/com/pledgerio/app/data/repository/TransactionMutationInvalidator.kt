@@ -1,7 +1,7 @@
 package com.pledgerio.app.data.repository
 
-import com.pledgerio.app.data.cache.CacheRefresher
-import com.pledgerio.app.data.cache.SyncKeys
+import com.pledgerio.app.shared.data.cache.CacheRefresher
+import com.pledgerio.app.shared.data.cache.SyncKeys
 import com.pledgerio.app.domain.repository.ReportsOverviewStore
 import java.time.LocalDate
 import java.time.YearMonth

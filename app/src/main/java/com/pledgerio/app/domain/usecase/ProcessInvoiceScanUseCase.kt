@@ -1,9 +1,9 @@
 package com.pledgerio.app.domain.usecase
 
+import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.model.TransactionExtractionDraft
 import com.pledgerio.app.domain.repository.InvoiceTextReader
 import com.pledgerio.app.domain.repository.TransactionRepository
-import com.pledgerio.app.util.Resource
 import javax.inject.Inject
 
 class ProcessInvoiceScanUseCase @Inject constructor(

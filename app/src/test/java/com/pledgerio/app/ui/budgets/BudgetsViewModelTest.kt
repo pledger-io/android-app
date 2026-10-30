@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.budgets
 
+import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.SavedStateHandle
 import com.pledgerio.app.domain.model.Budget
 import com.pledgerio.app.domain.model.BudgetListState
@@ -7,7 +8,6 @@ import com.pledgerio.app.domain.usecase.CreateInitialBudgetUseCase
 import com.pledgerio.app.domain.usecase.GetBudgetsUseCase
 import com.pledgerio.app.domain.usecase.SaveBudgetExpenseUseCase
 import com.pledgerio.app.domain.usecase.UpdateBudgetIncomeUseCase
-import com.pledgerio.app.util.Resource
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

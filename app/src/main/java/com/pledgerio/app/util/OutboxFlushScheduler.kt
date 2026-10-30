@@ -1,5 +1,6 @@
 package com.pledgerio.app.util
 
+import com.pledgerio.app.identity.session.SessionDataBarrier
 import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints

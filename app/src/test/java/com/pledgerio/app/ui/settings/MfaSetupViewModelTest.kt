@@ -1,8 +1,8 @@
 package com.pledgerio.app.ui.settings
 
-import com.pledgerio.app.domain.repository.UserSessionRepository
-import com.pledgerio.app.domain.model.UserProfile
-import com.pledgerio.app.util.Resource
+import com.pledgerio.app.shared.Resource
+import com.pledgerio.app.identity.domain.repository.UserSessionRepository
+import com.pledgerio.app.identity.domain.model.UserProfile
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

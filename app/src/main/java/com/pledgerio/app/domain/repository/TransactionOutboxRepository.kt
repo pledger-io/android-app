@@ -1,6 +1,6 @@
 package com.pledgerio.app.domain.repository
 
-import com.pledgerio.app.domain.common.Resource
+import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.model.FlushResult
 import com.pledgerio.app.domain.model.PendingTransactionCreate
 import com.pledgerio.app.domain.model.Transaction

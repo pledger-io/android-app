@@ -1,6 +1,6 @@
 package com.pledgerio.app.domain.usecase
 
-import com.pledgerio.app.domain.common.Resource
+import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.model.BudgetListState
 import com.pledgerio.app.domain.repository.BudgetRepository
 import javax.inject.Inject

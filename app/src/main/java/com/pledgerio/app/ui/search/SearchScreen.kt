@@ -32,7 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.R
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar
-import com.pledgerio.app.util.formatCurrency
+import com.pledgerio.app.shared.formatCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

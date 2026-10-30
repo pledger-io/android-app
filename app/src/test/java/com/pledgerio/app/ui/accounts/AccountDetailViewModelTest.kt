@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.accounts
 
+import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.SavedStateHandle
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.Transaction
@@ -7,8 +8,7 @@ import com.pledgerio.app.domain.model.TransactionType
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.PagedResult
 import com.pledgerio.app.domain.repository.TransactionRepository
-import com.pledgerio.app.util.MainDispatcherRule
-import com.pledgerio.app.util.Resource
+import com.pledgerio.app.shared.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

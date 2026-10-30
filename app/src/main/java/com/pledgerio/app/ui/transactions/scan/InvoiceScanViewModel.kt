@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.transactions.scan
 
+import com.pledgerio.app.shared.Resource
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
@@ -7,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.TransactionExtractionDraft
 import com.pledgerio.app.domain.usecase.ProcessInvoiceScanUseCase
-import com.pledgerio.app.util.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
