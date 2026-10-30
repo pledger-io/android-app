@@ -1,0 +1,30 @@
+package com.pledgerio.app.budgets.domain.repository
+
+import com.pledgerio.app.shared.Resource
+import com.pledgerio.app.budgets.domain.model.Budget
+import com.pledgerio.app.budgets.domain.model.BudgetExpense
+import com.pledgerio.app.budgets.domain.model.BudgetListState
+import kotlinx.coroutines.flow.Flow
+
+interface BudgetRepository {
+    fun getBudgets(year: Int, month: Int): Flow<Resource<BudgetListState>>
+
+    /** Cache-backed expense groups (the recurring category list). */
+    fun observeExpenseGroups(query: String): Flow<List<BudgetExpense>>
+
+    suspend fun createInitialBudget(year: Int, month: Int, income: Double): Resource<Unit>
+    suspend fun updateBudgetIncome(year: Int, month: Int, income: Double): Resource<BudgetListState>
+    suspend fun saveExpenseGroup(
+        id: Long?,
+        name: String,
+        budgetAmount: Double,
+        year: Int,
+        month: Int,
+    ): Resource<BudgetListState>
+    suspend fun searchExpenses(name: String): Resource<List<BudgetExpense>>
+    suspend fun refreshExpenseGroups(): Resource<List<BudgetExpense>>
+    suspend fun getBudget(id: Long): Resource<Budget>
+    suspend fun createBudget(budget: Budget): Resource<Budget>
+    suspend fun updateBudget(budget: Budget): Resource<Budget>
+    suspend fun deleteBudget(id: Long): Resource<Unit>
+}

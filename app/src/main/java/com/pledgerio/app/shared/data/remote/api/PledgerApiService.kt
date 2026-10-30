@@ -1,5 +1,10 @@
 package com.pledgerio.app.shared.data.remote.api
 
+import com.pledgerio.app.budgets.data.dto.BudgetDto
+import com.pledgerio.app.budgets.data.dto.CreateBudgetRequest
+import com.pledgerio.app.budgets.data.dto.ExpenseComputedDto
+import com.pledgerio.app.budgets.data.dto.ExpenseDto
+import com.pledgerio.app.budgets.data.dto.ExpenseRequest
 import com.pledgerio.app.transactions.data.dto.TransactionExtract
 import com.pledgerio.app.transactions.data.dto.CreateTransactionRequest
 import com.pledgerio.app.transactions.data.dto.TransactionClassificationSuggestionDto

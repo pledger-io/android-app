@@ -16,7 +16,7 @@ import com.pledgerio.app.transactions.domain.model.TransactionType
 import java.util.UUID
 import kotlin.math.abs
 import com.pledgerio.app.accounts.domain.repository.AccountRepository
-import com.pledgerio.app.domain.repository.BudgetRepository
+import com.pledgerio.app.budgets.domain.repository.BudgetRepository
 import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import com.pledgerio.app.catalog.domain.repository.ContractRepository
 import com.pledgerio.app.catalog.domain.repository.CurrencyRepository

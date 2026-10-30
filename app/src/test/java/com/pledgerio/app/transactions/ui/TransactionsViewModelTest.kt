@@ -2,7 +2,7 @@ package com.pledgerio.app.transactions.ui
 
 import com.pledgerio.app.transactions.ui.TransactionsViewModel
 import com.pledgerio.app.shared.Resource
-import com.pledgerio.app.domain.repository.BudgetRepository
+import com.pledgerio.app.budgets.domain.repository.BudgetRepository
 import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import com.pledgerio.app.catalog.domain.repository.ContractRepository
 import com.pledgerio.app.transactions.domain.repository.PagedResult
