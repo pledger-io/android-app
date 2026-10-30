@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.pledgerio.app.R
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.transactions.TransactionSplitLineUi
-import com.pledgerio.app.util.formatCurrency
+import com.pledgerio.app.shared.formatCurrency
 
 @Composable
 fun TransactionSplitEditor(

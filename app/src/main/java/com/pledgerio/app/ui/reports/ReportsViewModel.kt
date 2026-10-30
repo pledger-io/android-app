@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.reports
 
+import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.BudgetPerformanceItem
@@ -11,7 +12,6 @@ import com.pledgerio.app.domain.model.SpendingInsights
 import com.pledgerio.app.domain.repository.ReportRepository
 import com.pledgerio.app.domain.repository.ReportsOverviewStore
 import com.pledgerio.app.domain.repository.SpendingInsightRepository
-import com.pledgerio.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async

@@ -67,7 +67,7 @@ import com.pledgerio.app.R
 import com.pledgerio.app.domain.model.TransactionExtractionDraft
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.PledgerTopBar
-import com.pledgerio.app.util.formatCurrency
+import com.pledgerio.app.shared.formatCurrency
 import java.io.File
 import kotlin.math.roundToInt
 

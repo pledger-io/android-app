@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.accounts
 
+import com.pledgerio.app.shared.Resource
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import com.pledgerio.app.R
@@ -10,8 +11,7 @@ import io.mockk.slot
 import java.time.LocalDate
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
-import com.pledgerio.app.util.MainDispatcherRule
-import com.pledgerio.app.util.Resource
+import com.pledgerio.app.shared.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

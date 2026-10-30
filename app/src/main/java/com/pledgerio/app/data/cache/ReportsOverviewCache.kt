@@ -10,7 +10,7 @@ import kotlinx.coroutines.sync.withLock
 
 /**
  * In-memory cache of assembled overview reports per [YearMonth].
- * Cleared on logout via [com.pledgerio.app.data.local.LocalDataCleaner].
+ * Cleared on logout via [com.pledgerio.app.shared.data.LocalDataCleaner].
  */
 @Singleton
 class ReportsOverviewCache @Inject constructor() : ReportsOverviewStore {

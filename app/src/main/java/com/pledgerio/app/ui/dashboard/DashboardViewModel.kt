@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.dashboard
 
+import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Account
@@ -9,7 +10,6 @@ import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.repository.SpendingInsightRepository
 import com.pledgerio.app.domain.usecase.GetDashboardDataUseCase
-import com.pledgerio.app.util.Resource
 import com.pledgerio.app.util.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job

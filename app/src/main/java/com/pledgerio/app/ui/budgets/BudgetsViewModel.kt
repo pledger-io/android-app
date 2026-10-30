@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.budgets
 
+import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,7 +10,6 @@ import com.pledgerio.app.domain.usecase.CreateInitialBudgetUseCase
 import com.pledgerio.app.domain.usecase.GetBudgetsUseCase
 import com.pledgerio.app.domain.usecase.SaveBudgetExpenseUseCase
 import com.pledgerio.app.domain.usecase.UpdateBudgetIncomeUseCase
-import com.pledgerio.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

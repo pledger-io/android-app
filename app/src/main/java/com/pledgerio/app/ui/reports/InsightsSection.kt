@@ -38,7 +38,7 @@ import com.pledgerio.app.domain.model.SpendingInsights
 import com.pledgerio.app.domain.model.SpendingPattern
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.theme.ExpenseRed
-import com.pledgerio.app.util.formatDisplay
+import com.pledgerio.app.shared.formatDisplay
 
 @Composable
 fun InsightsSection(

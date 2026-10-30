@@ -59,8 +59,8 @@ import com.pledgerio.app.ui.theme.PledgerThemeExt
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.dashboard.TransactionItem
-import com.pledgerio.app.util.formatCurrency
-import com.pledgerio.app.util.formatDisplay
+import com.pledgerio.app.shared.formatCurrency
+import com.pledgerio.app.shared.formatDisplay
 import java.time.YearMonth
 
 @OptIn(ExperimentalMaterial3Api::class)

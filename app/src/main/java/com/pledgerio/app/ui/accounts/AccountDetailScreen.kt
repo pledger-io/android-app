@@ -54,11 +54,11 @@ import com.pledgerio.app.ui.components.LoadingScreen
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.components.LazyListPaginationEffect
 import com.pledgerio.app.ui.components.PledgerTopBar
-import com.pledgerio.app.util.formatDisplay
+import com.pledgerio.app.shared.formatDisplay
 import com.pledgerio.app.ui.dashboard.TransactionItem
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.IncomeGreen
-import com.pledgerio.app.util.formatCurrency
+import com.pledgerio.app.shared.formatCurrency
 import java.text.NumberFormat
 import java.util.Locale
 

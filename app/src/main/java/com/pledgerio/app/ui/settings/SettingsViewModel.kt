@@ -1,20 +1,20 @@
 package com.pledgerio.app.ui.settings
 
+import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.AppLocale
 import com.pledgerio.app.domain.model.Currency
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.ThemeMode
-import com.pledgerio.app.domain.repository.AuthRepository
+import com.pledgerio.app.identity.domain.repository.AuthRepository
 import com.pledgerio.app.domain.repository.CurrencyRepository
-import com.pledgerio.app.domain.repository.UserSessionRepository
-import com.pledgerio.app.util.BiometricAuthenticator
-import com.pledgerio.app.util.BiometricAvailability
-import com.pledgerio.app.util.BiometricLockManager
+import com.pledgerio.app.identity.domain.repository.UserSessionRepository
+import com.pledgerio.app.identity.session.BiometricAuthenticator
+import com.pledgerio.app.identity.session.BiometricAvailability
+import com.pledgerio.app.identity.session.BiometricLockManager
 import com.pledgerio.app.util.LocaleManager
-import com.pledgerio.app.util.Resource
-import com.pledgerio.app.util.SessionManager
+import com.pledgerio.app.identity.session.SessionManager
 import com.pledgerio.app.util.UserPreferences
 import androidx.fragment.app.FragmentActivity
 import dagger.hilt.android.lifecycle.HiltViewModel

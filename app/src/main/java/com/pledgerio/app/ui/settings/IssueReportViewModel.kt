@@ -1,10 +1,10 @@
 package com.pledgerio.app.ui.settings
 
+import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.IssueReportResult
 import com.pledgerio.app.domain.repository.IssueReportRepository
-import com.pledgerio.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

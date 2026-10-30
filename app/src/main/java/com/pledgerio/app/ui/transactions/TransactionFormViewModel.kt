@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.transactions
 
+import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,8 +23,7 @@ import com.pledgerio.app.domain.repository.CurrencyRepository
 import com.pledgerio.app.domain.repository.TagRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.ui.transactions.form.splitValidationIssue
-import com.pledgerio.app.util.Resource
-import com.pledgerio.app.util.SearchDefaults
+import com.pledgerio.app.shared.SearchDefaults
 import com.pledgerio.app.util.TransactionTemplateStore
 import com.pledgerio.app.util.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -1,11 +1,11 @@
 package com.pledgerio.app.ui.categories
 
+import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Category
 import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.ui.catalog.observeCatalogSearch
-import com.pledgerio.app.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -25,7 +25,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import com.pledgerio.app.domain.model.AccountTypeGroup
 import com.pledgerio.app.ui.util.datePickerMillisToLocalDate
 import com.pledgerio.app.ui.util.toDatePickerMillis
-import com.pledgerio.app.util.formatDisplay
+import com.pledgerio.app.shared.formatDisplay
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api

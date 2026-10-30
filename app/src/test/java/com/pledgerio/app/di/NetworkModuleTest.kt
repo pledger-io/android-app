@@ -1,8 +1,8 @@
 package com.pledgerio.app.di
 
-import com.pledgerio.app.data.remote.api.AuthInterceptor
-import com.pledgerio.app.data.remote.api.DynamicBaseUrlInterceptor
-import com.pledgerio.app.data.remote.api.IssueLogInterceptor
+import com.pledgerio.app.identity.data.remote.AuthInterceptor
+import com.pledgerio.app.identity.data.remote.DynamicBaseUrlInterceptor
+import com.pledgerio.app.shared.data.remote.api.IssueLogInterceptor
 import io.mockk.mockk
 import okhttp3.logging.HttpLoggingInterceptor
 import org.junit.Assert.assertEquals

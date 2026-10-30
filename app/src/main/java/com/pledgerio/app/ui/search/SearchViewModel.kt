@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.search
 
+import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.domain.model.Account
@@ -8,8 +9,7 @@ import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
-import com.pledgerio.app.util.Resource
-import com.pledgerio.app.util.SearchDefaults
+import com.pledgerio.app.shared.SearchDefaults
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job

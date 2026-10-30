@@ -72,7 +72,7 @@ import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.util.localizedDescription
 import com.pledgerio.app.ui.util.localizedName
-import com.pledgerio.app.util.BiometricAvailability
+import com.pledgerio.app.identity.session.BiometricAvailability
 import com.pledgerio.app.util.BudgetAlertLogic
 import kotlinx.coroutines.launch
 

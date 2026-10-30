@@ -1,11 +1,12 @@
 package com.pledgerio.app.data.repository
 
-import com.pledgerio.app.data.cache.CacheRefresher
-import com.pledgerio.app.data.cache.SyncKeys
+import com.pledgerio.app.shared.Resource
+import com.pledgerio.app.shared.data.cache.CacheRefresher
+import com.pledgerio.app.shared.data.cache.SyncKeys
 import com.pledgerio.app.data.local.dao.BudgetDao
 import com.pledgerio.app.data.local.dao.ExpenseGroupDao
 import com.pledgerio.app.data.local.entity.BudgetEntity
-import com.pledgerio.app.data.remote.api.PledgerApiService
+import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.BudgetDto
 import com.pledgerio.app.data.remote.dto.CreateBudgetRequest
 import com.pledgerio.app.data.remote.dto.DateRangeDto
@@ -14,7 +15,6 @@ import com.pledgerio.app.data.remote.dto.ExpenseDto
 import com.pledgerio.app.data.remote.dto.ExpenseRequest
 import com.pledgerio.app.domain.model.BudgetListState
 import com.pledgerio.app.util.FakeSyncMetadataDao
-import com.pledgerio.app.util.Resource
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

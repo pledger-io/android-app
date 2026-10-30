@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.pledgerio.app.R
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.theme.PledgerThemeExt
-import com.pledgerio.app.util.formatDisplay
+import com.pledgerio.app.shared.formatDisplay
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)

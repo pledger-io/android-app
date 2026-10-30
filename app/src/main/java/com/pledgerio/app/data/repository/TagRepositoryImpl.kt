@@ -1,16 +1,16 @@
 package com.pledgerio.app.data.repository
 
-import com.pledgerio.app.data.cache.CachePolicy
-import com.pledgerio.app.data.cache.CacheRefresher
-import com.pledgerio.app.data.cache.SyncKeys
+import com.pledgerio.app.shared.Resource
+import com.pledgerio.app.shared.data.cache.CachePolicy
+import com.pledgerio.app.shared.data.cache.CacheRefresher
+import com.pledgerio.app.shared.data.cache.SyncKeys
 import com.pledgerio.app.data.local.dao.TagDao
 import com.pledgerio.app.data.local.dao.TransactionDao
 import com.pledgerio.app.data.local.entity.TagEntity
-import com.pledgerio.app.data.remote.api.PledgerApiService
+import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.CreateTagRequest
 import com.pledgerio.app.domain.model.Tag
 import com.pledgerio.app.domain.repository.TagRepository
-import com.pledgerio.app.util.Resource
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged

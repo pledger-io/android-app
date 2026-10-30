@@ -1,9 +1,10 @@
 package com.pledgerio.app.data.repository
 
-import com.pledgerio.app.data.cache.CacheRefresher
+import com.pledgerio.app.shared.Resource
+import com.pledgerio.app.shared.data.cache.CacheRefresher
 import com.pledgerio.app.data.local.dao.AccountDao
 import com.pledgerio.app.data.local.dao.AccountTypeDao
-import com.pledgerio.app.data.remote.api.PledgerApiService
+import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.AccountDto
 import com.pledgerio.app.data.remote.dto.AccountIdentificationDto
 import com.pledgerio.app.data.remote.dto.AccountInterestDto
@@ -14,7 +15,6 @@ import com.pledgerio.app.data.remote.dto.CreateTransactionRequest
 import com.pledgerio.app.data.remote.dto.PageInfo
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.util.FakeSyncMetadataDao
-import com.pledgerio.app.util.Resource
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

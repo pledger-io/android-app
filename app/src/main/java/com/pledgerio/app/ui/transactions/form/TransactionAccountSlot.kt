@@ -30,7 +30,7 @@ import com.pledgerio.app.domain.model.FilterOption
 import com.pledgerio.app.ui.components.AccountIcon
 import com.pledgerio.app.ui.transactions.AccountInputKind
 import com.pledgerio.app.ui.transactions.FilterAutocompleteField
-import com.pledgerio.app.util.formatCurrency
+import com.pledgerio.app.shared.formatCurrency
 
 private const val SEARCH_SHEET_ACCOUNT_THRESHOLD = 8
 

@@ -25,7 +25,7 @@ import com.pledgerio.app.domain.model.ReportsOverview
 import com.pledgerio.app.ui.components.PledgerCard
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.IncomeGreen
-import com.pledgerio.app.util.formatCurrency
+import com.pledgerio.app.shared.formatCurrency
 import java.time.YearMonth
 
 @Composable

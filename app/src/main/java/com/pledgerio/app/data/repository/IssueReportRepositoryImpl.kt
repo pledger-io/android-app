@@ -1,14 +1,14 @@
 package com.pledgerio.app.data.repository
 
+import com.pledgerio.app.shared.Resource
 import android.content.Context
 import android.content.pm.PackageManager
 import com.pledgerio.app.domain.model.IssueReportResult
 import com.pledgerio.app.domain.repository.IssueReportRepository
-import com.pledgerio.app.util.AppLog
+import com.pledgerio.app.shared.AppLog
 import com.pledgerio.app.util.IssueReportFormatter
 import com.pledgerio.app.util.IssueReportUrlBuilder
-import com.pledgerio.app.util.Resource
-import com.pledgerio.app.util.SessionManager
+import com.pledgerio.app.identity.session.SessionManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton

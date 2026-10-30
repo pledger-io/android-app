@@ -1,9 +1,9 @@
 package com.pledgerio.app.domain.repository
 
+import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.model.Budget
 import com.pledgerio.app.domain.model.BudgetExpense
 import com.pledgerio.app.domain.model.BudgetListState
-import com.pledgerio.app.domain.common.Resource
 import kotlinx.coroutines.flow.Flow
 
 interface BudgetRepository {

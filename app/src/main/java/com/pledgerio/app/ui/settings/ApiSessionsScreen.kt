@@ -55,7 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.R
-import com.pledgerio.app.domain.model.ApiSession
+import com.pledgerio.app.identity.domain.model.ApiSession
 import com.pledgerio.app.ui.components.EmptyScreen
 import com.pledgerio.app.ui.components.ErrorScreen
 import com.pledgerio.app.ui.components.LoadingScreen
@@ -65,7 +65,7 @@ import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.PledgerThemeExt
 import com.pledgerio.app.ui.util.datePickerMillisToLocalDate
 import com.pledgerio.app.ui.util.toDatePickerMillis
-import com.pledgerio.app.util.formatDisplay
+import com.pledgerio.app.shared.formatDisplay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)

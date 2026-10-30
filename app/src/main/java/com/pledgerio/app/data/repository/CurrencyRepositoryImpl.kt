@@ -2,7 +2,7 @@ package com.pledgerio.app.data.repository
 
 import com.pledgerio.app.data.local.dao.CurrencyDao
 import com.pledgerio.app.data.local.entity.CurrencyEntity
-import com.pledgerio.app.data.remote.api.PledgerApiService
+import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.domain.model.Currency
 import com.pledgerio.app.domain.repository.CurrencyRepository
 import kotlinx.coroutines.flow.Flow

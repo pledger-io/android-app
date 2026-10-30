@@ -1,6 +1,7 @@
 package com.pledgerio.app.data.repository
 
-import com.pledgerio.app.data.remote.api.PledgerApiService
+import com.pledgerio.app.shared.Resource
+import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.BalanceDatedDto
 import com.pledgerio.app.data.remote.dto.BalanceDto
 import com.pledgerio.app.data.remote.dto.BalanceRequest
@@ -12,7 +13,6 @@ import com.pledgerio.app.domain.model.Category
 import com.pledgerio.app.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.domain.repository.CategoryRepository
-import com.pledgerio.app.util.Resource
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

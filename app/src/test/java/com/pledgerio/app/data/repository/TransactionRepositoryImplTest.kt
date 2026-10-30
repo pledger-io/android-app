@@ -1,15 +1,15 @@
 package com.pledgerio.app.data.repository
 
+import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.data.local.dao.TransactionDao
 import com.pledgerio.app.data.local.entity.TransactionEntity
-import com.pledgerio.app.data.remote.api.PledgerApiService
+import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.AccountLinkDto
 import com.pledgerio.app.data.remote.dto.TransactionClassificationSuggestionDto
 import com.pledgerio.app.data.remote.dto.TransactionDatesDto
 import com.pledgerio.app.data.remote.dto.TransactionDto
 import com.pledgerio.app.data.remote.dto.TransactionPagedResponse
 import com.pledgerio.app.domain.model.TransactionType
-import com.pledgerio.app.util.Resource
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
@@ -29,9 +29,9 @@ class TransactionRepositoryImplTest {
     private val transactionDao = mockk<TransactionDao>(relaxed = true)
     private val mutationInvalidator = mockk<TransactionMutationInvalidator>(relaxed = true)
     private val outboxRepository = mockk<com.pledgerio.app.domain.repository.TransactionOutboxRepository>()
-    private val networkMonitor = mockk<com.pledgerio.app.util.NetworkMonitor>()
+    private val networkMonitor = mockk<com.pledgerio.app.shared.NetworkMonitor>()
     private val outboxFlushScheduler = mockk<com.pledgerio.app.util.OutboxFlushScheduler>(relaxed = true)
-    private val sessionManager = mockk<com.pledgerio.app.util.SessionManager>(relaxed = true)
+    private val sessionManager = mockk<com.pledgerio.app.identity.session.SessionManager>(relaxed = true)
     private val repository = TransactionRepositoryImpl(
         apiService,
         transactionDao,

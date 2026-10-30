@@ -1,13 +1,14 @@
 package com.pledgerio.app.di
 
+import com.pledgerio.app.shared.data.remote.HealthCheckClient
 import android.content.Context
 import coil.ImageLoader
-import com.pledgerio.app.data.remote.api.AuthInterceptor
-import com.pledgerio.app.data.remote.api.DynamicBaseUrlInterceptor
-import com.pledgerio.app.data.remote.api.IssueLogInterceptor
-import com.pledgerio.app.data.remote.api.PledgerApiService
-import com.pledgerio.app.data.remote.api.TokenRefresher
-import com.pledgerio.app.util.SessionManager
+import com.pledgerio.app.identity.data.remote.AuthInterceptor
+import com.pledgerio.app.identity.data.remote.DynamicBaseUrlInterceptor
+import com.pledgerio.app.shared.data.remote.api.IssueLogInterceptor
+import com.pledgerio.app.shared.data.remote.api.PledgerApiService
+import com.pledgerio.app.identity.data.remote.TokenRefresher
+import com.pledgerio.app.identity.session.SessionManager
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module

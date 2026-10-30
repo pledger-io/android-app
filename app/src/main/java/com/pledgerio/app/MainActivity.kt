@@ -16,7 +16,7 @@ import com.pledgerio.app.ui.PledgerRoot
 import com.pledgerio.app.ui.navigation.DeepLink
 import com.pledgerio.app.ui.navigation.DeepLinkParser
 import com.pledgerio.app.ui.theme.PledgerTheme
-import com.pledgerio.app.util.DevBuildExpiry
+import com.pledgerio.app.shared.DevBuildExpiry
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

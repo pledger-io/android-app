@@ -20,9 +20,9 @@ import com.pledgerio.app.ui.categories.CategoriesScreen
 import com.pledgerio.app.ui.tags.TagsScreen
 import com.pledgerio.app.ui.dashboard.DashboardScreen
 import com.pledgerio.app.ui.dashboard.DashboardViewModel
-import com.pledgerio.app.ui.onboarding.LoginScreen
-import com.pledgerio.app.ui.onboarding.ServerSetupScreen
-import com.pledgerio.app.ui.onboarding.Verify2FactorScreen
+import com.pledgerio.app.identity.ui.onboarding.LoginScreen
+import com.pledgerio.app.identity.ui.onboarding.ServerSetupScreen
+import com.pledgerio.app.identity.ui.onboarding.Verify2FactorScreen
 import com.pledgerio.app.ui.reports.ReportsScreen
 import com.pledgerio.app.ui.search.SearchScreen
 import com.pledgerio.app.ui.search.SearchViewModel

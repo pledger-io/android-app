@@ -1,9 +1,10 @@
 package com.pledgerio.app.data.repository
 
+import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.data.local.dao.TransactionDao
 import com.pledgerio.app.data.local.dao.TransactionOutboxDao
 import com.pledgerio.app.data.local.entity.TransactionOutboxEntity
-import com.pledgerio.app.data.remote.api.PledgerApiService
+import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.AccountLinkDto
 import com.pledgerio.app.data.remote.dto.PageInfo
 import com.pledgerio.app.data.remote.dto.TransactionDatesDto
@@ -13,9 +14,8 @@ import com.pledgerio.app.domain.model.FlushResult
 import com.pledgerio.app.domain.model.OutboxStatus
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionType
-import com.pledgerio.app.util.Resource
-import com.pledgerio.app.util.SessionDataBarrier
-import com.pledgerio.app.util.SessionManager
+import com.pledgerio.app.identity.session.SessionDataBarrier
+import com.pledgerio.app.identity.session.SessionManager
 import com.pledgerio.app.util.SyncSessionGuard
 import io.mockk.coEvery
 import io.mockk.coVerify

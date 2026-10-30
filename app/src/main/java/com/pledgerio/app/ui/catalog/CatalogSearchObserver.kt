@@ -1,8 +1,8 @@
 package com.pledgerio.app.ui.catalog
 
 import androidx.lifecycle.viewModelScope
-import com.pledgerio.app.util.SearchDefaults
-import com.pledgerio.app.util.debouncedFlatMapLatest
+import com.pledgerio.app.shared.SearchDefaults
+import com.pledgerio.app.shared.debouncedFlatMapLatest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect

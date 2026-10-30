@@ -41,7 +41,7 @@ import com.pledgerio.app.ui.components.PledgerTopBar
 import com.pledgerio.app.ui.theme.PledgerThemeExt
 import com.pledgerio.app.ui.theme.ExpenseRed
 import com.pledgerio.app.ui.theme.WarningAmber
-import com.pledgerio.app.util.formatCurrency
+import com.pledgerio.app.shared.formatCurrency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

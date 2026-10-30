@@ -1,9 +1,9 @@
 package com.pledgerio.app.ui.categories
 
+import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.model.Category
 import com.pledgerio.app.domain.repository.CategoryRepository
-import com.pledgerio.app.util.MainDispatcherRule
-import com.pledgerio.app.util.Resource
+import com.pledgerio.app.shared.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk

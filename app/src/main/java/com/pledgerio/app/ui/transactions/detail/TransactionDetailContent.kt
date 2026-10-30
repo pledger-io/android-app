@@ -46,8 +46,8 @@ import com.pledgerio.app.ui.theme.IncomeGreen
 import com.pledgerio.app.ui.theme.PledgerGreen
 import com.pledgerio.app.ui.theme.PledgerThemeExt
 import com.pledgerio.app.ui.transactions.form.TransactionFormLabels
-import com.pledgerio.app.util.formatCurrency
-import com.pledgerio.app.util.formatDisplay
+import com.pledgerio.app.shared.formatCurrency
+import com.pledgerio.app.shared.formatDisplay
 import java.util.Currency
 
 data class TransactionTypeStyle(

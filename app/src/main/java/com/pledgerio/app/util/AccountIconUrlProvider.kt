@@ -1,5 +1,6 @@
 package com.pledgerio.app.util
 
+import com.pledgerio.app.identity.session.SessionManager
 import javax.inject.Inject
 import javax.inject.Singleton
 

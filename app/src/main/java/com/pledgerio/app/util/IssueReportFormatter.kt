@@ -1,5 +1,6 @@
 package com.pledgerio.app.util
 
+import com.pledgerio.app.shared.LogSanitizer
 import android.os.Build
 
 object IssueReportFormatter {

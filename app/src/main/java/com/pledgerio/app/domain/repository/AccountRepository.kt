@@ -1,9 +1,9 @@
 package com.pledgerio.app.domain.repository
 
+import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.model.Account
 import com.pledgerio.app.domain.model.AccountTypeOption
 import com.pledgerio.app.domain.model.PagedAccounts
-import com.pledgerio.app.domain.common.Resource
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 

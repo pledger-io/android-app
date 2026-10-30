@@ -1,5 +1,6 @@
 package com.pledgerio.app.domain.repository
 
+import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.domain.model.CreateOutcome
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionClassificationSuggestion
@@ -7,7 +8,6 @@ import com.pledgerio.app.domain.model.TransactionExtractionDraft
 import com.pledgerio.app.domain.model.TransactionFilters
 import com.pledgerio.app.domain.model.TransactionSplit
 import com.pledgerio.app.domain.model.TransactionType
-import com.pledgerio.app.domain.common.Resource
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
