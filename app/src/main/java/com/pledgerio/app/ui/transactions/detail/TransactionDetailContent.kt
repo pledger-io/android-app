@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.transactions.detail
 
+import com.pledgerio.app.accounts.ui.icon
 import com.pledgerio.app.catalog.domain.model.Contract
 import com.pledgerio.app.catalog.domain.model.Category
 import androidx.compose.foundation.background
@@ -37,7 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.pledgerio.app.domain.model.Account
+import com.pledgerio.app.accounts.domain.model.Account
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionSplit
 import com.pledgerio.app.domain.model.TransactionType

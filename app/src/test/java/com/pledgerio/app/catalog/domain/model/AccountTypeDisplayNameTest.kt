@@ -1,6 +1,6 @@
 package com.pledgerio.app.catalog.domain.model
 
-import com.pledgerio.app.catalog.domain.model.toAccountTypeDisplayName
+import com.pledgerio.app.accounts.domain.model.toAccountTypeDisplayName
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

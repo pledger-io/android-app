@@ -1,5 +1,8 @@
 package com.pledgerio.app.shared.data.remote.api
 
+import com.pledgerio.app.accounts.data.dto.AccountDto
+import com.pledgerio.app.accounts.data.dto.AccountPagedResponse
+import com.pledgerio.app.accounts.data.dto.CreateAccountRequest
 import com.pledgerio.app.catalog.data.dto.ContractDto
 import com.pledgerio.app.catalog.data.dto.CurrencyDto
 import com.pledgerio.app.catalog.data.dto.CreateTagRequest

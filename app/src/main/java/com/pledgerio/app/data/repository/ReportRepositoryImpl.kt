@@ -9,7 +9,7 @@ import com.pledgerio.app.domain.model.DatedAmount
 import com.pledgerio.app.domain.model.IncomeExpenseSummary
 import com.pledgerio.app.domain.model.PartitionAmount
 import com.pledgerio.app.domain.model.TransactionType
-import com.pledgerio.app.domain.repository.AccountRepository
+import com.pledgerio.app.accounts.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.ReportRepository
@@ -193,7 +193,7 @@ class ReportRepositoryImpl @Inject constructor(
     }
 
     /** Assets count positive, liabilities negative (amount owed), whatever the range sign. */
-    private fun signedBalance(account: com.pledgerio.app.domain.model.Account, balance: Double): Double =
+    private fun signedBalance(account: com.pledgerio.app.accounts.domain.model.Account, balance: Double): Double =
         if (account.isLiability) -kotlin.math.abs(balance) else kotlin.math.abs(balance)
 
     private fun monthRange(month: YearMonth): DateRangeDto {

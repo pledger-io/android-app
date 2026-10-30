@@ -1,6 +1,6 @@
 package com.pledgerio.app.ui.transactions
 
-import com.pledgerio.app.domain.model.Account
+import com.pledgerio.app.accounts.domain.model.Account
 import com.pledgerio.app.domain.model.FilterOption
 
 internal data class PreservedAccountSelection(

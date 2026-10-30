@@ -9,10 +9,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.pledgerio.app.ui.accounts.AccountDetailScreen
-import com.pledgerio.app.ui.accounts.AccountFormScreen
-import com.pledgerio.app.ui.accounts.AccountsScreen
-import com.pledgerio.app.ui.accounts.AccountsViewModel
+import com.pledgerio.app.accounts.ui.AccountDetailScreen
+import com.pledgerio.app.accounts.ui.AccountFormScreen
+import com.pledgerio.app.accounts.ui.AccountsScreen
+import com.pledgerio.app.accounts.ui.AccountsViewModel
 import com.pledgerio.app.ui.budgets.BudgetDetailScreen
 import com.pledgerio.app.ui.budgets.BudgetsScreen
 import com.pledgerio.app.ui.budgets.BudgetsViewModel
@@ -34,7 +34,7 @@ import com.pledgerio.app.ui.transactions.TransactionFormScreen
 import com.pledgerio.app.ui.transactions.TransactionsScreen
 import com.pledgerio.app.ui.transactions.TransactionsViewModel
 import com.pledgerio.app.ui.transactions.scan.InvoiceScanScreen
-import com.pledgerio.app.ui.accounts.AccountDetailViewModel
+import com.pledgerio.app.accounts.ui.AccountDetailViewModel
 import com.pledgerio.app.domain.model.TransactionType
 import java.time.YearMonth
 

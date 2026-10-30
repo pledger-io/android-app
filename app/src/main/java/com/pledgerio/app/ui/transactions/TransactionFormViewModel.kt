@@ -4,8 +4,8 @@ import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pledgerio.app.domain.model.Account
-import com.pledgerio.app.catalog.domain.model.AccountTypeCodes
+import com.pledgerio.app.accounts.domain.model.Account
+import com.pledgerio.app.accounts.domain.model.AccountTypeCodes
 import com.pledgerio.app.domain.model.CreateOutcome
 import com.pledgerio.app.domain.model.FinanceExperienceMode
 import com.pledgerio.app.domain.model.FilterOption
@@ -15,7 +15,7 @@ import com.pledgerio.app.domain.model.TransactionTemplate
 import com.pledgerio.app.domain.model.TransactionType
 import java.util.UUID
 import kotlin.math.abs
-import com.pledgerio.app.domain.repository.AccountRepository
+import com.pledgerio.app.accounts.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import com.pledgerio.app.catalog.domain.repository.ContractRepository

@@ -1,6 +1,6 @@
 package com.pledgerio.app.di
 
-import com.pledgerio.app.data.repository.AccountRepositoryImpl
+import com.pledgerio.app.accounts.data.AccountRepositoryImpl
 import com.pledgerio.app.identity.data.AuthRepositoryImpl
 import com.pledgerio.app.data.repository.BudgetRepositoryImpl
 import com.pledgerio.app.catalog.data.CategoryRepositoryImpl
@@ -15,7 +15,7 @@ import com.pledgerio.app.data.repository.TransactionRepositoryImpl
 import com.pledgerio.app.identity.data.UserSessionRepositoryImpl
 import com.pledgerio.app.data.cache.ReportsOverviewCache
 import com.pledgerio.app.data.ocr.InvoiceTextExtractor
-import com.pledgerio.app.domain.repository.AccountRepository
+import com.pledgerio.app.accounts.domain.repository.AccountRepository
 import com.pledgerio.app.identity.domain.repository.AuthRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.catalog.domain.repository.CategoryRepository

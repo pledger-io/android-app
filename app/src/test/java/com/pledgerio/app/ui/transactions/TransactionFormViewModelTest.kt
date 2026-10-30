@@ -2,7 +2,7 @@ package com.pledgerio.app.ui.transactions
 
 import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.SavedStateHandle
-import com.pledgerio.app.domain.model.Account
+import com.pledgerio.app.accounts.domain.model.Account
 import com.pledgerio.app.domain.model.BudgetExpense
 import com.pledgerio.app.catalog.domain.model.Category
 import com.pledgerio.app.domain.model.CreateOutcome
@@ -13,7 +13,7 @@ import com.pledgerio.app.domain.model.PendingTransactionCreate
 import com.pledgerio.app.domain.model.Transaction
 import com.pledgerio.app.domain.model.TransactionClassificationSuggestion
 import com.pledgerio.app.domain.model.TransactionType
-import com.pledgerio.app.domain.repository.AccountRepository
+import com.pledgerio.app.accounts.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import com.pledgerio.app.catalog.domain.repository.ContractRepository

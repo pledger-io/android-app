@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.settings
 
+import com.pledgerio.app.accounts.ui.icon
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager

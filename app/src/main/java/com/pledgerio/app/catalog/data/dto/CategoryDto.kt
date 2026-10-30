@@ -2,7 +2,7 @@ package com.pledgerio.app.catalog.data.dto
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.pledgerio.app.data.remote.dto.PageInfo
+import com.pledgerio.app.shared.data.dto.PageInfo
 
 @JsonClass(generateAdapter = true)
 data class CategoryDto(

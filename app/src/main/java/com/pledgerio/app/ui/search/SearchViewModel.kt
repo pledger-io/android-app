@@ -3,10 +3,10 @@ package com.pledgerio.app.ui.search
 import com.pledgerio.app.shared.Resource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pledgerio.app.domain.model.Account
+import com.pledgerio.app.accounts.domain.model.Account
 import com.pledgerio.app.catalog.domain.model.Category
 import com.pledgerio.app.domain.model.Transaction
-import com.pledgerio.app.domain.repository.AccountRepository
+import com.pledgerio.app.accounts.domain.repository.AccountRepository
 import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import com.pledgerio.app.domain.repository.TransactionRepository
 import com.pledgerio.app.shared.SearchDefaults

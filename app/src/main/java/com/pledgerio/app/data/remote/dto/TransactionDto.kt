@@ -1,5 +1,6 @@
 package com.pledgerio.app.data.remote.dto
 
+import com.pledgerio.app.shared.data.dto.PageInfo
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 

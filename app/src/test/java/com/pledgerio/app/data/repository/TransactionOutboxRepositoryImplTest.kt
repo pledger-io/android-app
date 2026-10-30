@@ -6,7 +6,7 @@ import com.pledgerio.app.data.local.dao.TransactionOutboxDao
 import com.pledgerio.app.data.local.entity.TransactionOutboxEntity
 import com.pledgerio.app.shared.data.remote.api.PledgerApiService
 import com.pledgerio.app.data.remote.dto.AccountLinkDto
-import com.pledgerio.app.data.remote.dto.PageInfo
+import com.pledgerio.app.shared.data.dto.PageInfo
 import com.pledgerio.app.data.remote.dto.TransactionDatesDto
 import com.pledgerio.app.data.remote.dto.TransactionDto
 import com.pledgerio.app.data.remote.dto.TransactionPagedResponse

@@ -1,5 +1,6 @@
 package com.pledgerio.app.ui.components
 
+import com.pledgerio.app.accounts.ui.icon
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

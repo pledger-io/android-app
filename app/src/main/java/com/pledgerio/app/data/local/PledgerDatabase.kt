@@ -3,7 +3,7 @@ package com.pledgerio.app.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.pledgerio.app.data.local.dao.AccountDao
+import com.pledgerio.app.accounts.data.dao.AccountDao
 import com.pledgerio.app.catalog.data.dao.AccountTypeDao
 import com.pledgerio.app.data.local.dao.BudgetDao
 import com.pledgerio.app.catalog.data.dao.CategoryDao
@@ -14,7 +14,7 @@ import com.pledgerio.app.data.local.dao.SyncMetadataDao
 import com.pledgerio.app.catalog.data.dao.TagDao
 import com.pledgerio.app.data.local.dao.TransactionDao
 import com.pledgerio.app.data.local.dao.TransactionOutboxDao
-import com.pledgerio.app.data.local.entity.AccountEntity
+import com.pledgerio.app.accounts.data.entity.AccountEntity
 import com.pledgerio.app.catalog.data.entity.AccountTypeEntity
 import com.pledgerio.app.data.local.entity.BudgetEntity
 import com.pledgerio.app.catalog.data.entity.CategoryEntity

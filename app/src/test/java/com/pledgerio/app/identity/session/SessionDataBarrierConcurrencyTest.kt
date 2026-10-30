@@ -9,7 +9,7 @@ import com.pledgerio.app.identity.session.AuthenticatedSessionCoordinator
 import com.pledgerio.app.identity.session.SessionDataBarrier
 import com.pledgerio.app.identity.session.SessionManager
 import com.pledgerio.app.shared.data.LocalDataCleaner
-import com.pledgerio.app.domain.repository.AccountRepository
+import com.pledgerio.app.accounts.domain.repository.AccountRepository
 import com.pledgerio.app.domain.repository.BudgetRepository
 import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import com.pledgerio.app.catalog.domain.repository.ContractRepository
