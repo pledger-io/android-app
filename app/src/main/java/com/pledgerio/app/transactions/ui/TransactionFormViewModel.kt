@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.accounts.domain.model.Account
 import com.pledgerio.app.accounts.domain.model.AccountTypeCodes
 import com.pledgerio.app.transactions.domain.model.CreateOutcome
-import com.pledgerio.app.domain.model.FinanceExperienceMode
+import com.pledgerio.app.settings.domain.model.FinanceExperienceMode
 import com.pledgerio.app.transactions.domain.model.FilterOption
 import com.pledgerio.app.transactions.domain.model.Transaction
 import com.pledgerio.app.transactions.domain.model.TransactionSplit
@@ -25,7 +25,7 @@ import com.pledgerio.app.transactions.domain.repository.TransactionRepository
 import com.pledgerio.app.transactions.ui.form.splitValidationIssue
 import com.pledgerio.app.shared.SearchDefaults
 import com.pledgerio.app.transactions.TransactionTemplateStore
-import com.pledgerio.app.util.UserPreferences
+import com.pledgerio.app.settings.data.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job

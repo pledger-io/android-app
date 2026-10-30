@@ -26,9 +26,9 @@ import com.pledgerio.app.identity.ui.onboarding.Verify2FactorScreen
 import com.pledgerio.app.reports.ui.ReportsScreen
 import com.pledgerio.app.transactions.ui.search.SearchScreen
 import com.pledgerio.app.transactions.ui.search.SearchViewModel
-import com.pledgerio.app.ui.settings.ApiSessionsScreen
-import com.pledgerio.app.ui.settings.MfaSetupScreen
-import com.pledgerio.app.ui.settings.SettingsScreen
+import com.pledgerio.app.settings.ui.ApiSessionsScreen
+import com.pledgerio.app.settings.ui.MfaSetupScreen
+import com.pledgerio.app.settings.ui.SettingsScreen
 import com.pledgerio.app.transactions.ui.TransactionDetailScreen
 import com.pledgerio.app.transactions.ui.TransactionFormScreen
 import com.pledgerio.app.transactions.ui.TransactionsScreen

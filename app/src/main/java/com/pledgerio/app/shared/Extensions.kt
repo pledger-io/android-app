@@ -2,7 +2,7 @@ package com.pledgerio.app.shared
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import com.pledgerio.app.util.UserPreferences
+import com.pledgerio.app.settings.data.UserPreferences
 import java.util.Currency
 
 fun Double.formatCurrency(currencyCode: String? = null): String {

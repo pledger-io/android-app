@@ -115,18 +115,18 @@ Outbox delivery claims rows as `IN_FLIGHT` before POST. Unknown outcomes are rec
 
 ## Code map
 
-C4 level 4 is represented by these implementation entry points rather than a duplicate class diagram. Paths are relative to this document.
+Sources are organized into bounded contexts — `com.pledgerio.app.<context>.{domain,data,ui}` for `identity`, `accounts`, `transactions`, `budgets`, `reports`, `catalog`, `sync`, `settings`, plus a `shared` kernel — per [ADR-022](adr/022-ddd-bounded-contexts.md). The app shell (`MainActivity`, `ui/navigation`, `ui/theme`, `ui/components`) and `di/` stay at the root. C4 level 4 is represented by these implementation entry points rather than a duplicate class diagram. Paths are relative to this document.
 
 | Responsibility | Source |
 |---|---|
 | Startup / Hilt / workers | [Application](../app/src/main/java/com/pledgerio/app/PledgerApp.kt), [DI modules](../app/src/main/java/com/pledgerio/app/di) |
 | Navigation and deep links | [NavGraph](../app/src/main/java/com/pledgerio/app/ui/navigation/NavGraph.kt), [DeepLinkParser](../app/src/main/java/com/pledgerio/app/ui/navigation/DeepLinkParser.kt) |
-| Transaction orchestration | [Form ViewModel](../app/src/main/java/com/pledgerio/app/ui/transactions/TransactionFormViewModel.kt), [domain use cases](../app/src/main/java/com/pledgerio/app/domain/usecase) |
-| API / authenticated networking | [PledgerApiService](../app/src/main/java/com/pledgerio/app/data/remote/api/PledgerApiService.kt), [NetworkModule](../app/src/main/java/com/pledgerio/app/di/NetworkModule.kt) |
-| Storage / migrations | [PledgerDatabase](../app/src/main/java/com/pledgerio/app/data/local/PledgerDatabase.kt), [migrations](../app/src/main/java/com/pledgerio/app/data/local/PledgerDatabaseMigrations.kt) |
-| Outbox delivery | [TransactionOutboxRepositoryImpl](../app/src/main/java/com/pledgerio/app/data/repository/TransactionOutboxRepositoryImpl.kt) |
-| Session isolation | [AuthenticatedSessionCoordinator](../app/src/main/java/com/pledgerio/app/util/AuthenticatedSessionCoordinator.kt), [SessionDataBarrier](../app/src/main/java/com/pledgerio/app/util/SessionDataBarrier.kt) |
-| Sync and alerts | [SyncWorkRunner](../app/src/main/java/com/pledgerio/app/util/SyncWorkRunner.kt), [BudgetAlertNotifier](../app/src/main/java/com/pledgerio/app/util/BudgetAlertNotifier.kt) |
-| Read caching | [CacheRefresher](../app/src/main/java/com/pledgerio/app/data/cache/CacheRefresher.kt), [report cache](../app/src/main/java/com/pledgerio/app/data/cache/ReportsOverviewCache.kt) |
+| Transaction orchestration | [Form ViewModel](../app/src/main/java/com/pledgerio/app/transactions/ui/TransactionFormViewModel.kt), [domain use cases](../app/src/main/java/com/pledgerio/app/transactions/domain/usecase) |
+| API / authenticated networking | [PledgerApiService](../app/src/main/java/com/pledgerio/app/shared/data/remote/api/PledgerApiService.kt), [NetworkModule](../app/src/main/java/com/pledgerio/app/di/NetworkModule.kt) |
+| Storage / migrations | [PledgerDatabase](../app/src/main/java/com/pledgerio/app/shared/data/local/PledgerDatabase.kt), [migrations](../app/src/main/java/com/pledgerio/app/shared/data/local/PledgerDatabaseMigrations.kt) |
+| Outbox delivery | [TransactionOutboxRepositoryImpl](../app/src/main/java/com/pledgerio/app/sync/data/TransactionOutboxRepositoryImpl.kt) |
+| Session isolation | [AuthenticatedSessionCoordinator](../app/src/main/java/com/pledgerio/app/identity/session/AuthenticatedSessionCoordinator.kt), [SessionDataBarrier](../app/src/main/java/com/pledgerio/app/identity/session/SessionDataBarrier.kt) |
+| Sync and alerts | [SyncWorkRunner](../app/src/main/java/com/pledgerio/app/sync/work/SyncWorkRunner.kt), [BudgetAlertNotifier](../app/src/main/java/com/pledgerio/app/budgets/BudgetAlertNotifier.kt) |
+| Read caching | [CacheRefresher](../app/src/main/java/com/pledgerio/app/shared/data/cache/CacheRefresher.kt), [report cache](../app/src/main/java/com/pledgerio/app/reports/data/cache/ReportsOverviewCache.kt) |
 
 See [constraints](CONSTRAINTS.md), [ADRs](adr/README.md), and [features](FEATURES.md). Historical plans are indexed in [documentation home](README.md).

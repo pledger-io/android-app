@@ -6,7 +6,7 @@ import com.pledgerio.app.budgets.data.BudgetRepositoryImpl
 import com.pledgerio.app.catalog.data.CategoryRepositoryImpl
 import com.pledgerio.app.catalog.data.ContractRepositoryImpl
 import com.pledgerio.app.catalog.data.CurrencyRepositoryImpl
-import com.pledgerio.app.data.repository.IssueReportRepositoryImpl
+import com.pledgerio.app.settings.data.IssueReportRepositoryImpl
 import com.pledgerio.app.reports.data.ReportRepositoryImpl
 import com.pledgerio.app.reports.data.SpendingInsightRepositoryImpl
 import com.pledgerio.app.catalog.data.TagRepositoryImpl
@@ -21,7 +21,7 @@ import com.pledgerio.app.budgets.domain.repository.BudgetRepository
 import com.pledgerio.app.catalog.domain.repository.CategoryRepository
 import com.pledgerio.app.catalog.domain.repository.ContractRepository
 import com.pledgerio.app.catalog.domain.repository.CurrencyRepository
-import com.pledgerio.app.domain.repository.IssueReportRepository
+import com.pledgerio.app.settings.domain.repository.IssueReportRepository
 import com.pledgerio.app.transactions.domain.repository.InvoiceTextReader
 import com.pledgerio.app.reports.domain.repository.ReportRepository
 import com.pledgerio.app.reports.domain.repository.ReportsOverviewStore

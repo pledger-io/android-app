@@ -1,0 +1,287 @@
+package com.pledgerio.app.settings.ui
+
+import com.pledgerio.app.shared.Resource
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.pledgerio.app.settings.domain.model.AppLocale
+import com.pledgerio.app.catalog.domain.model.Currency
+import com.pledgerio.app.settings.domain.model.FinanceExperienceMode
+import com.pledgerio.app.settings.domain.model.ThemeMode
+import com.pledgerio.app.identity.domain.repository.AuthRepository
+import com.pledgerio.app.catalog.domain.repository.CurrencyRepository
+import com.pledgerio.app.identity.domain.repository.UserSessionRepository
+import com.pledgerio.app.identity.session.BiometricAuthenticator
+import com.pledgerio.app.identity.session.BiometricAvailability
+import com.pledgerio.app.identity.session.BiometricLockManager
+import com.pledgerio.app.settings.LocaleManager
+import com.pledgerio.app.identity.session.SessionManager
+import com.pledgerio.app.settings.data.UserPreferences
+import androidx.fragment.app.FragmentActivity
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
+import javax.inject.Inject
+
+data class SettingsUiState(
+    val serverUrl: String? = null,
+    val username: String? = null,
+    val biometricEnabled: Boolean = false,
+    val biometricAvailability: BiometricAvailability = BiometricAvailability.NotAvailable,
+    val mfaEnabled: Boolean? = null,
+    val displayCurrencyCode: String = "EUR",
+    val displayCurrencyLabel: String = "EUR",
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val financeExperienceMode: FinanceExperienceMode = FinanceExperienceMode.GUIDED,
+    val appLocale: AppLocale = AppLocale.SYSTEM,
+    val budgetAlertsEnabled: Boolean = true,
+    val budgetAlertThresholdPercent: Int = 80,
+    val currencies: List<Currency> = emptyList(),
+    val showCurrencyPicker: Boolean = false,
+    val showThemePicker: Boolean = false,
+    val showExperiencePicker: Boolean = false,
+    val showLanguagePicker: Boolean = false,
+    val showBudgetAlertThresholdPicker: Boolean = false,
+    val isLoggingOut: Boolean = false,
+    val logoutFailed: Boolean = false,
+)
+
+@HiltViewModel
+class SettingsViewModel @Inject constructor(
+    private val sessionManager: SessionManager,
+    private val authRepository: AuthRepository,
+    private val userSessionRepository: UserSessionRepository,
+    private val userPreferences: UserPreferences,
+    private val currencyRepository: CurrencyRepository,
+    private val biometricAuthenticator: BiometricAuthenticator,
+    private val biometricLockManager: BiometricLockManager,
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(
+        SettingsUiState(
+            serverUrl = sessionManager.getBaseUrl(),
+            username = sessionManager.getUsername(),
+            biometricEnabled = sessionManager.isBiometricEnabled(),
+            biometricAvailability = biometricAuthenticator.getAvailability(),
+        )
+    )
+    val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            userPreferences.displayCurrencyCode.collect { code ->
+                _uiState.update {
+                    it.copy(
+                        displayCurrencyCode = code,
+                        displayCurrencyLabel = currencyLabel(code),
+                    )
+                }
+            }
+        }
+        viewModelScope.launch {
+            userPreferences.themeMode.collect { mode ->
+                _uiState.update { it.copy(themeMode = mode) }
+            }
+        }
+        viewModelScope.launch {
+            userPreferences.financeExperienceMode.collect { mode ->
+                _uiState.update { it.copy(financeExperienceMode = mode) }
+            }
+        }
+        viewModelScope.launch {
+            userPreferences.appLocale.collect { locale ->
+                _uiState.update { it.copy(appLocale = locale) }
+            }
+        }
+        viewModelScope.launch {
+            userPreferences.budgetAlertsEnabled.collect { enabled ->
+                _uiState.update { it.copy(budgetAlertsEnabled = enabled) }
+            }
+        }
+        viewModelScope.launch {
+            userPreferences.budgetAlertThresholdPercent.collect { percent ->
+                _uiState.update { it.copy(budgetAlertThresholdPercent = percent) }
+            }
+        }
+        loadCurrencies()
+        refreshMfaStatus()
+    }
+
+    fun refreshMfaStatus() {
+        viewModelScope.launch {
+            when (val result = userSessionRepository.getProfile()) {
+                is Resource.Success -> _uiState.update {
+                    it.copy(mfaEnabled = result.data.mfa)
+                }
+                is Resource.Error, is Resource.Loading -> Unit
+            }
+        }
+    }
+
+    fun toggleBiometric(enabled: Boolean) {
+        if (enabled) return
+        sessionManager.setBiometricEnabled(false)
+        biometricLockManager.onBiometricDisabled()
+        _uiState.update { it.copy(biometricEnabled = false) }
+    }
+
+    fun enableBiometric(
+        activity: FragmentActivity,
+        enableTitle: String,
+        enableSubtitle: String,
+        cancelLabel: String,
+        onError: (String) -> Unit,
+    ) {
+        if (!_uiState.value.biometricAvailability.canEnable) return
+        biometricAuthenticator.authenticate(
+            activity = activity,
+            title = enableTitle,
+            subtitle = enableSubtitle,
+            negativeButtonText = cancelLabel,
+            onSuccess = {
+                sessionManager.setBiometricEnabled(true)
+                biometricLockManager.onUnlocked()
+                _uiState.update { it.copy(biometricEnabled = true) }
+            },
+            onError = onError,
+        )
+    }
+
+    fun openCurrencyPicker() {
+        _uiState.update { it.copy(showCurrencyPicker = true) }
+    }
+
+    fun dismissCurrencyPicker() {
+        _uiState.update { it.copy(showCurrencyPicker = false) }
+    }
+
+    fun openThemePicker() {
+        _uiState.update { it.copy(showThemePicker = true) }
+    }
+
+    fun dismissThemePicker() {
+        _uiState.update { it.copy(showThemePicker = false) }
+    }
+
+    fun openExperiencePicker() {
+        _uiState.update { it.copy(showExperiencePicker = true) }
+    }
+
+    fun dismissExperiencePicker() {
+        _uiState.update { it.copy(showExperiencePicker = false) }
+    }
+
+    fun openLanguagePicker() {
+        _uiState.update { it.copy(showLanguagePicker = true) }
+    }
+
+    fun dismissLanguagePicker() {
+        _uiState.update { it.copy(showLanguagePicker = false) }
+    }
+
+    fun openBudgetAlertThresholdPicker() {
+        if (!_uiState.value.budgetAlertsEnabled) return
+        _uiState.update { it.copy(showBudgetAlertThresholdPicker = true) }
+    }
+
+    fun dismissBudgetAlertThresholdPicker() {
+        _uiState.update { it.copy(showBudgetAlertThresholdPicker = false) }
+    }
+
+    fun setBudgetAlertsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferences.setBudgetAlertsEnabled(enabled)
+        }
+    }
+
+    fun selectBudgetAlertThreshold(percent: Int) {
+        viewModelScope.launch {
+            userPreferences.setBudgetAlertThresholdPercent(percent)
+            dismissBudgetAlertThresholdPicker()
+        }
+    }
+
+    fun selectAppLocale(locale: AppLocale, onLocaleApplied: () -> Unit) {
+        viewModelScope.launch {
+            userPreferences.setAppLocale(locale)
+            withContext(Dispatchers.Main) {
+                LocaleManager.apply(locale)
+                dismissLanguagePicker()
+                onLocaleApplied()
+            }
+        }
+    }
+
+    fun selectCurrency(code: String) {
+        viewModelScope.launch {
+            userPreferences.setDisplayCurrency(code)
+            dismissCurrencyPicker()
+        }
+    }
+
+    fun selectTheme(mode: ThemeMode) {
+        viewModelScope.launch {
+            userPreferences.setThemeMode(mode)
+            dismissThemePicker()
+        }
+    }
+
+    fun selectFinanceExperienceMode(mode: FinanceExperienceMode) {
+        viewModelScope.launch {
+            userPreferences.setFinanceExperienceMode(mode)
+            dismissExperiencePicker()
+        }
+    }
+
+    fun logout(onLoggedOut: () -> Unit) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoggingOut = true, logoutFailed = false) }
+            try {
+                authRepository.logout()
+                _uiState.update { it.copy(isLoggingOut = false) }
+                onLoggedOut()
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                _uiState.update {
+                    it.copy(isLoggingOut = false, logoutFailed = true)
+                }
+            }
+        }
+    }
+
+    fun consumeLogoutFailure() {
+        _uiState.update { it.copy(logoutFailed = false) }
+    }
+
+    private fun loadCurrencies() {
+        viewModelScope.launch {
+            currencyRepository.sync()
+            val currencies = currencyRepository.getCurrencies().first()
+            _uiState.update { state ->
+                state.copy(
+                    currencies = currencies,
+                    displayCurrencyLabel = currencyLabel(state.displayCurrencyCode, currencies),
+                )
+            }
+        }
+    }
+
+    private fun currencyLabel(
+        code: String,
+        currencies: List<Currency> = _uiState.value.currencies,
+    ): String {
+        val currency = currencies.find { it.code == code }
+        return if (currency != null) {
+            "${currency.code} — ${currency.name} (${currency.symbol})"
+        } else {
+            code
+        }
+    }
+}

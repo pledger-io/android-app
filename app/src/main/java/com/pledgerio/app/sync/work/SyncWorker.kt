@@ -1,6 +1,6 @@
 package com.pledgerio.app.sync.work
 
-import com.pledgerio.app.util.UserPreferences
+import com.pledgerio.app.settings.data.UserPreferences
 import com.pledgerio.app.budgets.BudgetAlertNotifier
 import com.pledgerio.app.budgets.BudgetAlertLogic
 import android.content.Context

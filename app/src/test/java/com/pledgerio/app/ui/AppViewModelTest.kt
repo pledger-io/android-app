@@ -1,6 +1,6 @@
 package com.pledgerio.app.ui
 
-import com.pledgerio.app.domain.model.ThemeMode
+import com.pledgerio.app.settings.domain.model.ThemeMode
 import com.pledgerio.app.identity.domain.repository.AuthRepository
 import com.pledgerio.app.identity.session.AuthenticatedSessionCoordinator
 import com.pledgerio.app.identity.session.BiometricAuthenticator
@@ -8,7 +8,7 @@ import com.pledgerio.app.identity.session.BiometricLockManager
 import com.pledgerio.app.identity.session.DurableLogoutException
 import com.pledgerio.app.shared.NetworkMonitor
 import com.pledgerio.app.identity.session.SessionManager
-import com.pledgerio.app.util.UserPreferences
+import com.pledgerio.app.settings.data.UserPreferences
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk

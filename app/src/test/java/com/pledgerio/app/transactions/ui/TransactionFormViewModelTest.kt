@@ -9,7 +9,7 @@ import com.pledgerio.app.accounts.domain.model.Account
 import com.pledgerio.app.budgets.domain.model.BudgetExpense
 import com.pledgerio.app.catalog.domain.model.Category
 import com.pledgerio.app.transactions.domain.model.CreateOutcome
-import com.pledgerio.app.domain.model.FinanceExperienceMode
+import com.pledgerio.app.settings.domain.model.FinanceExperienceMode
 import com.pledgerio.app.transactions.domain.model.FilterOption
 import com.pledgerio.app.transactions.domain.model.OutboxStatus
 import com.pledgerio.app.transactions.domain.model.PendingTransactionCreate
@@ -28,7 +28,7 @@ import com.pledgerio.app.transactions.ui.form.AutoClassifyStatus
 import com.pledgerio.app.shared.MainDispatcherRule
 import com.pledgerio.app.transactions.domain.model.TransactionTemplate
 import com.pledgerio.app.transactions.TransactionTemplateStore
-import com.pledgerio.app.util.UserPreferences
+import com.pledgerio.app.settings.data.UserPreferences
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

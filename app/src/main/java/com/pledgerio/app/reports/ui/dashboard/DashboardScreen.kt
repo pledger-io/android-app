@@ -58,7 +58,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.pledgerio.app.R
-import com.pledgerio.app.domain.model.FinanceExperienceMode
+import com.pledgerio.app.settings.domain.model.FinanceExperienceMode
 import com.pledgerio.app.ui.components.EmptyScreen
 import com.pledgerio.app.transactions.domain.model.Transaction
 import com.pledgerio.app.transactions.domain.model.TransactionType

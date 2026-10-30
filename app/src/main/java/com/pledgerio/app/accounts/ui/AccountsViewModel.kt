@@ -5,13 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pledgerio.app.accounts.domain.model.Account
 import com.pledgerio.app.accounts.domain.model.AccountListFilter
-import com.pledgerio.app.domain.model.FinanceExperienceMode
+import com.pledgerio.app.settings.domain.model.FinanceExperienceMode
 import com.pledgerio.app.accounts.domain.model.AccountSection
 import com.pledgerio.app.accounts.domain.model.AccountTypeCatalog
 import com.pledgerio.app.accounts.domain.model.AccountTypeOption
 import com.pledgerio.app.accounts.domain.repository.AccountRepository
 import com.pledgerio.app.shared.SearchDefaults
-import com.pledgerio.app.util.UserPreferences
+import com.pledgerio.app.settings.data.UserPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope

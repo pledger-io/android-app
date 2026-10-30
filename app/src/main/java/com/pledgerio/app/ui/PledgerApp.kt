@@ -42,7 +42,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.pledgerio.app.R
-import com.pledgerio.app.domain.model.ThemeMode
+import com.pledgerio.app.settings.domain.model.ThemeMode
 import com.pledgerio.app.ui.components.BiometricLockScreen
 import com.pledgerio.app.ui.components.OfflineBanner
 import com.pledgerio.app.ui.navigation.DeepLink

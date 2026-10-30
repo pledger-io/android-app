@@ -53,7 +53,7 @@ import com.pledgerio.app.accounts.domain.model.AccountListFilter
 import com.pledgerio.app.accounts.domain.model.AccountSection
 import com.pledgerio.app.accounts.domain.model.AccountTypeCatalog
 import com.pledgerio.app.ui.components.AccountIcon
-import com.pledgerio.app.domain.model.FinanceExperienceMode
+import com.pledgerio.app.settings.domain.model.FinanceExperienceMode
 import com.pledgerio.app.ui.components.EmptyScreen
 import com.pledgerio.app.ui.components.LastUpdatedIndicator
 import com.pledgerio.app.ui.components.ErrorScreen
