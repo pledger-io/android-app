@@ -71,6 +71,27 @@ class GetDashboardDataUseCaseTest {
   }
 
   @Test
+  fun `net worth only includes checking savings and credit cards`() = runTest {
+    val accounts = listOf(
+      Account(id = 1, name = "Checking", balance = 1000.0, typeCode = "default"),
+      Account(id = 2, name = "Joint checking", balance = 500.0, typeCode = "joined"),
+      Account(id = 3, name = "Joint savings", balance = 5000.0, typeCode = "joined_savings"),
+      Account(id = 4, name = "Credit card", balance = -200.0, typeCode = "credit_card"),
+      Account(id = 5, name = "Loan", balance = -3000.0, typeCode = "loan"),
+      Account(id = 6, name = "Mortgage", balance = -9000.0, typeCode = "mortgage"),
+      Account(id = 7, name = "Investments", balance = 700.0, typeCode = "investment"),
+      Account(id = 8, name = "Cash", balance = 100.0, typeCode = "cash"),
+    )
+    every { accountRepository.getAccounts() } returns flowOf(Resource.Success(accounts))
+    every { transactionRepository.getRecentTransactions(5) } returns flowOf(Resource.Success(emptyList()))
+
+    val result = useCase().first() as Resource.Success
+
+    assertEquals(6300.0, result.data.netWorth, 0.01)
+    assertEquals(accounts, result.data.accounts)
+  }
+
+  @Test
   fun `returns account error when accounts fail`() = runTest {
     every { accountRepository.getAccounts() } returns flowOf(Resource.Error("Network down"))
     every { transactionRepository.getRecentTransactions(5) } returns flowOf(Resource.Success(emptyList()))
