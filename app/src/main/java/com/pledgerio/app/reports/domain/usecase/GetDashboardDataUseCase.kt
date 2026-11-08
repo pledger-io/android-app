@@ -2,6 +2,7 @@ package com.pledgerio.app.reports.domain.usecase
 
 import com.pledgerio.app.shared.Resource
 import com.pledgerio.app.accounts.domain.model.Account
+import com.pledgerio.app.accounts.domain.model.AccountType
 import com.pledgerio.app.transactions.domain.model.Transaction
 import com.pledgerio.app.accounts.domain.repository.AccountRepository
 import com.pledgerio.app.transactions.domain.repository.TransactionRepository
@@ -37,7 +38,12 @@ class GetDashboardDataUseCase @Inject constructor(
                         DashboardData(
                             accounts = accounts,
                             recentTransactions = transactions,
-                            netWorth = accounts.sumOf { it.balance },
+                            netWorth = accounts.filter { account ->
+                                when (account.type) {
+                                    AccountType.CHECKING, AccountType.SAVINGS, AccountType.CREDIT_CARD -> true
+                                    else -> false
+                                }
+                            }.sumOf { it.balance },
                             monthlyIncome = transactions
                                 .filter { it.type == com.pledgerio.app.transactions.domain.model.TransactionType.DEBIT }
                                 .sumOf { it.amount },

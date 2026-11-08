@@ -5,7 +5,7 @@ This describes the checked-in implementation. Server-backed features depend on t
 | Capability | Behavior and entry point | Implementation |
 |---|---|---|
 | Setup and login | Configure/validate server, password login with TOTP verification when required, refresh session, change server, log out | `ui/onboarding`, `AuthRepository`, `SessionManager` |
-| Dashboard | Accounts, income/expense summary, recent transactions, spending insights, add actions | `ui/dashboard`, `GetDashboardDataUseCase` |
+| Dashboard | Accounts, net worth from checking, savings, and credit cards, income/expense summary, recent transactions, spending insights, add actions | `ui/dashboard`, `GetDashboardDataUseCase` |
 | Transactions | Month navigation, paging, filters, detail, create/edit/delete | `ui/transactions`, `TransactionRepository` |
 | Transaction entry | Income/expense/transfer, category, expense group, contract, tags, templates, splits, classification suggestions | `TransactionFormViewModel`, `ui/transactions/form` |
 | Invoice scan | Camera or image picker, local OCR, backend text interpretation, review/edit prefilled form before saving | `ui/transactions/scan`, `ProcessInvoiceScanUseCase` |
